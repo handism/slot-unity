@@ -15,6 +15,7 @@ namespace SlotGame.Core
 
         private IRandomGenerator _random;
         private bool             _skipRequested;
+        private SlotGame.Data.SymbolData[] _cachedSymbolDefs;
 
         public void Initialize(IRandomGenerator random) => _random = random;
 
@@ -72,9 +73,10 @@ namespace SlotGame.Core
             }
 
             // シンボル定義の配列を集約（SymbolData は各ストリップに含まれる）
-            var allDefs = CollectSymbolDefs(strips);
+            if (_cachedSymbolDefs == null)
+                _cachedSymbolDefs = CollectSymbolDefs(strips);
 
-            return PaylineEvaluator.Evaluate(grid, allDefs, paylines, payouts, betAmount);
+            return PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount);
         }
 
         /// <summary>スピン中に呼ぶとリールが即座に停止位置へスナップする。</summary>

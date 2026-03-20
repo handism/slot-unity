@@ -6,18 +6,31 @@ using UnityEngine.UI;
 
 namespace SlotGame.Core
 {
-    /// <summary>Boot シーンの初期化処理。DOTween 初期化後に Main シーンへ遷移する。</summary>
+    using SlotGame.Model;
+    using SlotGame.Utility;
+
+    /// <summary>Boot シーンの初期化処理。依存性の注入を行い Main シーンへ遷移する。</summary>
     public class BootManager : MonoBehaviour
     {
         [SerializeField] private Slider progressBar;
 
         private async void Start()
         {
+            // 1. 基本システムの初期化
             DOTween.Init(recycleAllByDefault: true, useSafeMode: true, logBehaviour: LogBehaviour.ErrorsOnly);
             DOTween.defaultAutoPlay = AutoPlay.All;
 
             if (progressBar != null) progressBar.value = 0;
 
+            // 2. データのロードと Model の生成
+            var saveDataManager = new SaveDataManager();
+            var save = saveDataManager.Load();
+            var gameState = new GameState(save.coins, save.betAmount);
+            gameState.RestoreStats(save.totalSpins, save.maxWin);
+
+            var random = new SystemRandomGenerator();
+
+            // 3. Main シーンのロード
             var op = SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
             op.allowSceneActivation = false;
 
@@ -29,6 +42,12 @@ namespace SlotGame.Core
 
             if (progressBar != null) progressBar.value = 1f;
             await UniTask.Delay(200);
+
+            // 4. 静的コンテナにデータをセットしてシーン遷移
+            GameContext.GameState       = gameState;
+            GameContext.SaveDataManager = saveDataManager;
+            GameContext.Random          = random;
+            GameContext.SaveData        = save;
 
             op.allowSceneActivation = true;
         }

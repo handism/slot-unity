@@ -39,12 +39,38 @@ namespace SlotGame.Core
 
         private void Awake()
         {
-            _saveDataManager = new SaveDataManager();
-            var save = _saveDataManager.Load();
-            _gameState = new GameState(save.coins, save.betAmount);
-            _gameState.RestoreStats(save.totalSpins, save.maxWin);
+            // Boot シーンから渡されたデータで初期化
+            if (GameContext.GameState != null)
+            {
+                Initialize(
+                    GameContext.GameState,
+                    GameContext.SaveDataManager,
+                    GameContext.Random,
+                    GameContext.SaveData
+                );
+            }
+            else
+            {
+                // デバッグ用（Boot シーンを通さず起動した場合）
+                _saveDataManager = new SaveDataManager();
+                var save = _saveDataManager.Load();
+                _gameState = new GameState(save.coins, save.betAmount);
+                _gameState.RestoreStats(save.totalSpins, save.maxWin);
 
-            var random = new SystemRandomGenerator();
+                var random = new SystemRandomGenerator();
+                Initialize(_gameState, _saveDataManager, random, save);
+            }
+        }
+
+        public void Initialize(
+            GameState gameState,
+            SaveDataManager saveDataManager,
+            IRandomGenerator random,
+            SaveData save)
+        {
+            _gameState       = gameState;
+            _saveDataManager = saveDataManager;
+
             spinManager.Initialize(random);
             bonusManager.Initialize(random);
 
@@ -229,15 +255,19 @@ namespace SlotGame.Core
                 _ => 0
             };
 
+            long cumulativeFreeSpinWin = 0;
+            uiManager.ShowFreeSpinHUD(_gameState.FreeSpinsLeft, cumulativeFreeSpinWin);
+
             await bonusManager.RunFreeSpins(
                 _gameState, freeSpinCount,
                 reelStrips, paylineData, payoutData,
                 async result =>
                 {
+                    cumulativeFreeSpinWin += result.TotalWinAmount * 2;
                     uiManager.UpdateCoins(_gameState.Coins);
-                    uiManager.ShowFreeSpinHUD(_gameState.FreeSpinsLeft, 0);
+                    uiManager.ShowFreeSpinHUD(_gameState.FreeSpinsLeft, cumulativeFreeSpinWin);
                     if (result.TotalWinAmount > 0)
-                        await uiManager.ShowWinAmount(result.TotalWinAmount * 2, CalcWinLevel(result.TotalWinAmount));
+                        await uiManager.ShowWinAmount(result.TotalWinAmount * 2, CalcWinLevel(result.TotalWinAmount * 2));
                 },
                 ct);
 

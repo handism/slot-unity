@@ -82,7 +82,12 @@ namespace SlotGame.Core
                 return 0;
             }
 
-            var selectedMultipliers = await view.WaitForSelection(ct);
+            // 9個の報酬を抽選
+            int[] rewards = new int[9];
+            for (int i = 0; i < 9; i++)
+                rewards[i] = DrawBonusReward(payouts);
+
+            var selectedMultipliers = await view.WaitForSelection(rewards, ct);
             long totalWin = 0;
             foreach (int mul in selectedMultipliers)
                 totalWin += (long)mul * betAmount;

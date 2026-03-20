@@ -46,11 +46,29 @@ namespace SlotGame.Utility
             }
         }
 
-        /// <summary>セーブデータを JSON ファイルに書き込む。</summary>
+        /// <summary>セーブデータを JSON ファイルに書き込む（一時ファイルを用いたアトミック書き込み）。</summary>
         public void Save(SaveData data)
         {
             string json = JsonUtility.ToJson(data, prettyPrint: true);
-            File.WriteAllText(_savePath, json);
+            string tempPath = _savePath + ".tmp";
+
+            try
+            {
+                File.WriteAllText(tempPath, json);
+                if (File.Exists(_savePath))
+                {
+                    File.Replace(tempPath, _savePath, null);
+                }
+                else
+                {
+                    File.Move(tempPath, _savePath);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[SaveDataManager] Save failed: {e.Message}");
+                if (File.Exists(tempPath)) File.Delete(tempPath);
+            }
         }
 
         // ─── バリデーション ──────────────────────────────────────────────
