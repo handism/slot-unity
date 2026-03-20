@@ -1,0 +1,56 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(nvm --version)",
+      "Bash(brew list:*)",
+      "Read(//opt/homebrew/opt/**)",
+      "Read(//usr/local/**)",
+      "Bash(ls /usr/local/bin/node*)",
+      "Bash(brew info:*)",
+      "Bash(npx jest:*)",
+      "Bash(cat /Users/mba/git/idle-game/.claude/memory/context/*.md)",
+      "Bash(npx expo:*)",
+      "Bash(git pull:*)",
+      "Bash(find /Users/mba/git/idle-game/app /Users/mba/git/idle-game/src -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\) ! -path */node_modules/*)",
+      "Bash(grep -r \"google-mobile-ads\\\\|mobileAds\\\\|RewardedAd\\\\|AdsConsent\" /Users/mba/git/idle-game/app /Users/mba/git/idle-game/src --include=*.ts --include=*.tsx)",
+      "Bash(ls -t /Users/mba/git/idle-game/.claude/memory/**/*.md)",
+      "Bash(find /Users/mba/git/idle-game/src -name *.web.ts -o -name *.native.ts -o -name *.ios.ts)",
+      "Bash(gh pr:*)",
+      "Bash(chmod:*)",
+      "Skill(update-config)",
+      "WebFetch(domain:registry.npmjs.org)",
+      "Bash(sudo chown:*)",
+      "Bash(find /Users/mba/git/slot-unity -type f -name *.cs)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh api:*)",
+      "Bash(python3 -c \"import json,sys; comments=json.load\\(sys.stdin\\); [print\\(f''''ID:{c[\"\"id\"\"]} L{c.get\\(\"\"line\"\",\"\"?\"\"\\)} {c[\"\"path\"\"]}: {c[\"\"body\"\"][:200]}''''\\) for c in comments]\")",
+      "Bash(python3 -c \":*)",
+      "Bash(find /Users/mba/git/idle-game/.claude/memory -name *.md)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; npx --prefix /Users/mba/git/idle-game prettier --write \"$f\" --ignore-unknown; } 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "/Users/mba/git/idle-game/.claude/statusline.sh"
+  }
+}
