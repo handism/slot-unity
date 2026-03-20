@@ -115,7 +115,14 @@ public class SymbolData : ScriptableObject
     public AnimationClip winAnim;
 }
 
-public enum SymbolType { Normal, Wild, Scatter }
+public enum SymbolType
+{
+    Normal,   // 通常シンボル（Dragon〜Jack）
+    Wild,     // ワイルド（魔法使い）: 通常シンボルの代替として機能
+    Scatter,  // スキャター（魔法陣）: ペイラインに依存しない全体判定、フリースピン発動
+    Bonus     // ボーナストリガー（宝箱）: リール 0/2/4 全てに出現でボーナスラウンド発動
+              // ※ Scatter と独立した別シンボルとして扱い、ペイライン配当を持たない
+}
 
 // リールストリップ（各リールの出目テーブル）
 [CreateAssetMenu]
@@ -130,7 +137,15 @@ public class ReelStripData : ScriptableObject
 public class PaylineData : ScriptableObject
 {
     // 各ラインは 5要素の int 配列（0=Top, 1=Mid, 2=Bot）
-    public Vector2Int[] lines;       // [lineIndex][reelIndex] → 行インデックス
+    // ※ Vector2Int は 2 要素しか持てないため、5 リール対応の専用構造体を使用する
+    public PaylineEntry[] lines;     // 要素数 25（各要素が 5 列分の行インデックスを保持）
+}
+
+// ペイライン 1 本分の定義（5 リール × 行インデックス）
+[Serializable]
+public struct PaylineEntry
+{
+    public int[] rows;   // 要素数 5（rows[reelIndex] = 行インデックス: 0=Top, 1=Mid, 2=Bot）
 }
 
 // 配当テーブル
@@ -165,24 +180,23 @@ public class GameState
     public void RecordSpin(long winAmount) { ... }
 }
 
-// 1スピンの結果
-public class SpinResult
-{
-    public int[,]          StoppedSymbolIds;   // [reel, row]
-    public List<LineWin>   LineWins;
-    public bool            HasScatter;
-    public int             ScatterCount;
-    public bool            HasBonusCondition;
-    public long            TotalWinAmount;
-}
+// 1スピンの結果（イミュータブル）
+// 一度生成された結果は変更不可。DTOとして値の安全性を保証する。
+public sealed record SpinResult(
+    int[,]                    StoppedSymbolIds,   // [reel, row] ※配列は参照型のため変更注意
+    IReadOnlyList<LineWin>    LineWins,
+    bool                      HasScatter,
+    int                       ScatterCount,
+    bool                      HasBonusCondition,
+    long                      TotalWinAmount
+);
 
-public class LineWin
-{
-    public int    LineIndex;
-    public int    SymbolId;
-    public int    MatchCount;      // 3/4/5
-    public long   WinAmount;
-}
+public sealed record LineWin(
+    int  LineIndex,
+    int  SymbolId,
+    int  MatchCount,    // 3/4/5
+    long WinAmount
+);
 ```
 
 ---
@@ -314,6 +328,13 @@ public class MainHUDView : MonoBehaviour
 public class ReelView : MonoBehaviour
 {
     // ReelController から参照され、シンボル画像のスクロールを担当
+    //
+    //【オブジェクトプーリング】
+    //   スピン中に画面外へ出たシンボル GameObject は Destroy せずプールに返却し、
+    //   新たに必要なシンボルはプールから取得することで GC Allocation のスパイクを防ぐ。
+    //   Unity 組み込みの UnityEngine.Pool.ObjectPool<SymbolView> を使用する。
+    private ObjectPool<SymbolView> _symbolPool;
+
     public void ScrollSymbols(float normalizedSpeed);
     public void SnapToPosition(int stopIndex);
     public async UniTask PlayWinAnimation(int row, AnimationClip clip);
@@ -345,7 +366,15 @@ public class SaveDataManager : MonoBehaviour
 
     public SaveData Load();        // 破損時はデフォルト値を返す
     public void    Save(SaveData data);
-    private bool   Validate(SaveData data);  // バージョン・範囲チェック
+
+    // バリデーション: 以下をすべて検証する
+    //   ① saveVersion が既知のバージョンであること
+    //   ② coins が 0 以上 9,999,999 以下であること
+    //   ③ betAmount が選択肢 (10/20/50/100) のいずれかであること
+    //   ④ bgmVolume / seVolume が 0.0 〜 1.0 の範囲内であること
+    //   ⑤ totalSpins / maxWin が 0 以上であること
+    // 1つでも失敗した場合は false を返しデフォルト値へフォールバックする
+    private bool   Validate(SaveData data);
 }
 ```
 
@@ -371,7 +400,27 @@ public class SaveDataManager : MonoBehaviour
 
 ## 6. 乱数生成
 
-- `System.Random` を使用（ゲームプレイ用）
+```csharp
+// 乱数生成をインターフェースでラップし、テスト時に決定論的な実装を差し込めるようにする
+public interface IRandomGenerator
+{
+    int   Next(int minValue, int maxValue);   // minValue 以上 maxValue 未満
+    float NextFloat();                         // 0.0f 以上 1.0f 未満
+}
+
+// プロダクション実装: System.Random を使用（ゲームプレイ用で十分）
+public class SystemRandomGenerator : IRandomGenerator { ... }
+
+// テスト用実装: 固定シードで決定論的に動作する
+public class SeededRandomGenerator : IRandomGenerator { ... }
+```
+
+**方針:**
+
+- 全 Wild ラインの配当ルール: ペイライン上の 5 シンボルがすべて Wild のとき、最高配当シンボル（Dragon）の 5 揃え配当（×500）と同等の配当を与える
+- 乱数の予測可能性はローカルオフラインのアーケードゲームにおいてセキュリティリスクではないため、`System.Security.Cryptography.RandomNumberGenerator`（暗号論的乱数）は使用しない
+- `IRandomGenerator` でラップする主目的は**テスト容易性（決定論的な再現）**
+- `SpinManager` は DI（SerializeField または コンストラクタ）で `IRandomGenerator` を受け取る
 - `ReelStripData` のストリップは重み付き確率テーブルとして機能
   - 例: Dragon はストリップ 60 マス中 2 マス（出現率 3.3%）
 - フリースピン中の乱数は通常と同じ系列（有利化なし、倍率のみ変化）
@@ -379,7 +428,53 @@ public class SaveDataManager : MonoBehaviour
 
 ---
 
-## 7. シーン構成
+## 7. UniTask キャンセレーション戦略
+
+スピン中のシーン遷移・オートスピン中断・アプリ終了時に `OperationCanceledException` が発生する。
+これを適切に処理しないと Console エラーが出続けたり、状態が不整合になる。
+
+### キャンセルトークンの管理
+
+| キャンセル源 | トークン取得方法 |
+|-------------|----------------|
+| シーン破棄（GameObject Destroy） | `this.GetCancellationTokenOnDestroy()` |
+| オートスピン中断 | `CancellationTokenSource` を `GameManager` で管理し `Cancel()` を呼ぶ |
+
+### ハンドリング方針
+
+```csharp
+// GameManager でオートスピンを制御する例
+private CancellationTokenSource _autoSpinCts;
+
+private async UniTask RunAutoSpin(int count, CancellationToken destroyToken)
+{
+    _autoSpinCts = CancellationTokenSource.CreateLinkedTokenSource(destroyToken);
+    var token = _autoSpinCts.Token;
+
+    try
+    {
+        for (int i = 0; i < count; i++)
+        {
+            await spinManager.ExecuteSpin(..., token);
+        }
+    }
+    catch (OperationCanceledException)
+    {
+        // 正常なキャンセル — ログなしで安全に終了
+        // GameManager はここで状態を Idle に戻す
+        TransitionTo(GamePhase.Idle);
+    }
+}
+```
+
+**ルール:**
+- `OperationCanceledException` は最上位の呼び出し元（`GameManager` のフローメソッド）でキャッチし、`Idle` 状態に遷移させる
+- キャッチ後にログを吐かない（`UniTask` の仕様上 `OperationCanceledException` は正常終了扱い）
+- `SpinManager` / `BonusManager` の内部では例外を catch せずに上位に伝播させる
+
+---
+
+## 8. シーン構成
 
 ```
 Assets/

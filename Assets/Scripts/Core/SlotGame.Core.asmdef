@@ -1,0 +1,19 @@
+{
+    "name": "SlotGame.Core",
+    "rootNamespace": "SlotGame.Core",
+    "references": [
+        "SlotGame.Model",
+        "SlotGame.Data",
+        "SlotGame.Utility",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

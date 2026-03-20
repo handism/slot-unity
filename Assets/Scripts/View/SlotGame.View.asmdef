@@ -1,0 +1,21 @@
+{
+    "name": "SlotGame.View",
+    "rootNamespace": "SlotGame.View",
+    "references": [
+        "SlotGame.Core",
+        "SlotGame.Model",
+        "SlotGame.Data",
+        "UniTask",
+        "DOTween.Modules",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

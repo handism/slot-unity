@@ -1,0 +1,17 @@
+{
+    "name": "SlotGame.Utility",
+    "rootNamespace": "SlotGame.Utility",
+    "references": [
+        "SlotGame.Model",
+        "SlotGame.Data"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
