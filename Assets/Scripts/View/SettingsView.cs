@@ -60,7 +60,7 @@ namespace SlotGame.View
             _canvasGroup.alpha = 0f;
 
             await UniTask.WhenAll(
-                _canvasGroup.DOFade(1f, 0.2f).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
+                DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 1f, 0.2f).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
                 transform.DOScale(1f, 0.2f).SetEase(Ease.OutBack).ToUniTask(cancellationToken: ct)
             );
         }
@@ -68,7 +68,7 @@ namespace SlotGame.View
         public async UniTask HideAsync(System.Threading.CancellationToken ct = default)
         {
             await UniTask.WhenAll(
-                _canvasGroup.DOFade(0f, 0.15f).SetEase(Ease.InQuad).ToUniTask(cancellationToken: ct),
+                DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 0f, 0.15f).SetEase(Ease.InQuad).ToUniTask(cancellationToken: ct),
                 transform.DOScale(0.9f, 0.15f).SetEase(Ease.InBack).ToUniTask(cancellationToken: ct)
             );
             gameObject.SetActive(false);

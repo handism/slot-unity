@@ -31,16 +31,16 @@ namespace SlotGame.View
                 int bet = betValues[i];
                 var btn = betButtons[i];
                 btn.onClick.AddListener(() => {
-                    btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetIndependentUpdate(true);
+                    btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
                     OnBetButtonClicked(bet);
                 });
             }
 
             if (spinButton != null)
-                spinButton.onClick.AddListener(() => spinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetIndependentUpdate(true));
+                spinButton.onClick.AddListener(() => spinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true));
             
             if (autoSpinButton != null)
-                autoSpinButton.onClick.AddListener(() => autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetIndependentUpdate(true));
+                autoSpinButton.onClick.AddListener(() => autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true));
         }
 
         public void SetCoins(long coins)

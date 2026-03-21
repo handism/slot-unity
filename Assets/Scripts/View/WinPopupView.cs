@@ -40,7 +40,7 @@ namespace SlotGame.View
 
             // より派手なスケールアニメーションとシェイクの追加（イージングのオーバーシュートを強くする）
             await transform.DOScale(1.2f, 0.35f).SetEase(Ease.OutBack, 2.5f).ToUniTask(cancellationToken: ct);
-            transform.DOShakeRotation(0.5f, new Vector3(0, 0, 8), 15, 90f, false).SetEase(Ease.OutQuad);
+            _ = transform.DOShakeRotation(0.5f, new Vector3(0, 0, 8), 15, 90f, false).SetEase(Ease.OutQuad);
             await transform.DOScale(1.0f, 0.15f).SetEase(Ease.InOutSine).ToUniTask(cancellationToken: ct);
             await UniTask.Delay(TimeSpan.FromSeconds(displayDuration), cancellationToken: ct);
 
