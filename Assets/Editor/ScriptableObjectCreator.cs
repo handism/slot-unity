@@ -69,14 +69,14 @@ namespace SlotGame.Editor
             // Normal 以外は payouts を 0 で登録（PaylineEvaluator では参照されない）
             var defs = new (int id, string name, SymbolType type, int p3, int p4, int p5)[]
             {
-                (0,  "Dragon",  SymbolType.Normal,  50,  100, 500),
-                (1,  "Phoenix", SymbolType.Normal,  40,   80, 400),
-                (2,  "Crystal", SymbolType.Normal,  30,   60, 300),
-                (3,  "Sword",   SymbolType.Normal,  20,   40, 200),
-                (4,  "Ace",     SymbolType.Normal,  10,   20, 100),
-                (5,  "King",    SymbolType.Normal,   8,   15,  80),
-                (6,  "Queen",   SymbolType.Normal,   6,   12,  60),
-                (7,  "Jack",    SymbolType.Normal,   4,    8,  40),
+                (0,  "Dragon",  SymbolType.Normal,  15,   30, 100),
+                (1,  "Phoenix", SymbolType.Normal,  12,   25,  80),
+                (2,  "Crystal", SymbolType.Normal,  10,   20,  60),
+                (3,  "Sword",   SymbolType.Normal,   8,   15,  40),
+                (4,  "Ace",     SymbolType.Normal,   5,   10,  20),
+                (5,  "King",    SymbolType.Normal,   4,    8,  15),
+                (6,  "Queen",   SymbolType.Normal,   3,    6,  12),
+                (7,  "Jack",    SymbolType.Normal,   2,    4,   8),
                 (8,  "Wild",    SymbolType.Wild,     0,    0,   0),
                 (9,  "Scatter", SymbolType.Scatter,  0,    0,   0),
                 (10, "Bonus",   SymbolType.Bonus,    0,    0,   0),
@@ -259,8 +259,8 @@ namespace SlotGame.Editor
             asset.scatterPayouts = new[]
             {
                 new ScatterPayout { scatterCount = 3, multiplier =  2 },
-                new ScatterPayout { scatterCount = 4, multiplier = 10 },
-                new ScatterPayout { scatterCount = 5, multiplier = 50 },
+                new ScatterPayout { scatterCount = 4, multiplier =  5 },
+                new ScatterPayout { scatterCount = 5, multiplier = 20 },
             };
 
             // ボーナスラウンド報酬（PLAN.md 暫定値）
@@ -306,17 +306,17 @@ namespace SlotGame.Editor
             // + 低配当各1追加（Ace+2, King+2, Queen+2, Jack+2 = +8）→ 60
             var baseCounts = new (SymbolData sym, int count)[]
             {
-                (jack,     10),
+                (jack,     11),
                 (queen,    10),
-                (king,     10),
+                (king,     11),
                 (ace,      10),
-                (sword,     5),
+                (sword,     6),
                 (crystal,   4),
-                (phoenix,   3),
-                (wild,      3),
-                (dragon,    2),
+                (phoenix,   2),
+                (wild,      1),
+                (dragon,    1),
                 (scatter,   2),
-                (bonus,     1),
+                (bonus,     2),
             };
 
             for (int reelIdx = 0; reelIdx < 5; reelIdx++)
