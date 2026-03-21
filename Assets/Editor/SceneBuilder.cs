@@ -162,7 +162,7 @@ namespace SlotGame.Editor
             hudCanvasGO.GetComponent<Canvas>().sortingOrder = 10;
             SetupCanvasScaler(hudCanvasGO, 0.5f);
 
-            var (mainHUDGO, mainHUDView, spinButton, autoSpinButton, betButtons) = CreateMainHUD(hudCanvasGO);
+            var (mainHUDGO, mainHUDView, spinButton, autoSpinButton, settingsButton, paytableButton, betButtons) = CreateMainHUD(hudCanvasGO);
             var (freeSpinGO, freeSpinView) = CreateFreeSpinHUD(hudCanvasGO);
             freeSpinGO.SetActive(false);
 
@@ -240,6 +240,8 @@ namespace SlotGame.Editor
             // HUD button bindings
             UnityEventTools.AddPersistentListener(spinButton.onClick, gameManager.OnSpinButtonPressed);
             UnityEventTools.AddIntPersistentListener(autoSpinButton.onClick, gameManager.OnAutoSpinButtonPressed, 10);
+            UnityEventTools.AddPersistentListener(settingsButton.onClick, gameManager.OnSettingsButtonPressed);
+            UnityEventTools.AddPersistentListener(paytableButton.onClick, gameManager.OnPaytableButtonPressed);
             for (int i = 0; i < betButtons.Length; i++)
             {
                 int bet = new[] { 10, 20, 50, 100 }[i];
@@ -254,15 +256,25 @@ namespace SlotGame.Editor
 
         private static (GameObject, ReelController[]) CreateReelGrid(GameObject parent)
         {
+            var frameGO = new GameObject("ReelFrame", typeof(Image));
+            SetParent(frameGO, parent);
+            var frameRT = frameGO.GetComponent<RectTransform>();
+            frameRT.anchorMin        = new Vector2(0.5f, 0.5f);
+            frameRT.anchorMax        = new Vector2(0.5f, 0.5f);
+            frameRT.pivot            = new Vector2(0.5f, 0.5f);
+            frameRT.anchoredPosition = new Vector2(0f, 12f);
+            frameRT.sizeDelta        = new Vector2(1060f, 660f);
+            frameGO.GetComponent<Image>().color = new Color(0.2f, 0.12f, 0.22f, 0.94f);
+
             var gridGO = new GameObject("ReelGrid", typeof(RectTransform));
-            SetParent(gridGO, parent);
+            SetParent(gridGO, frameGO);
 
             var rt = gridGO.GetComponent<RectTransform>();
             rt.anchorMin        = new Vector2(0.5f, 0.5f);
             rt.anchorMax        = new Vector2(0.5f, 0.5f);
             rt.pivot            = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta        = new Vector2(920, 540);   // 5×180 + 4×5 余白
+            rt.sizeDelta        = new Vector2(940, 540);
 
             var hlg = gridGO.AddComponent<HorizontalLayoutGroup>();
             hlg.spacing             = 5f;
@@ -277,8 +289,10 @@ namespace SlotGame.Editor
 
             for (int i = 0; i < 5; i++)
             {
-                var reelGO = new GameObject($"Reel{i}");
+                var reelGO = new GameObject($"Reel{i}", typeof(RectTransform));
                 SetParent(reelGO, gridGO);
+                var reelRt = reelGO.GetComponent<RectTransform>();
+                reelRt.sizeDelta = new Vector2(180f, 540f);
 
                 // LayoutElement でサイズ固定
                 var le = reelGO.AddComponent<LayoutElement>();
@@ -349,19 +363,33 @@ namespace SlotGame.Editor
             var go = new GameObject("SettingsPanel", typeof(Image));
             SetParent(go, parent);
             StretchFull(go);
-            go.GetComponent<Image>().color = new Color(0, 0, 0, 0.8f);
+            go.GetComponent<Image>().color = new Color(0.02f, 0.01f, 0.05f, 0.88f);
 
             var view = go.AddComponent<SettingsView>();
 
-            var bgmSlider  = CreateSlider(go, "BGMSlider");
-            var seSlider   = CreateSlider(go, "SESlider");
-            var bgmValText = CreateTMPText(go, "BGMValueText", "100%", 24);
-            var seValText  = CreateTMPText(go, "SEValueText",  "100%", 24);
-            var resetBtn   = CreateButton(go, "ResetCoinsButton", "RESET COINS");
-            var closeBtn   = CreateButton(go, "CloseButton",      "CLOSE");
+            var dialog = CreatePanel(go, "Dialog", new Vector2(760f, 440f), new Color(0.16f, 0.1f, 0.2f, 0.98f));
+            var title = CreateTMPText(dialog, "Title", "SETTINGS", 42);
+            StretchTo(title, new Vector2(0f, 0.82f), new Vector2(1f, 1f), new Vector2(0f, -16f), new Vector2(0f, -24f));
 
-            LayoutVertical(bgmSlider, 0);
-            LayoutVertical(seSlider, 1);
+            var bgmLabel = CreateTMPText(dialog, "BGMLabel", "BGM", 28);
+            var seLabel  = CreateTMPText(dialog, "SELabel",  "SE", 28);
+            var bgmSlider  = CreateSlider(dialog, "BGMSlider");
+            var seSlider   = CreateSlider(dialog, "SESlider");
+            var bgmValText = CreateTMPText(dialog, "BGMValueText", "100%", 24);
+            var seValText  = CreateTMPText(dialog, "SEValueText",  "100%", 24);
+            var resetBtn   = CreateButton(dialog, "ResetCoinsButton", "RESET COINS", new Vector2(240f, 62f), new Color(0.43f, 0.18f, 0.14f));
+            var closeBtn   = CreateButton(dialog, "CloseButton", "CLOSE", new Vector2(180f, 62f), new Color(0.2f, 0.2f, 0.4f));
+
+            AnchorTopLeft(bgmLabel, new Vector2(84f, -138f), new Vector2(100f, 36f));
+            AnchorTopLeft(bgmSlider, new Vector2(82f, -186f), new Vector2(470f, 30f));
+            AnchorTopLeft(bgmValText, new Vector2(582f, -176f), new Vector2(110f, 44f));
+
+            AnchorTopLeft(seLabel, new Vector2(84f, -242f), new Vector2(100f, 36f));
+            AnchorTopLeft(seSlider, new Vector2(82f, -290f), new Vector2(470f, 30f));
+            AnchorTopLeft(seValText, new Vector2(582f, -280f), new Vector2(110f, 44f));
+
+            AnchorBottomLeft(resetBtn, new Vector2(80f, 52f), new Vector2(240f, 62f));
+            AnchorBottomRight(closeBtn, new Vector2(-80f, 52f), new Vector2(180f, 62f));
 
             WireField(view, "bgmSlider",       bgmSlider.GetComponent<Slider>());
             WireField(view, "seSlider",        seSlider.GetComponent<Slider>());
@@ -380,30 +408,97 @@ namespace SlotGame.Editor
             var go = new GameObject("PaytablePanel", typeof(Image));
             SetParent(go, parent);
             StretchFull(go);
-            go.GetComponent<Image>().color = new Color(0, 0, 0, 0.9f);
+            go.GetComponent<Image>().color = new Color(0.02f, 0.01f, 0.05f, 0.9f);
 
             var view = go.AddComponent<PaytableView>();
 
-            var contentRoot = new GameObject("ContentRoot", typeof(RectTransform));
-            SetParent(contentRoot, go);
-            StretchFull(contentRoot);
+            var dialog = CreatePanel(go, "Dialog", new Vector2(980f, 820f), new Color(0.15f, 0.09f, 0.18f, 0.98f));
+            var title = CreateTMPText(dialog, "Title", "PAYTABLE", 40);
+            StretchTo(title, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(200f, -74f), new Vector2(-200f, -18f));
 
-            var closeBtn = CreateButton(go, "CloseButton", "CLOSE");
-            var closeBtnRT = closeBtn.GetComponent<RectTransform>();
-            closeBtnRT.anchorMin        = new Vector2(0.9f, 0.9f);
-            closeBtnRT.anchorMax        = new Vector2(1f, 1f);
-            closeBtnRT.offsetMin        = closeBtnRT.offsetMax = Vector2.zero;
+            var header = new GameObject("HeaderRow", typeof(HorizontalLayoutGroup));
+            SetParent(header, dialog);
+            StretchTo(header, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(48f, -130f), new Vector2(-48f, -86f));
+            var headerLayout = header.GetComponent<HorizontalLayoutGroup>();
+            headerLayout.spacing = PaytableView.ColumnSpacing;
+            headerLayout.padding = new RectOffset((int)PaytableView.RowSidePadding, (int)PaytableView.RowSidePadding, 0, 0);
+            headerLayout.childAlignment = TextAnchor.MiddleCenter;
+            headerLayout.childControlWidth = false;
+            headerLayout.childControlHeight = true;
+            headerLayout.childForceExpandWidth = false;
+            CreateSizedLabel(header, "SYMBOL", PaytableView.ColumnWidth, 28);
+            CreateSizedLabel(header, "3", PaytableView.ColumnWidth, 28);
+            CreateSizedLabel(header, "4", PaytableView.ColumnWidth, 28);
+            CreateSizedLabel(header, "5", PaytableView.ColumnWidth, 28);
+
+            var scrollView = new GameObject("ScrollView", typeof(Image), typeof(Mask), typeof(ScrollRect));
+            SetParent(scrollView, dialog);
+            StretchTo(scrollView, Vector2.zero, Vector2.one, new Vector2(48f, 96f), new Vector2(-48f, -144f));
+            scrollView.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.02f);
+            var mask = scrollView.GetComponent<Mask>();
+            mask.showMaskGraphic = false;
+
+            var contentRoot = new GameObject("ContentRoot", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+            SetParent(contentRoot, scrollView);
+            StretchTo(contentRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -8f), new Vector2(0f, -8f));
+            var contentRect = contentRoot.GetComponent<RectTransform>();
+            contentRect.pivot = new Vector2(0.5f, 1f);
+            var contentLayout = contentRoot.GetComponent<VerticalLayoutGroup>();
+            contentLayout.spacing = 6f;
+            contentLayout.padding = new RectOffset(0, 0, 0, 0);
+            contentLayout.childAlignment = TextAnchor.UpperCenter;
+            contentLayout.childControlWidth = true;
+            contentLayout.childControlHeight = true;
+            contentLayout.childForceExpandHeight = false;
+            contentRoot.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var scrollRect = scrollView.GetComponent<ScrollRect>();
+            scrollRect.viewport = scrollView.GetComponent<RectTransform>();
+            scrollRect.content = contentRect;
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = 28f;
+
+            var rowTemplate = new GameObject("RowTemplate", typeof(Image), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
+            SetParent(rowTemplate, dialog);
+            rowTemplate.SetActive(false);
+            rowTemplate.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.08f);
+            var rowTemplateRT = rowTemplate.GetComponent<RectTransform>();
+            rowTemplateRT.sizeDelta = new Vector2(0f, PaytableView.RowHeight);
+            var rowLayout = rowTemplate.GetComponent<HorizontalLayoutGroup>();
+            rowLayout.spacing = PaytableView.ColumnSpacing;
+            rowLayout.padding = new RectOffset((int)PaytableView.RowSidePadding, (int)PaytableView.RowSidePadding, 6, 6);
+            rowLayout.childAlignment = TextAnchor.MiddleCenter;
+            rowLayout.childControlWidth = false;
+            rowLayout.childControlHeight = true;
+            rowLayout.childForceExpandWidth = false;
+            rowTemplate.GetComponent<LayoutElement>().preferredHeight = PaytableView.RowHeight;
+
+            var symbolCell = new GameObject("SymbolCell", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
+            SetParent(symbolCell, rowTemplate);
+            symbolCell.GetComponent<LayoutElement>().preferredWidth = PaytableView.ColumnWidth;
+            symbolCell.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.02f);
+            var icon = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            SetParent(icon, symbolCell);
+            AnchorCenter(icon, Vector2.zero, new Vector2(PaytableView.IconSize, PaytableView.IconSize));
+            CreateSizedLabel(rowTemplate, "-", PaytableView.ColumnWidth, 24);
+            CreateSizedLabel(rowTemplate, "-", PaytableView.ColumnWidth, 24);
+            CreateSizedLabel(rowTemplate, "-", PaytableView.ColumnWidth, 24);
+
+            var closeBtn = CreateButton(dialog, "CloseButton", "CLOSE", new Vector2(180f, 58f), new Color(0.2f, 0.2f, 0.4f));
+            AnchorBottomRight(closeBtn, new Vector2(-48f, 34f), new Vector2(180f, 58f));
 
             WireField(view, "contentRoot", contentRoot.GetComponent<Transform>());
             WireField(view, "closeButton", closeBtn.GetComponent<Button>());
-            // rowPrefab は Art アセット整備後に設定するため null のまま
+            WireField(view, "rowPrefab", rowTemplate);
 
             return (go, view);
         }
 
         // ─── MainHUD ───────────────────────────────────────────────────
 
-        private static (GameObject, MainHUDView, Button, Button, Button[]) CreateMainHUD(GameObject parent)
+        private static (GameObject, MainHUDView, Button, Button, Button, Button, Button[]) CreateMainHUD(GameObject parent)
         {
             var go = new GameObject("MainHUD");
             SetParent(go, parent);
@@ -411,23 +506,54 @@ namespace SlotGame.Editor
 
             var view = go.AddComponent<MainHUDView>();
 
-            var coinText      = CreateTMPText(go, "CoinText",  "1000",  36);
-            var winText       = CreateTMPText(go, "WinText",   "------", 28);
-            var spinBtn       = CreateButton(go, "SpinButton",      "SPIN");
-            var autoSpinBtn   = CreateButton(go, "AutoSpinButton",  "AUTO");
+            var topBar = new GameObject("TopBar", typeof(Image));
+            SetParent(topBar, go);
+            StretchTo(topBar, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(40f, -112f), new Vector2(-40f, -24f));
+            topBar.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.18f);
 
-            PositionHUD(coinText,    new Vector2(40, -40));
-            PositionHUD(winText,     new Vector2(40, -90));
-            PositionHUD(spinBtn,     new Vector2(1500, -40));
-            PositionHUD(autoSpinBtn, new Vector2(1500, -110));
+            var logoText = CreateTMPText(topBar, "LogoText", "FANTASY SLOT", 44);
+            AnchorTopLeft(logoText, new Vector2(28f, -18f), new Vector2(420f, 54f));
+            logoText.GetComponent<TMP_Text>().alignment = TextAlignmentOptions.Left;
+
+            var paytableBtn = CreateButton(topBar, "PaytableButton", "PAYTABLE", new Vector2(180f, 56f), new Color(0.23f, 0.3f, 0.47f));
+            var settingsBtn = CreateButton(topBar, "SettingsButton", "SETTINGS", new Vector2(180f, 56f), new Color(0.23f, 0.3f, 0.47f));
+            AnchorTopRight(paytableBtn, new Vector2(-28f, -18f), new Vector2(180f, 56f));
+            AnchorTopRight(settingsBtn, new Vector2(-220f, -18f), new Vector2(180f, 56f));
+
+            var bottomBar = new GameObject("BottomBar", typeof(Image));
+            SetParent(bottomBar, go);
+            StretchTo(bottomBar, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(40f, 24f), new Vector2(-40f, 220f));
+            bottomBar.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.22f);
+
+            var coinLabel = CreateTMPText(bottomBar, "CoinLabel", "COIN", 26);
+            var coinText  = CreateTMPText(bottomBar, "CoinText", "1000", 36);
+            var winLabel  = CreateTMPText(bottomBar, "WinLabel", "WIN", 26);
+            var winText   = CreateTMPText(bottomBar, "WinText", "------", 32);
+            AnchorTopLeft(coinLabel, new Vector2(36f, -24f), new Vector2(90f, 32f));
+            AnchorTopLeft(coinText, new Vector2(36f, -68f), new Vector2(260f, 42f));
+            AnchorTopLeft(winLabel, new Vector2(380f, -24f), new Vector2(90f, 32f));
+            AnchorTopLeft(winText, new Vector2(380f, -68f), new Vector2(260f, 42f));
+            coinLabel.GetComponent<TMP_Text>().alignment = TextAlignmentOptions.Left;
+            coinText.GetComponent<TMP_Text>().alignment = TextAlignmentOptions.Left;
+            winLabel.GetComponent<TMP_Text>().alignment = TextAlignmentOptions.Left;
+            winText.GetComponent<TMP_Text>().alignment = TextAlignmentOptions.Left;
+
+            var betLabel = CreateTMPText(bottomBar, "BetLabel", "BET", 28);
+            AnchorBottomLeft(betLabel, new Vector2(36f, 28f), new Vector2(90f, 36f));
+            betLabel.GetComponent<TMP_Text>().alignment = TextAlignmentOptions.Left;
+
+            var spinBtn     = CreateButton(bottomBar, "SpinButton", "SPIN", new Vector2(190f, 66f), new Color(0.31f, 0.19f, 0.1f));
+            var autoSpinBtn = CreateButton(bottomBar, "AutoSpinButton", "AUTO", new Vector2(170f, 66f), new Color(0.22f, 0.22f, 0.38f));
+            AnchorBottomRight(spinBtn, new Vector2(-36f, 18f), new Vector2(190f, 66f));
+            AnchorBottomRight(autoSpinBtn, new Vector2(-246f, 18f), new Vector2(170f, 66f));
 
             // Bet ボタン × 4
             var betValues  = new[] { 10, 20, 50, 100 };
             var betButtons = new Button[4];
             for (int i = 0; i < 4; i++)
             {
-                var btn = CreateButton(go, $"BetButton{i}", $"BET {betValues[i]}");
-                PositionHUD(btn, new Vector2(960 + i * 180, -180));
+                var btn = CreateButton(bottomBar, $"BetButton{i}", betValues[i].ToString(), new Vector2(120f, 60f), new Color(0.2f, 0.2f, 0.4f));
+                AnchorBottomLeft(btn, new Vector2(116f + i * 132f, 20f), new Vector2(120f, 60f));
                 betButtons[i] = btn.GetComponent<Button>();
             }
 
@@ -449,7 +575,14 @@ namespace SlotGame.Editor
 
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            return (go, view, spinBtn.GetComponent<Button>(), autoSpinBtn.GetComponent<Button>(), betButtons);
+            return (
+                go,
+                view,
+                spinBtn.GetComponent<Button>(),
+                autoSpinBtn.GetComponent<Button>(),
+                settingsBtn.GetComponent<Button>(),
+                paytableBtn.GetComponent<Button>(),
+                betButtons);
         }
 
         // ─── FreeSpinHUD ───────────────────────────────────────────────
@@ -458,14 +591,14 @@ namespace SlotGame.Editor
         {
             var go = new GameObject("FreeSpinHUD", typeof(Image));
             SetParent(go, parent);
-            go.GetComponent<Image>().color = new Color(0, 0, 0, 0.6f);
+            go.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.5f);
 
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin        = new Vector2(0.5f, 1f);
             rt.anchorMax        = new Vector2(0.5f, 1f);
             rt.pivot            = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0, 0);
-            rt.sizeDelta        = new Vector2(600, 100);
+            rt.anchoredPosition = new Vector2(0, -132f);
+            rt.sizeDelta        = new Vector2(720, 96);
 
             var view = go.AddComponent<FreeSpinHUDView>();
 
@@ -657,13 +790,26 @@ namespace SlotGame.Editor
 
         private static GameObject CreateButton(GameObject parent, string name, string label)
         {
+            return CreateButton(parent, name, label, new Vector2(170f, 56f), new Color(0.2f, 0.2f, 0.4f));
+        }
+
+        private static GameObject CreateButton(GameObject parent, string name, string label, Vector2 size, Color backgroundColor)
+        {
             var go  = new GameObject(name, typeof(Image));
             SetParent(go, parent);
-            go.GetComponent<Image>().color = new Color(0.2f, 0.2f, 0.4f);
-            go.AddComponent<Button>();
+            var image = go.GetComponent<Image>();
+            image.color = backgroundColor;
+            var button = go.AddComponent<Button>();
+            var colors = button.colors;
+            colors.normalColor      = backgroundColor;
+            colors.highlightedColor = backgroundColor * 1.08f;
+            colors.pressedColor     = backgroundColor * 0.9f;
+            colors.selectedColor    = backgroundColor;
+            colors.disabledColor    = new Color(backgroundColor.r * 0.6f, backgroundColor.g * 0.6f, backgroundColor.b * 0.6f, 0.65f);
+            button.colors = colors;
 
             var rt = go.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(170, 56);
+            rt.sizeDelta = size;
 
             var labelGO = CreateTMPText(go, "Label", label, 22);
             StretchFull(labelGO);
@@ -673,7 +819,7 @@ namespace SlotGame.Editor
 
         private static GameObject CreateSlider(GameObject parent, string name)
         {
-            var go = new GameObject(name, typeof(Slider));
+            var go = new GameObject(name, typeof(RectTransform), typeof(Slider));
             SetParent(go, parent);
             var rt = go.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(300, 30);
@@ -681,24 +827,98 @@ namespace SlotGame.Editor
             s.minValue = 0;
             s.maxValue = 1;
             s.value    = 1;
+
+            var background = new GameObject("Background", typeof(Image));
+            SetParent(background, go);
+            StretchFull(background);
+            background.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.12f);
+
+            var fillArea = new GameObject("Fill Area", typeof(RectTransform));
+            SetParent(fillArea, go);
+            StretchTo(fillArea, Vector2.zero, Vector2.one, new Vector2(8f, 8f), new Vector2(-8f, -8f));
+
+            var fill = new GameObject("Fill", typeof(Image));
+            SetParent(fill, fillArea);
+            StretchFull(fill);
+            fill.GetComponent<Image>().color = new Color(0.88f, 0.71f, 0.3f, 1f);
+
+            var handleArea = new GameObject("Handle Slide Area", typeof(RectTransform));
+            SetParent(handleArea, go);
+            StretchTo(handleArea, Vector2.zero, Vector2.one, new Vector2(8f, 0f), new Vector2(-8f, 0f));
+
+            var handle = new GameObject("Handle", typeof(Image));
+            SetParent(handle, handleArea);
+            AnchorCenter(handle, Vector2.zero, new Vector2(24f, 40f));
+            handle.GetComponent<Image>().color = new Color(0.94f, 0.86f, 0.65f, 1f);
+
+            s.targetGraphic = handle.GetComponent<Image>();
+            s.fillRect = fill.GetComponent<RectTransform>();
+            s.handleRect = handle.GetComponent<RectTransform>();
+            s.direction = Slider.Direction.LeftToRight;
             return go;
         }
 
-        private static void PositionHUD(GameObject go, Vector2 anchoredPos)
+        private static GameObject CreatePanel(GameObject parent, string name, Vector2 size, Color color)
         {
-            var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin        = new Vector2(0, 1f);
-            rt.anchorMax        = new Vector2(0, 1f);
-            rt.pivot            = new Vector2(0, 1f);
-            rt.anchoredPosition = anchoredPos;
+            var panel = new GameObject(name, typeof(Image));
+            SetParent(panel, parent);
+            panel.GetComponent<Image>().color = color;
+            AnchorCenter(panel, Vector2.zero, size);
+            return panel;
         }
 
-        private static void LayoutVertical(GameObject go, int index)
+        private static GameObject CreateSizedLabel(GameObject parent, string text, float width, float fontSize)
+        {
+            var label = CreateTMPText(parent, $"Label_{text}", text, fontSize);
+            var layoutElement = label.AddComponent<LayoutElement>();
+            layoutElement.preferredWidth = width;
+            return label;
+        }
+
+        private static void AnchorTopLeft(GameObject go, Vector2 anchoredPos, Vector2 size)
+        {
+            Anchor(go, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), anchoredPos, size);
+        }
+
+        private static void AnchorTopRight(GameObject go, Vector2 anchoredPos, Vector2 size)
+        {
+            Anchor(go, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f), anchoredPos, size);
+        }
+
+        private static void AnchorBottomLeft(GameObject go, Vector2 anchoredPos, Vector2 size)
+        {
+            Anchor(go, Vector2.zero, Vector2.zero, Vector2.zero, anchoredPos, size);
+        }
+
+        private static void AnchorBottomRight(GameObject go, Vector2 anchoredPos, Vector2 size)
+        {
+            Anchor(go, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f), anchoredPos, size);
+        }
+
+        private static void AnchorCenter(GameObject go, Vector2 anchoredPos, Vector2 size)
+        {
+            Anchor(go, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), anchoredPos, size);
+        }
+
+        private static void Anchor(GameObject go, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 anchoredPos, Vector2 size)
         {
             var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin        = new Vector2(0.3f, 0.6f - index * 0.2f);
-            rt.anchorMax        = new Vector2(0.7f, 0.75f - index * 0.2f);
-            rt.offsetMin        = rt.offsetMax = Vector2.zero;
+            if (rt == null) rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.pivot = pivot;
+            rt.anchoredPosition = anchoredPos;
+            rt.sizeDelta = size;
+        }
+
+        private static void StretchTo(GameObject go, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
+        {
+            var rt = go.GetComponent<RectTransform>();
+            if (rt == null) rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.offsetMin = offsetMin;
+            rt.offsetMax = offsetMax;
         }
 
         /// <summary>SerializedObject 経由で単一 SerializedField をワイヤリングする。</summary>

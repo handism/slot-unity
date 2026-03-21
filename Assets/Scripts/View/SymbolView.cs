@@ -31,6 +31,26 @@ namespace SlotGame.View
 
         public void SetSymbolId(int id) => _symbolId = id;
 
+        public void SetHighlighted(bool highlighted)
+        {
+            if (_image == null)
+            {
+                _image = GetComponent<Image>();
+            }
+
+            _image.color = highlighted ? Color.white : new Color(1f, 1f, 1f, 0.3f);
+        }
+
+        public void ResetHighlight()
+        {
+            if (_image == null)
+            {
+                _image = GetComponent<Image>();
+            }
+
+            _image.color = Color.white;
+        }
+
         /// <summary>当選アニメーションを再生して完了を待機する。</summary>
         public async UniTask PlayWinAnim(AnimationClip clip, CancellationToken ct)
         {

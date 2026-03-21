@@ -34,6 +34,8 @@ namespace SlotGame.Core
         private SaveDataManager        _saveDataManager;
         private GamePhase              _currentPhase;
         private CancellationTokenSource _autoSpinCts;
+        private float                  _bgmVolume = 0.8f;
+        private float                  _seVolume  = 1f;
 
         // ─── ライフサイクル ──────────────────────────────────────────────
 
@@ -74,8 +76,11 @@ namespace SlotGame.Core
             spinManager.Initialize(random, reelStrips);
             bonusManager.Initialize(random);
 
-            audioManager.SetBGMVolume(save.bgmVolume);
-            audioManager.SetSEVolume(save.seVolume);
+            _bgmVolume = save.bgmVolume;
+            _seVolume  = save.seVolume;
+
+            audioManager.SetBGMVolume(_bgmVolume);
+            audioManager.SetSEVolume(_seVolume);
             audioManager.PlayBGM(BGMType.Normal);
         }
 
@@ -83,6 +88,13 @@ namespace SlotGame.Core
         {
             uiManager.UpdateCoins(_gameState.Coins);
             uiManager.UpdateBet(_gameState.BetAmount);
+            uiManager.SetSettingsVolumes(_bgmVolume, _seVolume);
+            uiManager.PopulatePaytable(CollectSymbolDefinitions());
+            uiManager.BgmVolumeChanged += HandleBgmVolumeChanged;
+            uiManager.SeVolumeChanged += HandleSeVolumeChanged;
+            uiManager.ResetCoinsRequested += HandleResetCoinsRequested;
+            uiManager.SettingsCloseRequested += uiManager.HideSettings;
+            uiManager.PaytableCloseRequested += uiManager.HidePaytable;
             TransitionTo(GamePhase.Idle);
         }
 
@@ -98,6 +110,15 @@ namespace SlotGame.Core
 
         private void OnDestroy()
         {
+            if (uiManager != null)
+            {
+                uiManager.BgmVolumeChanged -= HandleBgmVolumeChanged;
+                uiManager.SeVolumeChanged -= HandleSeVolumeChanged;
+                uiManager.ResetCoinsRequested -= HandleResetCoinsRequested;
+                uiManager.SettingsCloseRequested -= uiManager.HideSettings;
+                uiManager.PaytableCloseRequested -= uiManager.HidePaytable;
+            }
+
             _autoSpinCts?.Dispose();
         }
 
@@ -134,6 +155,16 @@ namespace SlotGame.Core
             }
         }
 
+        public void OnSettingsButtonPressed()
+        {
+            uiManager.ShowSettings();
+        }
+
+        public void OnPaytableButtonPressed()
+        {
+            uiManager.ShowPaytable();
+        }
+
         // ─── スピンフロー ────────────────────────────────────────────────
 
         private async UniTask RunSpinAsync(CancellationToken destroyToken)
@@ -159,9 +190,9 @@ namespace SlotGame.Core
                 for (int i = 0; i < count; i++)
                 {
                     ct.ThrowIfCancellationRequested();
-                    await SpinOnceAsync(ct);
+                    bool shouldStopAutoSpin = await SpinOnceAsync(ct);
                     // ボーナス発動・フリースピン発動・コイン不足で自動停止
-                    if (_currentPhase != GamePhase.Idle) break;
+                    if (shouldStopAutoSpin || _currentPhase != GamePhase.Idle) break;
                 }
             }
             catch (OperationCanceledException)
@@ -170,13 +201,15 @@ namespace SlotGame.Core
             }
         }
 
-        private async UniTask SpinOnceAsync(CancellationToken ct)
+        private async UniTask<bool> SpinOnceAsync(CancellationToken ct)
         {
+            bool shouldStopAutoSpin = false;
+
             // コイン不足チェック
             if (!_gameState.DeductBet())
             {
                 await HandleGameOver();
-                return;
+                return true;
             }
 
             uiManager.UpdateCoins(_gameState.Coins);
@@ -212,16 +245,19 @@ namespace SlotGame.Core
             bool pendingFreeSpin = result.HasScatter;
             if (result.HasBonusCondition)
             {
+                shouldStopAutoSpin = true;
                 await HandleBonusRound(ct);
             }
 
             if (pendingFreeSpin)
             {
+                shouldStopAutoSpin = true;
                 await HandleFreeSpins(result.ScatterCount, ct);
             }
 
             uiManager.SetSpinButtonInteractable(true);
             TransitionTo(GamePhase.Idle);
+            return shouldStopAutoSpin;
         }
 
         private async UniTask HandleBonusRound(CancellationToken ct)
@@ -256,7 +292,7 @@ namespace SlotGame.Core
             };
 
             long cumulativeFreeSpinWin = 0;
-            uiManager.ShowFreeSpinHUD(_gameState.FreeSpinsLeft, cumulativeFreeSpinWin);
+            uiManager.ShowFreeSpinHUD(freeSpinCount, cumulativeFreeSpinWin);
 
             await bonusManager.RunFreeSpins(
                 _gameState, freeSpinCount,
@@ -293,8 +329,34 @@ namespace SlotGame.Core
 
         private void TransitionTo(GamePhase next)
         {
+            if (!CanTransitionTo(next))
+            {
+                Debug.LogWarning($"[GameManager] Invalid transition rejected: {_currentPhase} -> {next}");
+                return;
+            }
+
             Debug.Log($"[GameManager] {_currentPhase} → {next}");
             _currentPhase = next;
+        }
+
+        private bool CanTransitionTo(GamePhase next)
+        {
+            if (_currentPhase == next)
+            {
+                return next == GamePhase.Idle;
+            }
+
+            return _currentPhase switch
+            {
+                GamePhase.Idle => next is GamePhase.Spinning or GamePhase.GameOver,
+                GamePhase.Spinning => next == GamePhase.Evaluating,
+                GamePhase.Evaluating => next is GamePhase.WinPresentation or GamePhase.BonusRound or GamePhase.FreeSpin or GamePhase.Idle,
+                GamePhase.WinPresentation => next is GamePhase.BonusRound or GamePhase.FreeSpin or GamePhase.Idle,
+                GamePhase.BonusRound => next is GamePhase.FreeSpin or GamePhase.Idle,
+                GamePhase.FreeSpin => next == GamePhase.Idle,
+                GamePhase.GameOver => next == GamePhase.Idle,
+                _ => false
+            };
         }
 
         private void SaveGame()
@@ -303,9 +365,49 @@ namespace SlotGame.Core
             {
                 coins      = _gameState.Coins,
                 betAmount  = _gameState.BetAmount,
+                bgmVolume  = _bgmVolume,
+                seVolume   = _seVolume,
                 totalSpins = _gameState.TotalSpins,
                 maxWin     = _gameState.MaxWin,
             });
+        }
+
+        private void HandleBgmVolumeChanged(float volume)
+        {
+            _bgmVolume = volume;
+            audioManager.SetBGMVolume(volume);
+            SaveGame();
+        }
+
+        private void HandleSeVolumeChanged(float volume)
+        {
+            _seVolume = volume;
+            audioManager.SetSEVolume(volume);
+            SaveGame();
+        }
+
+        private void HandleResetCoinsRequested()
+        {
+            _gameState.SetCoins(1000);
+            uiManager.UpdateCoins(_gameState.Coins);
+            SaveGame();
+        }
+
+        private SymbolData[] CollectSymbolDefinitions()
+        {
+            var symbols = new System.Collections.Generic.Dictionary<int, SymbolData>();
+            foreach (var strip in reelStrips)
+            {
+                foreach (var symbol in strip.strip)
+                {
+                    symbols[symbol.symbolId] = symbol;
+                }
+            }
+
+            var result = new SymbolData[symbols.Count];
+            symbols.Values.CopyTo(result, 0);
+            Array.Sort(result, (left, right) => left.symbolId.CompareTo(right.symbolId));
+            return result;
         }
 
         private static WinLevel CalcWinLevel(long amount)

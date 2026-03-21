@@ -27,18 +27,20 @@ namespace SlotGame.View
         private int              _stripIndex;    // 現在のストリップ先頭インデックス
         private bool             _isScrolling;
         private float            _scrollOffset;
-        private SymbolData[]     _allDefs;       // SymbolData の検索用キャッシュ
+        private RectTransform    _rectTransform;
 
         public void Initialize(ReelStripData strip)
         {
             _strip = strip;
+            EnsureRectTransform();
+            ResizeViewport();
             _symbolViews = new SymbolView[BufferSize];
 
             for (int i = 0; i < BufferSize; i++)
             {
                 var view = Instantiate(symbolViewPrefab, transform);
                 var rt   = view.GetComponent<RectTransform>();
-                rt.anchoredPosition = new Vector2(0, -symbolHeight * i);
+                rt.anchoredPosition = new Vector2(0, GetSymbolYPosition(i));
                 _symbolViews[i] = view;
             }
 
@@ -70,7 +72,7 @@ namespace SlotGame.View
             for (int i = 0; i < BufferSize; i++)
             {
                 var rt = _symbolViews[i].GetComponent<RectTransform>();
-                float baseY = -symbolHeight * i;
+                float baseY = GetSymbolYPosition(i);
                 rt.anchoredPosition = new Vector2(0, baseY + _scrollOffset);
             }
         }
@@ -135,6 +137,37 @@ namespace SlotGame.View
             await _symbolViews[row + 1].PlayWinAnim(clip, ct);
         }
 
+        public void HighlightRows(IReadOnlyCollection<int> rows)
+        {
+            if (_symbolViews == null) return;
+
+            for (int row = 0; row < 3; row++)
+            {
+                bool isHighlighted = false;
+                if (rows != null)
+                {
+                    foreach (int highlightedRow in rows)
+                    {
+                        if (highlightedRow != row) continue;
+                        isHighlighted = true;
+                        break;
+                    }
+                }
+
+                _symbolViews[row + 1].SetHighlighted(isHighlighted);
+            }
+        }
+
+        public void ClearHighlights()
+        {
+            if (_symbolViews == null) return;
+
+            for (int i = 1; i <= 3; i++)
+            {
+                _symbolViews[i].ResetHighlight();
+            }
+        }
+
         // ─── ヘルパー ─────────────────────────────────────────────────────
 
         private void AdvanceStrip()
@@ -151,7 +184,7 @@ namespace SlotGame.View
             int newIdx = (_stripIndex + BufferSize - 1) % _strip.strip.Count;
             _symbolViews[BufferSize - 1].SetSymbol(_strip.strip[newIdx]);
             var rt = _symbolViews[BufferSize - 1].GetComponent<RectTransform>();
-            rt.anchoredPosition = new Vector2(0, -symbolHeight * (BufferSize - 1));
+            rt.anchoredPosition = new Vector2(0, GetSymbolYPosition(BufferSize - 1));
         }
 
         private void AlignToStopIndex(int stopIndex)
@@ -175,7 +208,7 @@ namespace SlotGame.View
             for (int i = 0; i < BufferSize; i++)
             {
                 var rt = _symbolViews[i].GetComponent<RectTransform>();
-                rt.anchoredPosition = new Vector2(0, -symbolHeight * i);
+                rt.anchoredPosition = new Vector2(0, GetSymbolYPosition(i));
             }
             _scrollOffset = 0;
         }
@@ -187,6 +220,32 @@ namespace SlotGame.View
                 int idx = (_stripIndex + i) % _strip.strip.Count;
                 _symbolViews[i].SetSymbol(_strip.strip[idx]);
             }
+        }
+
+        private void EnsureRectTransform()
+        {
+            if (_rectTransform == null)
+                _rectTransform = GetComponent<RectTransform>();
+        }
+
+        private void ResizeViewport()
+        {
+            float width = symbolHeight;
+            if (symbolViewPrefab != null &&
+                symbolViewPrefab.TryGetComponent<RectTransform>(out var symbolRect) &&
+                symbolRect.rect.width > 0f)
+            {
+                width = symbolRect.rect.width;
+            }
+
+            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, symbolHeight * 3f);
+        }
+
+        private float GetSymbolYPosition(int bufferIndex)
+        {
+            float centeredIndex = (BufferSize - 1) * 0.5f;
+            return (centeredIndex - bufferIndex) * symbolHeight;
         }
     }
 }
