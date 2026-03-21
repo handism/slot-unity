@@ -306,8 +306,8 @@ namespace SlotGame.Editor
             // + 低配当各1追加（Ace+2, King+2, Queen+2, Jack+2 = +8）→ 60
             var baseCounts = new (SymbolData sym, int count)[]
             {
-                (jack,     10),
-                (queen,    10),
+                (jack,      9),
+                (queen,     9),
                 (king,     10),
                 (ace,      10),
                 (sword,     5),
@@ -315,8 +315,8 @@ namespace SlotGame.Editor
                 (phoenix,   3),
                 (wild,      3),
                 (dragon,    2),
-                (scatter,   2),
-                (bonus,     1),
+                (scatter,   3),
+                (bonus,     2),
             };
 
             for (int reelIdx = 0; reelIdx < 5; reelIdx++)
