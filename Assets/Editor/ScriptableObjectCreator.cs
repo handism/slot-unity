@@ -69,13 +69,13 @@ namespace SlotGame.Editor
             // Normal 以外は payouts を 0 で登録（PaylineEvaluator では参照されない）
             var defs = new (int id, string name, SymbolType type, int p3, int p4, int p5)[]
             {
-                (0,  "Dragon",  SymbolType.Normal,  60,  120, 600),
-                (1,  "Phoenix", SymbolType.Normal,  50,  100, 500),
-                (2,  "Crystal", SymbolType.Normal,  40,   80, 400),
-                (3,  "Sword",   SymbolType.Normal,  30,   60, 300),
-                (4,  "Ace",     SymbolType.Normal,  15,   30, 150),
-                (5,  "King",    SymbolType.Normal,  10,   20, 100),
-                (6,  "Queen",   SymbolType.Normal,   8,   15,  80),
+                (0,  "Dragon",  SymbolType.Normal,  55,  110, 550),
+                (1,  "Phoenix", SymbolType.Normal,  45,   90, 450),
+                (2,  "Crystal", SymbolType.Normal,  35,   70, 350),
+                (3,  "Sword",   SymbolType.Normal,  25,   50, 250),
+                (4,  "Ace",     SymbolType.Normal,  12,   24, 120),
+                (5,  "King",    SymbolType.Normal,  10,   18,  90),
+                (6,  "Queen",   SymbolType.Normal,   8,   15,  75),
                 (7,  "Jack",    SymbolType.Normal,   5,   10,  50),
                 (8,  "Wild",    SymbolType.Wild,     0,    0,   0),
                 (9,  "Scatter", SymbolType.Scatter,  0,    0,   0),
@@ -316,7 +316,7 @@ namespace SlotGame.Editor
                 (wild,      3),
                 (dragon,    2),
                 (scatter,   2),
-                (bonus,     1),
+                (bonus,     1), // 1/60 * 1/60 * 1/60 * 27 ... ok, once in 10k spins.
             };
 
             for (int reelIdx = 0; reelIdx < 5; reelIdx++)
