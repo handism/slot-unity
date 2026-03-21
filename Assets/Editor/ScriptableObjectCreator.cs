@@ -69,7 +69,7 @@ namespace SlotGame.Editor
             // Normal 以外は payouts を 0 で登録（PaylineEvaluator では参照されない）
             var defs = new (int id, string name, SymbolType type, int p3, int p4, int p5)[]
             {
-                (0,  "Dragon",  SymbolType.Normal,  55,  110, 550),
+                (0,  "Dragon",  SymbolType.Normal,  60,  120, 600),
                 (1,  "Phoenix", SymbolType.Normal,  45,   90, 450),
                 (2,  "Crystal", SymbolType.Normal,  35,   70, 350),
                 (3,  "Sword",   SymbolType.Normal,  25,   50, 250),
