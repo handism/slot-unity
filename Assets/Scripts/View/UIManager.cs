@@ -63,6 +63,15 @@ namespace SlotGame.View
             if (_reelViews == null || _reelViews.Length == 0) return;
 
             var highlightedRowsByReel = new Dictionary<int, HashSet<int>>();
+
+            // --- 安全策: データが未設定なら処理を中断する ---
+            if (paylineData == null || paylinePrefab == null)
+            {
+                Debug.LogWarning("UIManager: PaylineData or PaylinePrefab is not assigned! Lines will not be drawn.");
+                // 配当計算などは終わっているので、ライン描画だけスキップする
+                return;
+            }
+
             // --- ライン描画の追加 ---
             ClearPaylines();
 
