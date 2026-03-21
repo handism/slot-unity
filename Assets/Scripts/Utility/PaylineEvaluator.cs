@@ -107,7 +107,7 @@ namespace SlotGame.Utility
             if (baseSym == null || baseSym.payouts == null || matchCount - MinMatch >= baseSym.payouts.Length)
                 return null;
 
-            long winAmount = (long)baseSym.payouts[matchCount - MinMatch] * bet;
+            long winAmount = (long)System.Math.Floor(baseSym.payouts[matchCount - MinMatch] * (bet / 25.0f));
             return new LineWin(lineIndex, baseSymbolId, matchCount, winAmount);
         }
 
