@@ -14,6 +14,11 @@ namespace SlotGame.View
         [SerializeField] private WinPopupView    winPopup;
         [SerializeField] private SettingsView    settingsView;
         [SerializeField] private PaytableView    paytableView;
+        [SerializeField] private PaylineView     paylinePrefab;
+        [SerializeField] private Transform       paylineParent;
+        [SerializeField] private PaylineData     paylineData;
+
+        private List<PaylineView> _activePaylines = new();
 
         private ReelView[] _reelViews;
 
@@ -58,20 +63,34 @@ namespace SlotGame.View
             if (_reelViews == null || _reelViews.Length == 0) return;
 
             var highlightedRowsByReel = new Dictionary<int, HashSet<int>>();
+            // --- ライン描画の追加 ---
+            ClearPaylines();
+
             foreach (var win in wins)
             {
-                for (int reelIndex = 0; reelIndex < win.MatchCount && reelIndex < _reelViews.Length; reelIndex++)
+                if (win.LineIndex < 0 || win.LineIndex >= paylineData.lines.Length) continue;
+
+                var lineDef = paylineData.lines[win.LineIndex];
+                var points = new Vector3[win.MatchCount];
+                for (int i = 0; i < win.MatchCount; i++)
                 {
-                    if (!highlightedRowsByReel.TryGetValue(reelIndex, out var rows))
+                    int row = lineDef.rows[i];
+                    points[i] = _reelViews[i].GetSymbolWorldPosition(row);
+                }
+
+                var lineView = Instantiate(paylinePrefab, paylineParent != null ? paylineParent : transform);
+                lineView.DrawLine(points, GetLineColor(win.LineIndex));
+                _activePaylines.Add(lineView);
+
+                // --- シンボルのハイライト（薄暗くする演出用） ---
+                for (int i = 0; i < win.MatchCount; i++)
+                {
+                    if (!highlightedRowsByReel.TryGetValue(i, out var rows))
                     {
                         rows = new HashSet<int>();
-                        highlightedRowsByReel.Add(reelIndex, rows);
+                        highlightedRowsByReel.Add(i, rows);
                     }
-
-                    int row = win.LineIndex >= 0 && win.LineIndex < 25
-                        ? ResolvePaylineRow(win.LineIndex, reelIndex)
-                        : 1;
-                    rows.Add(row);
+                    rows.Add(lineDef.rows[i]);
                 }
             }
 
@@ -82,8 +101,25 @@ namespace SlotGame.View
             }
         }
 
+        private void ClearPaylines()
+        {
+            foreach (var pl in _activePaylines)
+            {
+                if (pl != null) Destroy(pl.gameObject);
+            }
+            _activePaylines.Clear();
+        }
+
+        private Color GetLineColor(int index)
+        {
+            // インデックスごとに異なる色を割り当てる（視認性向上）
+            float hue = (index * 0.15f) % 1f;
+            return Color.HSVToRGB(hue, 0.8f, 1f);
+        }
+
         public void ClearLineHighlights()
         {
+            ClearPaylines();
             CacheReelViews();
             if (_reelViews == null) return;
 
@@ -129,39 +165,6 @@ namespace SlotGame.View
             return left.transform.position.x.CompareTo(right.transform.position.x);
         }
 
-        private static int ResolvePaylineRow(int lineIndex, int reelIndex)
-        {
-            int[][] lineRows =
-            {
-                new[] { 1, 1, 1, 1, 1 },
-                new[] { 0, 0, 0, 0, 0 },
-                new[] { 2, 2, 2, 2, 2 },
-                new[] { 0, 1, 2, 1, 0 },
-                new[] { 2, 1, 0, 1, 2 },
-                new[] { 1, 0, 0, 0, 1 },
-                new[] { 1, 2, 2, 2, 1 },
-                new[] { 0, 0, 1, 2, 2 },
-                new[] { 2, 2, 1, 0, 0 },
-                new[] { 0, 1, 1, 1, 2 },
-                new[] { 2, 1, 1, 1, 0 },
-                new[] { 1, 1, 0, 1, 1 },
-                new[] { 1, 1, 2, 1, 1 },
-                new[] { 0, 0, 2, 0, 0 },
-                new[] { 2, 2, 0, 2, 2 },
-                new[] { 1, 0, 1, 2, 1 },
-                new[] { 1, 2, 1, 0, 1 },
-                new[] { 0, 2, 0, 2, 0 },
-                new[] { 2, 0, 2, 0, 2 },
-                new[] { 0, 1, 0, 1, 0 },
-                new[] { 2, 1, 2, 1, 2 },
-                new[] { 0, 2, 2, 2, 0 },
-                new[] { 2, 0, 0, 0, 2 },
-                new[] { 1, 1, 0, 0, 0 },
-                new[] { 1, 1, 2, 2, 2 },
-            };
-
-            if (lineIndex < 0 || lineIndex >= lineRows.Length) return 1;
-            return lineRows[lineIndex][reelIndex];
         }
     }
 }

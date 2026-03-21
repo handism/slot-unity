@@ -137,6 +137,13 @@ namespace SlotGame.View
             await _symbolViews[row + 1].PlayWinAnim(clip, ct);
         }
 
+        /// <summary>指定行のシンボルの世界座標を取得する（0=上, 1=中, 2=下）。</summary>
+        public Vector3 GetSymbolWorldPosition(int row)
+        {
+            if (_symbolViews == null || row + 1 >= _symbolViews.Length) return transform.position;
+            return _symbolViews[row + 1].transform.position;
+        }
+
         public void HighlightRows(IReadOnlyCollection<int> rows)
         {
             if (_symbolViews == null) return;
