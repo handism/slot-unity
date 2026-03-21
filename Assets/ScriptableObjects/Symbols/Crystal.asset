@@ -16,5 +16,5 @@ MonoBehaviour:
   symbolName: Crystal
   sprite: {fileID: 21300000, guid: 1d7b14d8a340640e28ce138da34eee3f, type: 3}
   type: 0
-  payouts: 0a000000140000003c000000
+  payouts: 1e0000003c0000002c010000
   winAnim: {fileID: 0}

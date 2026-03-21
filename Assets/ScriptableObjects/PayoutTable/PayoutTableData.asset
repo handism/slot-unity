@@ -16,9 +16,9 @@ MonoBehaviour:
   - scatterCount: 3
     multiplier: 2
   - scatterCount: 4
-    multiplier: 5
+    multiplier: 10
   - scatterCount: 5
-    multiplier: 20
+    multiplier: 50
   bonusRewards:
   - multiplier: 5
     weight: 40

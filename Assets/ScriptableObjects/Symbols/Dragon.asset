@@ -16,5 +16,5 @@ MonoBehaviour:
   symbolName: Dragon
   sprite: {fileID: 21300000, guid: bce2ad1135d224c5591f9f16d0154b40, type: 3}
   type: 0
-  payouts: 0f0000001e00000064000000
+  payouts: 3200000064000000f4010000
   winAnim: {fileID: 0}
