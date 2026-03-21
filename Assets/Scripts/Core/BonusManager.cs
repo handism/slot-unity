@@ -74,7 +74,7 @@ namespace SlotGame.Core
             await op.ToUniTask(cancellationToken: ct);
 
             // BonusRoundView を探して宝箱選択完了を待機
-            var view = FindObjectOfType<BonusRoundView>();
+            var view = FindFirstObjectByType<BonusRoundView>();
             if (view == null)
             {
                 Debug.LogError("BonusRoundView not found in BonusRound scene.");

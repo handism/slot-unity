@@ -165,25 +165,35 @@ namespace SlotGame.Utility.Editor
         // ---------------------------------------------------------------
 
         /// <summary>
-        /// プレイヤーが 9 個の宝箱から 1 個を選ぶ期待値は
-        /// 重み付きプールから 1 回抽選することと等価。
+        /// プレイヤーが 9 個の宝箱から 3 個を選ぶシミュレーション。
+        /// 毎回、重み付きプールから 1 回抽選することを 3 回繰り返す。
         /// </summary>
         private static long SimulateBonusRound(int bet, PayoutTableData payouts, IRandomGenerator rng)
         {
+            long totalWin = 0;
+            const int selections = 3; // 3個選択
+
             int totalWeight = 0;
             foreach (var entry in payouts.bonusRewards)
                 totalWeight += entry.weight;
+            
+            if (totalWeight <= 0) return 0;
 
-            int roll       = rng.Next(0, totalWeight);
-            int cumulative = 0;
-            foreach (var entry in payouts.bonusRewards)
+            for (int i = 0; i < selections; i++)
             {
-                cumulative += entry.weight;
-                if (roll < cumulative)
-                    return (long)entry.multiplier * bet;
+                int roll       = rng.Next(0, totalWeight);
+                int cumulative = 0;
+                foreach (var entry in payouts.bonusRewards)
+                {
+                    cumulative += entry.weight;
+                    if (roll < cumulative)
+                    {
+                        totalWin += (long)entry.multiplier * bet;
+                        break;
+                    }
+                }
             }
-
-            return 0; // フォールバック（通常到達しない）
+            return totalWin;
         }
 
         // ---------------------------------------------------------------

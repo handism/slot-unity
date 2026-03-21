@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using SlotGame.Data;
 using SlotGame.Model;
@@ -230,23 +231,31 @@ namespace SlotGame.Tests.EditMode
         [Test]
         public void MultipleLines_TotalWinIsSumOfAllLineWins()
         {
-            // ライン 0 (中段): Dragon×5, ライン 1 (上段): Phoenix×5 になるよう grid を構築
+            // ライン 0 (中段): Dragon×5, ライン 1 (上段): Phoenix×5, ライン 2 (下段): Dragonx5
             var grid = new int[5, 3];
             for (int r = 0; r < 5; r++)
             {
                 grid[r, 0] = Phoenix; // 上段
                 grid[r, 1] = Dragon;  // 中段
-                grid[r, 2] = Dragon;  // 下段（ライン 2 以降で参照されうる）
+                grid[r, 2] = Dragon;  // 下段
             }
 
             var result = Evaluate(grid, bet: 10);
 
-            long expectedLine0 = 500 * 10; // Dragon 5揃え
-            long expectedLine1 = 400 * 10; // Phoenix 5揃え（ライン 1 は上段固定と仮定）
+            long expectedLine0Win = 500 * 10; // Dragon 5-match on mid
+            long expectedLine1Win = 400 * 10; // Phoenix 5-match on top
+            long expectedLine2Win = 500 * 10; // Dragon 5-match on bot
 
-            // ライン 0 と 1 の当選が含まれるか確認
-            Assert.GreaterOrEqual(result.LineWins.Count, 2);
-            Assert.AreEqual(result.TotalWinAmount, SumLineWins(result));
+            // 3つのペイライン（上段・中段・下段）が当選していることを確認
+            Assert.AreEqual(3, result.LineWins.Count);
+
+            // 各ペイラインの当選内容が正しいか個別にチェック
+            Assert.IsTrue(result.LineWins.Any(w => w.LineIndex == 0 && w.SymbolId == Dragon && w.WinAmount == expectedLine0Win));
+            Assert.IsTrue(result.LineWins.Any(w => w.LineIndex == 1 && w.SymbolId == Phoenix && w.WinAmount == expectedLine1Win));
+            Assert.IsTrue(result.LineWins.Any(w => w.LineIndex == 2 && w.SymbolId == Dragon && w.WinAmount == expectedLine2Win));
+            
+            // 合計当選額が各ラインの合計と一致するか確認
+            Assert.AreEqual(expectedLine0Win + expectedLine1Win + expectedLine2Win, result.TotalWinAmount);
         }
 
         // ─── ヘルパー ────────────────────────────────────────────────────

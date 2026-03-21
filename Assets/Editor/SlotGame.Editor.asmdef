@@ -6,6 +6,8 @@
         "SlotGame.Core",
         "SlotGame.View",
         "SlotGame.Audio",
+        "SlotGame.Utility",
+        "SlotGame.Model",
         "Unity.TextMeshPro",
         "Unity.InputSystem"
     ],
