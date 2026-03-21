@@ -23,12 +23,13 @@ namespace SlotGame.Core
 
         private void Awake()
         {
-            _view       = GetComponent<ReelView>();
+            EnsureView();
             ReelIndex   = reelStrip != null ? reelStrip.reelIndex : 0;
         }
 
         public void Initialize(ReelStripData strip)
         {
+            EnsureView();
             reelStrip = strip;
             ReelIndex = strip.reelIndex;
             _view.Initialize(strip);
@@ -72,5 +73,11 @@ namespace SlotGame.Core
 
         /// <summary>現在表示中の 3 シンボル ID を返す（[0]=上段, [1]=中段, [2]=下段）。</summary>
         public int[] GetVisibleSymbolIds() => _view.GetVisibleSymbolIds();
+
+        private void EnsureView()
+        {
+            if (_view == null)
+                _view = GetComponent<ReelView>();
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using SlotGame.Data;
@@ -12,6 +13,7 @@ namespace SlotGame.Editor
     public static class ScriptableObjectCreator
     {
         private const string BasePath = "Assets/ScriptableObjects";
+        private const string SpriteBasePath = "Assets/Art/Sprites/Generated";
 
         [MenuItem("SlotGame/Create All ScriptableObject Assets")]
         public static void CreateAllAssets()
@@ -20,6 +22,7 @@ namespace SlotGame.Editor
 
             // SymbolData → PaylineData → PayoutTableData の順に作成（参照なし）
             CreateSymbolAssets();
+            CreatePlaceholderSpritesAndAssign();
             CreatePaylineAsset();
             CreatePayoutTableAsset();
             AssetDatabase.SaveAssets();
@@ -40,6 +43,9 @@ namespace SlotGame.Editor
         private static void EnsureFolders()
         {
             EnsureFolder("Assets", "ScriptableObjects");
+            EnsureFolder("Assets", "Art");
+            EnsureFolder("Assets/Art", "Sprites");
+            EnsureFolder("Assets/Art/Sprites", "Generated");
             EnsureFolder(BasePath, "Symbols");
             EnsureFolder(BasePath, "Reels");
             EnsureFolder(BasePath, "Paylines");
@@ -90,6 +96,106 @@ namespace SlotGame.Editor
                 // sprite / winAnim は Art アセット整備後に Unity Editor で設定する
                 AssetDatabase.CreateAsset(asset, path);
             }
+        }
+
+        private static void CreatePlaceholderSpritesAndAssign()
+        {
+            var defs = new (string name, Color fill, Color accent)[]
+            {
+                ("Dragon",  new Color32(180,  54,  54, 255), new Color32(255, 219,  88, 255)),
+                ("Phoenix", new Color32(214,  95,  32, 255), new Color32(255, 210, 102, 255)),
+                ("Crystal", new Color32( 64, 156, 214, 255), new Color32(195, 243, 255, 255)),
+                ("Sword",   new Color32(107, 122, 138, 255), new Color32(232, 236, 240, 255)),
+                ("Ace",     new Color32( 52, 119, 188, 255), new Color32(240, 247, 255, 255)),
+                ("King",    new Color32(122,  74, 172, 255), new Color32(255, 230, 140, 255)),
+                ("Queen",   new Color32(185,  74, 134, 255), new Color32(255, 221, 242, 255)),
+                ("Jack",    new Color32( 65, 156, 106, 255), new Color32(217, 255, 226, 255)),
+                ("Wild",    new Color32(255, 180,  37, 255), new Color32(120,  43,   0, 255)),
+                ("Scatter", new Color32( 98, 204, 189, 255), new Color32( 11,  77,  90, 255)),
+                ("Bonus",   new Color32(156, 101,  31, 255), new Color32(255, 231, 163, 255)),
+            };
+
+            foreach (var def in defs)
+            {
+                string spritePath = $"{SpriteBasePath}/{def.name}.png";
+                if (!File.Exists(spritePath))
+                    CreatePlaceholderSpriteFile(spritePath, def.fill, def.accent);
+            }
+
+            AssetDatabase.Refresh();
+
+            foreach (var def in defs)
+            {
+                string symbolPath = $"{BasePath}/Symbols/{def.name}.asset";
+                var symbol = AssetDatabase.LoadAssetAtPath<SymbolData>(symbolPath);
+                if (symbol == null || symbol.sprite != null)
+                    continue;
+
+                string spritePath = $"{SpriteBasePath}/{def.name}.png";
+                var importer = AssetImporter.GetAtPath(spritePath) as TextureImporter;
+                if (importer != null)
+                {
+                    importer.textureType = TextureImporterType.Sprite;
+                    importer.spriteImportMode = SpriteImportMode.Single;
+                    importer.mipmapEnabled = false;
+                    importer.filterMode = FilterMode.Point;
+                    importer.textureCompression = TextureImporterCompression.Uncompressed;
+                    importer.SaveAndReimport();
+                }
+
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+                if (sprite == null)
+                    continue;
+
+                symbol.sprite = sprite;
+                EditorUtility.SetDirty(symbol);
+            }
+        }
+
+        private static void CreatePlaceholderSpriteFile(string path, Color fill, Color accent)
+        {
+            const int size = 256;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Point;
+
+            var bg = new Color(fill.r * 0.35f, fill.g * 0.35f, fill.b * 0.35f, 1f);
+            var border = new Color(accent.r * 0.75f, accent.g * 0.75f, accent.b * 0.75f, 1f);
+            var pixels = new Color[size * size];
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    var color = bg;
+
+                    bool outerBorder = x < 12 || x >= size - 12 || y < 12 || y >= size - 12;
+                    bool innerPanel = x >= 28 && x < size - 28 && y >= 28 && y < size - 28;
+                    bool horizontalBand = y >= 108 && y < 148;
+                    bool verticalBand = x >= 108 && x < 148;
+                    bool diamond = Mathf.Abs(x - 128) + Mathf.Abs(y - 128) < 70;
+
+                    if (outerBorder)
+                        color = border;
+                    else if (innerPanel)
+                        color = fill;
+
+                    if (horizontalBand || verticalBand)
+                        color = accent;
+
+                    if (diamond)
+                        color = Color.Lerp(color, Color.white, 0.3f);
+
+                    pixels[y * size + x] = color;
+                }
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+
+            var bytes = texture.EncodeToPNG();
+            Object.DestroyImmediate(texture);
+            File.WriteAllBytes(path, bytes);
         }
 
         // ---------------------------------------------------------------

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 5
   symbolName: King
-  sprite: {fileID: 0}
+  sprite: {fileID: 21300000, guid: b24f0158214bd40b7b1c0187c4d9baff, type: 3}
   type: 0
   payouts: 080000000f00000050000000
   winAnim: {fileID: 0}
