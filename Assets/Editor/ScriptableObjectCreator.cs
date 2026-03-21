@@ -306,17 +306,17 @@ namespace SlotGame.Editor
             // + 低配当各1追加（Ace+2, King+2, Queen+2, Jack+2 = +8）→ 60
             var baseCounts = new (SymbolData sym, int count)[]
             {
-                (jack,      9),
-                (queen,     9),
-                (king,      8),
-                (ace,       8),
+                (jack,     10),
+                (queen,    10),
+                (king,     10),
+                (ace,      10),
                 (sword,     5),
                 (crystal,   4),
                 (phoenix,   3),
                 (wild,      3),
                 (dragon,    2),
-                (scatter,   6), // 3/60 = 5% per reel -> approx 5-10% trig? No.
-                (bonus,     3), // 1/3・5 for each -> approx 1%?
+                (scatter,   2),
+                (bonus,     1),
             };
 
             for (int reelIdx = 0; reelIdx < 5; reelIdx++)
