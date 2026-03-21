@@ -1,7 +1,7 @@
 # Fantasy Slot 実装計画（PLAN.md）
 
 **作成日**: 2026-03-20
-**対象**: Unity 6 (LTS) / PC (Windows/macOS) / 1人開発
+**対象**: Unity 6.3 LTS / PC (Windows/macOS) / 1人開発
 
 ## Context
 
@@ -32,11 +32,11 @@ Assets/
 └── Tests/EditMode/ / Tests/PlayMode/
 ```
 
-## 技術選定補足（Unity 6 ベストプラクティス）
+## 技術選定補足（Unity 6.3 ベストプラクティス）
 
 | 技術 | 採用 | 理由 |
 |------|------|------|
-| URP 2D | 採用 | Unity 6 デフォルト。新規プロジェクトは `Universal 2D` テンプレートで作成 |
+| URP 2D | 採用 | Unity 6.3 デフォルト。新規プロジェクトは `Universal 2D` テンプレートで作成 |
 | New Input System | 採用 | Space=Spin 等のショートカット管理に使用。UGUI の Button は OnClick() 継続 |
 | Addressables | 不採用 | BonusRound.unity の Additive ロードのみ。`LoadSceneAsync` で十分 |
 | UI Toolkit | 不採用 | UGUI + DOTween + TextMeshPro の組み合わせで実績あり |
@@ -46,7 +46,7 @@ Assets/
 
 ## フェーズ 0: プロジェクト初期設定
 
-- [ ] Unity 6 LTS で新規プロジェクト作成（テンプレート: `Universal 2D`）
+- [ ] Unity 6.3 LTS で新規プロジェクト作成（テンプレート: `Universal 2D`）
 - [ ] ProjectSettings: 解像度 1920×1080、16:9 固定
 - [ ] UPM パッケージ導入
   - [ ] UniTask（GitHub URL 経由）

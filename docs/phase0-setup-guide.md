@@ -2,7 +2,7 @@
 
 フェーズ0の残タスクは以下の4つです（asmdef・フォルダ構成は既に完了済み）：
 
-1. Unity 6 LTS で新規プロジェクト作成
+1. Unity 6.3 LTS で新規プロジェクト作成
 2. ProjectSettings で解像度設定
 3. UPM パッケージ導入（UniTask・DOTween・TextMeshPro・New Input System）
 
