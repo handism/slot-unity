@@ -69,14 +69,14 @@ namespace SlotGame.Editor
             // Normal 以外は payouts を 0 で登録（PaylineEvaluator では参照されない）
             var defs = new (int id, string name, SymbolType type, int p3, int p4, int p5)[]
             {
-                (0,  "Dragon",  SymbolType.Normal,  15,   30, 100),
-                (1,  "Phoenix", SymbolType.Normal,  12,   25,  80),
-                (2,  "Crystal", SymbolType.Normal,  10,   20,  60),
-                (3,  "Sword",   SymbolType.Normal,   8,   15,  40),
-                (4,  "Ace",     SymbolType.Normal,   5,   10,  20),
-                (5,  "King",    SymbolType.Normal,   4,    8,  15),
-                (6,  "Queen",   SymbolType.Normal,   3,    6,  12),
-                (7,  "Jack",    SymbolType.Normal,   2,    4,   8),
+                (0,  "Dragon",  SymbolType.Normal,  20,   50, 150),
+                (1,  "Phoenix", SymbolType.Normal,  15,   35, 100),
+                (2,  "Crystal", SymbolType.Normal,  10,   25,  75),
+                (3,  "Sword",   SymbolType.Normal,   8,   20,  50),
+                (4,  "Ace",     SymbolType.Normal,   5,   12,  30),
+                (5,  "King",    SymbolType.Normal,   3,    8,  20),
+                (6,  "Queen",   SymbolType.Normal,   2,    5,  12),
+                (7,  "Jack",    SymbolType.Normal,   1,    2,   5),
                 (8,  "Wild",    SymbolType.Wild,     0,    0,   0),
                 (9,  "Scatter", SymbolType.Scatter,  0,    0,   0),
                 (10, "Bonus",   SymbolType.Bonus,    0,    0,   0),
@@ -306,15 +306,15 @@ namespace SlotGame.Editor
             // + 低配当各1追加（Ace+2, King+2, Queen+2, Jack+2 = +8）→ 60
             var baseCounts = new (SymbolData sym, int count)[]
             {
-                (jack,     11),
-                (queen,    10),
-                (king,     11),
-                (ace,      10),
-                (sword,     6),
-                (crystal,   4),
-                (phoenix,   2),
+                (jack,     25),
+                (queen,    20),
+                (king,     14),
+                (ace,      12),
+                (sword,    10),
+                (crystal,   8),
+                (phoenix,   4),
                 (wild,      1),
-                (dragon,    1),
+                (dragon,    2),
                 (scatter,   2),
                 (bonus,     2),
             };
@@ -340,8 +340,8 @@ namespace SlotGame.Editor
         private static List<SymbolData> BuildStrip(
             (SymbolData sym, int count)[] counts, int reelOffset)
         {
-            const int totalSlots = 60;
-            const int step       = 7; // gcd(7, 60) = 1 → 全スロットを一巡する
+            const int totalSlots = 100;
+            const int step       = 13; // gcd(13, 100) = 1 → 全スロットを一巡する
 
             // フラットリストを作成（出現数分のシンボル）
             var flat = new List<SymbolData>(totalSlots);
