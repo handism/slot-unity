@@ -136,15 +136,18 @@ Assets/
 
 **フェーズ 1 完了後に実施（データ定義クラスが確定してから値を入力）**
 
-- [ ] `SymbolData` アセット × 10（Dragon〜Scatter）
+- [x] `SymbolData` アセット × 11（Dragon〜Bonus）
   - 配当倍率を `docs/requirements.md` の値に従って設定
-  - `SymbolType.Bonus` シンボル（宝箱用）が必要か確認して追加
-- [ ] `ReelStripData` アセット × 5（仮データで作成、フェーズ 5 で最終調整）
-  - 参考: 各リール 60 シンボル、Dragon×2、Phoenix×3、Wild×3、Scatter×2 など
-- [ ] `PaylineData` アセット（25 ライン定義を `requirements.md` から転記）
-- [ ] `PayoutTableData` アセット
+  - `SymbolType.Bonus` シンボル（ID=10、宝箱用）を追加済み
+  - **生成方法**: Unity Editor で `SlotGame/Create All ScriptableObject Assets` を実行
+- [x] `ReelStripData` アセット × 5（仮データ、各リール 60 シンボル・フェーズ 5 で最終調整）
+  - Dragon×2, Phoenix×3, Crystal×4, Sword×5, Ace×10, King×10, Queen×10, Jack×10, Wild×3, Scatter×2, Bonus×1
+  - 素数ステップ（7）インターリーブで均等分散、リールごとにオフセット
+- [x] `PaylineData` アセット（25 ライン定義を `requirements.md` から転記済み）
+- [x] `PayoutTableData` アセット
   - Scatter 配当: 3個→×2, 4個→×10, 5個→×50
   - ボーナス報酬重み: ×5(w40), ×10(w25), ×20(w15), ×30(w10), ×50(w7), ×100(w3)（暫定）
+  - **生成方法**: Unity Editor で `SlotGame/Create All ScriptableObject Assets` を実行
 
 ---
 

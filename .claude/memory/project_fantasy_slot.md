@@ -8,10 +8,17 @@ Unity 6 で 1 人開発中のアーケード系スロットゲーム（PC 向け
 
 **基本仕様:**
 - 5 リール × 3 行、25 固定ペイライン
-- シンボル 10 種（高配当 4 / 低配当 4 / Wild / Scatter）
+- シンボル 11 種（高配当 4 / 低配当 4 / Wild / Scatter / **Bonus**）
+  - Bonus (ID=10, SymbolType.Bonus): リール 0/2/4 全出現でボーナスラウンド発動（Scatter とは独立）
 - フリースピン（Scatter 3個以上）+ ボーナスラウンド（宝箱選択ミニゲーム）
 - 初期コイン 1000、ベット選択肢 10/20/50/100
 - ローカル JSON 永続化（サーバー連携なし）
+
+**実装進捗（2026-03-21 時点）:**
+- フェーズ 0〜4: 完了（Model / Core / View / Editor ScriptableObject生成スクリプト）
+- フェーズ 5: RtpCalculator.cs 完了。シミュレーション実行・リール調整は未実施
+- フェーズ 6: 統合テスト未実施
+- **次のアクション**: Unity Editor で `SlotGame/Create All ScriptableObject Assets` を実行してアセット生成 → RTP シミュレーション実施
 
 **採用技術:**
 - Unity 6 最新安定版
