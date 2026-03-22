@@ -90,7 +90,15 @@ namespace SlotGame.Core
             if (_cachedSymbolDefs == null)
                 _cachedSymbolDefs = CollectSymbolDefs(strips);
 
-            return PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount);
+            var result = PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount);
+
+            // 当たりがあれば詳細をログ出力
+            if (result.TotalWinAmount > 0 || result.HasScatter || result.HasBonusCondition)
+            {
+                PaylineEvaluator.LogSpinResult(result, _cachedSymbolDefs);
+            }
+
+            return result;
         }
 
         /// <summary>スピン中に呼ぶとリールが即座に停止位置へスナップする。</summary>

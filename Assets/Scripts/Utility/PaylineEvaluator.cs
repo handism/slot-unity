@@ -1,5 +1,6 @@
 #nullable enable
 using System.Collections.Generic;
+using System.Text;
 using SlotGame.Data;
 using SlotGame.Model;
 
@@ -53,6 +54,55 @@ namespace SlotGame.Utility
                 BonusPositions:    bonusPositions,
                 TotalWinAmount:    totalWin
             );
+        }
+
+        /// <summary>
+        /// 当たりの内訳をコンソールに出力する（デバッグ用）。
+        /// </summary>
+        public static void LogSpinResult(SpinResult result, SymbolData[] defs)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("[Spin Result Breakdown]");
+            
+            // グリッド表示
+            sb.AppendLine("--- Symbol Grid ---");
+            for (int row = 0; row < RowCount; row++)
+            {
+                sb.Append($"Row {row}: ");
+                for (int r = 0; r < ReelCount; r++)
+                {
+                    int id = result.StoppedSymbolIds[r, row];
+                    var sym = FindSymbol(defs, id);
+                    sb.Append($"[{sym?.symbolName ?? id.ToString()}] ");
+                }
+                sb.AppendLine();
+            }
+
+            // 配当ライン
+            if (result.LineWins.Count > 0)
+            {
+                sb.AppendLine("--- Line Wins ---");
+                foreach (var win in result.LineWins)
+                {
+                    var sym = FindSymbol(defs, win.SymbolId);
+                    sb.AppendLine($"- Line {win.LineIndex:D2}: {sym?.symbolName ?? win.SymbolId.ToString()} x{win.MatchCount} => {win.WinAmount} coins");
+                }
+            }
+
+            // スキャター / ボーナス
+            if (result.HasScatter || result.HasBonusCondition)
+            {
+                sb.AppendLine("--- Special Hits ---");
+                if (result.HasScatter)
+                    sb.AppendLine($"- Scatter Hit: {result.ScatterCount} symbols");
+                if (result.HasBonusCondition)
+                    sb.AppendLine("- Bonus Triggered!");
+            }
+
+            sb.AppendLine($"Total Win Amount: {result.TotalWinAmount}");
+            sb.AppendLine("-----------------------");
+
+            UnityEngine.Debug.Log(sb.ToString());
         }
 
         // ─── ペイライン判定 ───────────────────────────────────────────────
