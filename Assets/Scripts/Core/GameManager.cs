@@ -39,6 +39,7 @@ namespace SlotGame.Core
         private float                  _bgmVolume = 0.8f;
         private float                  _seVolume  = 1f;
         private bool                   _hasLoggedSaveSkip;
+        private int                    _autoSpinCount = 10;
 
         // ─── ライフサイクル ──────────────────────────────────────────────
 
@@ -97,6 +98,7 @@ namespace SlotGame.Core
             uiManager.UpdateCoins(_gameState.Coins);
             uiManager.UpdateBet(_gameState.BetAmount);
             uiManager.UpdateWin(0);
+            uiManager.SetAutoButtonText(GetAutoSpinButtonText());
             uiManager.SetSettingsVolumes(_bgmVolume, _seVolume);
             uiManager.PopulatePaytable(CollectSymbolDefinitions());
             uiManager.BgmVolumeChanged += HandleBgmVolumeChanged;
@@ -153,6 +155,7 @@ namespace SlotGame.Core
             }
 
             if (_currentPhase != GamePhase.Idle) return;
+            _autoSpinCount = count;
             RunAutoSpinAsync(count, this.GetCancellationTokenOnDestroy()).Forget();
         }
 
@@ -224,7 +227,7 @@ namespace SlotGame.Core
             finally
             {
                 _isAutoSpinning = false;
-                uiManager.SetAutoButtonText("AUTO");
+                uiManager.SetAutoButtonText(GetAutoSpinButtonText());
                 _autoSpinCts?.Dispose();
                 _autoSpinCts = null;
             }
@@ -476,5 +479,7 @@ namespace SlotGame.Core
             if (amount >= 1000) return WinLevel.Big;
             return WinLevel.Small;
         }
+
+        private string GetAutoSpinButtonText() => $"AUTO x{_autoSpinCount}";
     }
 }

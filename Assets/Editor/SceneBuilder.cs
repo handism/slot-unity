@@ -583,20 +583,20 @@ namespace SlotGame.Editor
 
             var bottomBar = new GameObject("BottomBar", typeof(Image));
             SetParent(bottomBar, go);
-            StretchTo(bottomBar, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(48f, 28f), new Vector2(-48f, 224f));
+            StretchTo(bottomBar, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(48f, 28f), new Vector2(-48f, 248f));
             StyleImage(bottomBar.GetComponent<Image>(), new Color(0.04f, 0.08f, 0.13f, 0.76f), new Color(0.95f, 0.72f, 0.22f, 0.14f), 2f);
             AddEdgeShadow(bottomBar, new Color(0f, 0f, 0f, 0.28f), new Vector2(0f, -8f));
 
             var statsRow = new GameObject("StatsRow", typeof(RectTransform));
             SetParent(statsRow, bottomBar);
-            StretchTo(statsRow, new Vector2(0f, 1f), new Vector2(0.54f, 1f), new Vector2(28f, -94f), new Vector2(-18f, -22f));
+            AnchorTopLeft(statsRow, new Vector2(28f, -22f), new Vector2(524f, 72f));
 
             var coinCard = CreateInfoCard(statsRow, "CoinCard", "COIN", "1,000", new Vector2(0f, 0f), new Vector2(250f, 72f));
             var winCard  = CreateInfoCard(statsRow, "WinCard", "WIN", "------", new Vector2(274f, 0f), new Vector2(250f, 72f));
 
             var betDock = new GameObject("BetDock", typeof(Image));
             SetParent(betDock, bottomBar);
-            AnchorBottomLeft(betDock, new Vector2(28f, 22f), new Vector2(620f, 86f));
+            AnchorBottomLeft(betDock, new Vector2(28f, 18f), new Vector2(620f, 68f));
             StyleImage(betDock.GetComponent<Image>(), new Color(1f, 1f, 1f, 0.04f), new Color(0.24f, 0.76f, 0.95f, 0.12f), 1.5f);
 
             var betLabel = CreateTMPText(betDock, "BetLabel", "BET", 22);
@@ -619,8 +619,8 @@ namespace SlotGame.Editor
             var betButtons = new Button[4];
             for (int i = 0; i < 4; i++)
             {
-                var btn = CreateButton(betDock, $"BetButton{i}", betValues[i].ToString(), new Vector2(120f, 58f), new Color(0.16f, 0.23f, 0.37f));
-                AnchorCenter(btn, new Vector2(-146f + i * 132f, 0f), new Vector2(120f, 58f));
+                var btn = CreateButton(betDock, $"BetButton{i}", betValues[i].ToString(), new Vector2(120f, 52f), new Color(0.16f, 0.23f, 0.37f));
+                AnchorCenter(btn, new Vector2(-146f + i * 132f, 0f), new Vector2(120f, 52f));
                 betButtons[i] = btn.GetComponent<Button>();
             }
 
