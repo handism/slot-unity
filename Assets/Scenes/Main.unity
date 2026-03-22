@@ -9321,20 +9321,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Audio::SlotGame.Audio.AudioManager
   bgmSource: {fileID: 1943626267}
   seSource: {fileID: 815910106}
-  bgmNormal: {fileID: 0}
-  bgmFreeSpin: {fileID: 0}
-  bgmBonusRound: {fileID: 0}
-  seSpinStart: {fileID: 0}
-  seReelStop: {fileID: 0}
-  seSmallWin: {fileID: 0}
-  seBigWin: {fileID: 0}
-  seMegaWin: {fileID: 0}
-  seScatterAppear: {fileID: 0}
-  seFreeSpinStart: {fileID: 0}
-  seBonusStart: {fileID: 0}
-  seChestSelect: {fileID: 0}
-  seChestOpen: {fileID: 0}
-  seButtonClick: {fileID: 0}
+  bgmNormal: {fileID: 8300000, guid: 5c5b45c7d1a1e46dba795ccd62ba7301, type: 3}
+  bgmFreeSpin: {fileID: 8300000, guid: 5c5b45c7d1a1e46dba795ccd62ba7301, type: 3}
+  bgmBonusRound: {fileID: 8300000, guid: 5c5b45c7d1a1e46dba795ccd62ba7301, type: 3}
+  seSpinStart: {fileID: 8300000, guid: 497edd281046c4009bd5b1f92de277bc, type: 3}
+  seReelStop: {fileID: 8300000, guid: 497edd281046c4009bd5b1f92de277bc, type: 3}
+  seSmallWin: {fileID: 8300000, guid: 497edd281046c4009bd5b1f92de277bc, type: 3}
+  seBigWin: {fileID: 8300000, guid: 497edd281046c4009bd5b1f92de277bc, type: 3}
+  seMegaWin: {fileID: 8300000, guid: 497edd281046c4009bd5b1f92de277bc, type: 3}
+  seScatterAppear: {fileID: 8300000, guid: 497edd281046c4009bd5b1f92de277bc, type: 3}
+  seFreeSpinStart: {fileID: 8300000, guid: 497edd281046c4009bd5b1f92de277bc, type: 3}
+  seBonusStart: {fileID: 8300000, guid: 497edd281046c4009bd5b1f92de277bc, type: 3}
+  seChestSelect: {fileID: 8300000, guid: 497edd281046c4009bd5b1f92de277bc, type: 3}
+  seChestOpen: {fileID: 8300000, guid: 497edd281046c4009bd5b1f92de277bc, type: 3}
+  seButtonClick: {fileID: 8300000, guid: 497edd281046c4009bd5b1f92de277bc, type: 3}
 --- !u!1 &1962155489
 GameObject:
   m_ObjectHideFlags: 0

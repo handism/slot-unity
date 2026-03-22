@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -38,6 +39,11 @@ namespace SlotGame.Audio
         [SerializeField] private AudioClip seChestSelect;
         [SerializeField] private AudioClip seChestOpen;
         [SerializeField] private AudioClip seButtonClick;
+
+        private void Awake()
+        {
+            ValidateConfiguration();
+        }
 
         public void PlayBGM(BGMType type)
         {
@@ -93,6 +99,33 @@ namespace SlotGame.Audio
                          .ToUniTask(cancellationToken: ct);
             bgmSource.Stop();
             bgmSource.volume = startVolume;
+        }
+
+        private void ValidateConfiguration()
+        {
+            var missing = new List<string>();
+
+            if (bgmSource == null) missing.Add(nameof(bgmSource));
+            if (seSource == null) missing.Add(nameof(seSource));
+            if (bgmNormal == null) missing.Add(nameof(bgmNormal));
+            if (bgmFreeSpin == null) missing.Add(nameof(bgmFreeSpin));
+            if (bgmBonusRound == null) missing.Add(nameof(bgmBonusRound));
+            if (seSpinStart == null) missing.Add(nameof(seSpinStart));
+            if (seReelStop == null) missing.Add(nameof(seReelStop));
+            if (seSmallWin == null) missing.Add(nameof(seSmallWin));
+            if (seBigWin == null) missing.Add(nameof(seBigWin));
+            if (seMegaWin == null) missing.Add(nameof(seMegaWin));
+            if (seScatterAppear == null) missing.Add(nameof(seScatterAppear));
+            if (seFreeSpinStart == null) missing.Add(nameof(seFreeSpinStart));
+            if (seBonusStart == null) missing.Add(nameof(seBonusStart));
+            if (seChestSelect == null) missing.Add(nameof(seChestSelect));
+            if (seChestOpen == null) missing.Add(nameof(seChestOpen));
+            if (seButtonClick == null) missing.Add(nameof(seButtonClick));
+
+            if (missing.Count > 0)
+            {
+                Debug.LogWarning($"[AudioManager] Missing audio assignments: {string.Join(", ", missing)}", this);
+            }
         }
     }
 }
