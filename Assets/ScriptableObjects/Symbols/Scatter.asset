@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 9
   symbolName: Scatter
-  sprite: {fileID: 21300000, guid: e3615964ce1b84767b50adc02e90b5d6, type: 3}
+  sprite: {fileID: 9118050511375315368, guid: f467e50dfbd2a45b99c69a39b47911ae, type: 3}
   type: 2
   payouts: 000000000000000000000000
   winAnim: {fileID: 0}

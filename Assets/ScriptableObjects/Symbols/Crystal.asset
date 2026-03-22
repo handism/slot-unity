@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 2
   symbolName: Crystal
-  sprite: {fileID: 7479642271789056252, guid: bf26e0c8a330345228299f45c12f42cd, type: 3}
+  sprite: {fileID: 5156776694448688124, guid: c8a7f3488a5894090b4465981f0137e6, type: 3}
   type: 0
   payouts: 23000000460000005e010000
   winAnim: {fileID: 0}

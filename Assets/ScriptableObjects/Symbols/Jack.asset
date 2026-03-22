@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 7
   symbolName: Jack
-  sprite: {fileID: 21300000, guid: bc45b88e3bba6421eba4692487fc019e, type: 3}
+  sprite: {fileID: -4588854041495768185, guid: 0b4779971418a4b9188f73458afd6e61, type: 3}
   type: 0
   payouts: 050000000a00000032000000
   winAnim: {fileID: 0}

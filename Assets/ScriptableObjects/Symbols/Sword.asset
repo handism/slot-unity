@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 3
   symbolName: Sword
-  sprite: {fileID: -3753825769889500098, guid: 2c76d77ac83524e7da50f9ded0aa3cc3, type: 3}
+  sprite: {fileID: 3616512531535755360, guid: 0c4eaab9863c948b29c34fdef731fc41, type: 3}
   type: 0
   payouts: 1900000032000000fa000000
   winAnim: {fileID: 0}

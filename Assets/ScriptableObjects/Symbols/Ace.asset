@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 4
   symbolName: Ace
-  sprite: {fileID: 21300000, guid: c1b2bf0be298c4ca992c69bfc10bd702, type: 3}
+  sprite: {fileID: -90375647409325229, guid: e53e98bffb8b343ed94e82b0f0a81561, type: 3}
   type: 0
   payouts: 0c0000001800000078000000
   winAnim: {fileID: 0}

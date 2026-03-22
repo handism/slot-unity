@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 6
   symbolName: Queen
-  sprite: {fileID: 21300000, guid: 709ae87d588574e32a0916e1dc73b502, type: 3}
+  sprite: {fileID: -6410442598547967069, guid: 052f18db16bc046db966588e6eadd064, type: 3}
   type: 0
   payouts: 080000000f0000004b000000
   winAnim: {fileID: 0}
