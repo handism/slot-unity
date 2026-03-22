@@ -492,7 +492,10 @@ namespace SlotGame.Editor
             headerLayout.childControlHeight = true;
             headerLayout.childForceExpandWidth = false;
             StyleImage(header.AddComponent<Image>(), new Color(1f, 1f, 1f, 0.03f), new Color(0.24f, 0.77f, 0.95f, 0.22f), 1f);
-            StyleSectionLabel(CreateSizedLabel(header, "SYMBOL", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>());
+            var symbolHeaderText = CreateSizedLabel(header, "SYMBOL", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>();
+            StyleSectionLabel(symbolHeaderText);
+            symbolHeaderText.margin = new Vector4(18f, 0f, 0f, 0f);
+            symbolHeaderText.enableWordWrapping = false;
             StyleSectionLabel(CreateSizedLabel(header, "3", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>());
             StyleSectionLabel(CreateSizedLabel(header, "4", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>());
             StyleSectionLabel(CreateSizedLabel(header, "5", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>());
@@ -553,7 +556,7 @@ namespace SlotGame.Editor
             StyleValueText(CreateSizedLabel(rowTemplate, "-", PaytableView.ColumnWidth, 24).GetComponent<TMP_Text>(), 2f);
 
             var closeBtn = CreateButton(dialog, "CloseButton", "CLOSE", new Vector2(180f, 58f), new Color(0.14f, 0.24f, 0.38f));
-            AnchorBottomRight(closeBtn, new Vector2(-48f, 34f), new Vector2(180f, 58f));
+            AnchorBottomRight(closeBtn, new Vector2(-48f, 52f), new Vector2(180f, 58f));
 
             WireField(view, "contentRoot", contentRoot.GetComponent<Transform>());
             WireField(view, "closeButton", closeBtn.GetComponent<Button>());
