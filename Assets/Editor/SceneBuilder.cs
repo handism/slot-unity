@@ -556,9 +556,12 @@ namespace SlotGame.Editor
             var icon = new GameObject("Icon", typeof(RectTransform), typeof(Image));
             SetParent(icon, symbolCell);
             AnchorCenter(icon, Vector2.zero, new Vector2(PaytableView.IconSize, PaytableView.IconSize));
-            StyleValueText(CreateSizedLabel(rowTemplate, "-", PaytableView.ColumnWidth, 24).GetComponent<TMP_Text>(), 2f);
-            StyleValueText(CreateSizedLabel(rowTemplate, "-", PaytableView.ColumnWidth, 24).GetComponent<TMP_Text>(), 2f);
-            StyleValueText(CreateSizedLabel(rowTemplate, "-", PaytableView.ColumnWidth, 24).GetComponent<TMP_Text>(), 2f);
+            for (int i = 0; i < 3; i++)
+            {
+                var text = CreateSizedLabel(rowTemplate, "-", PaytableView.ColumnWidth, 24).GetComponent<TMP_Text>();
+                StyleValueText(text, 2f);
+                text.alignment = TextAlignmentOptions.Right;
+            }
 
             var closeBtn = CreateButton(dialog, "CloseButton", "CLOSE", new Vector2(180f, 58f), new Color(0.14f, 0.24f, 0.38f));
             AnchorBottomRight(closeBtn, new Vector2(-48f, 52f), new Vector2(180f, 58f));
