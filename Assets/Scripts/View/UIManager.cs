@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using SlotGame.Data;
 using SlotGame.Model;
@@ -16,6 +17,7 @@ namespace SlotGame.View
         [SerializeField] private PaytableView    paytableView;
         [SerializeField] private PaylineView     paylinePrefab;
         [SerializeField] private Transform       paylineParent;
+        [Header("Debug/Fallback")]
         [SerializeField] private PaylineData     paylineData;
 
         private List<PaylineView> _activePaylines = new();
@@ -58,9 +60,19 @@ namespace SlotGame.View
         public async UniTask ShowWinAmount(long amount, WinLevel level)
             => await winPopup.Show(amount, level, this.GetCancellationTokenOnDestroy());
 
-        public void HighlightWinLines(SpinResult result)
+        public void SetupReels(IEnumerable<ReelView> reels)
         {
-            CacheReelViews();
+            _reelViews = reels.ToArray();
+        }
+
+        public void HighlightWinLines(SpinResult result, PaylineData? overridePaylineData = null)
+        {
+            var currentPaylineData = overridePaylineData != null ? overridePaylineData : paylineData;
+
+            if (_reelViews == null || _reelViews.Length == 0)
+            {
+                CacheReelViews();
+            }
             if (_reelViews == null || _reelViews.Length == 0) return;
 
             var highlightedRowsByReel = new Dictionary<int, HashSet<int>>();
@@ -69,13 +81,13 @@ namespace SlotGame.View
             // --- ペイライン描画 ---
             ClearPaylines();
 
-            if (paylineData != null && paylinePrefab != null)
+            if (currentPaylineData != null && paylinePrefab != null)
             {
                 foreach (var win in result.LineWins)
                 {
-                    if (win.LineIndex < 0 || win.LineIndex >= paylineData.lines.Length) continue;
+                    if (win.LineIndex < 0 || win.LineIndex >= currentPaylineData.lines.Length) continue;
 
-                    var lineDef = paylineData.lines[win.LineIndex];
+                    var lineDef = currentPaylineData.lines[win.LineIndex];
                     var points = new Vector3[win.MatchCount];
                     for (int i = 0; i < win.MatchCount; i++)
                     {
@@ -150,7 +162,10 @@ namespace SlotGame.View
         public void ClearLineHighlights()
         {
             ClearPaylines();
-            CacheReelViews();
+            if (_reelViews == null || _reelViews.Length == 0)
+            {
+                CacheReelViews();
+            }
             if (_reelViews == null) return;
 
             foreach (var reelView in _reelViews)
@@ -186,16 +201,14 @@ namespace SlotGame.View
         {
             if (_reelViews != null && _reelViews.Length == 5) return;
 
-            _reelViews = FindObjectsByType<ReelView>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-            if (_reelViews.Length > 0)
-            {
-                System.Array.Sort(_reelViews, CompareReelsByXPosition);
-            }
-        }
+            var views = FindObjectsByType<ReelView>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            if (views.Length == 0) return;
 
-        private static int CompareReelsByXPosition(ReelView left, ReelView right)
-        {
-            return left.transform.position.x.CompareTo(right.transform.position.x);
+            // ReelController を持っているものに限定して、ノイズを排除する
+            _reelViews = views
+                .Where(v => v.GetComponentInParent<Core.ReelController>() != null)
+                .OrderBy(v => v.transform.position.x)
+                .ToArray();
         }
     }
 }

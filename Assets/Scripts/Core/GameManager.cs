@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using SlotGame.Audio;
@@ -76,6 +77,9 @@ namespace SlotGame.Core
 
             spinManager.Initialize(random, reelStrips);
             bonusManager.Initialize(random);
+
+            // UIManager に使用するリールを明示的にセット
+            uiManager.SetupReels(spinManager.Reels.Select(r => r.GetComponent<ReelView>()));
 
             _bgmVolume = save.bgmVolume;
             _seVolume  = save.seVolume;
@@ -265,7 +269,7 @@ namespace SlotGame.Core
                     await uiManager.ShowWinAmount(result.TotalWinAmount, CalcWinLevel(result.TotalWinAmount));
                 }
 
-                uiManager.HighlightWinLines(result);
+                uiManager.HighlightWinLines(result, paylineData);
                 await UniTask.Delay(TimeSpan.FromSeconds(1.5f), cancellationToken: ct);
                 uiManager.ClearLineHighlights();
             }
@@ -340,7 +344,12 @@ namespace SlotGame.Core
                     uiManager.UpdateWin(result.TotalWinAmount * 2);
                     uiManager.ShowFreeSpinHUD(_gameState.FreeSpinsLeft, cumulativeFreeSpinWin);
                     if (result.TotalWinAmount > 0)
+                    {
+                        uiManager.HighlightWinLines(result, paylineData);
                         await uiManager.ShowWinAmount(result.TotalWinAmount * 2, CalcWinLevel(result.TotalWinAmount * 2));
+                        await UniTask.Delay(TimeSpan.FromSeconds(1.5f), cancellationToken: ct);
+                        uiManager.ClearLineHighlights();
+                    }
                 },
                 ct);
 
