@@ -184,10 +184,13 @@ namespace SlotGame.View
 
         private void CacheReelViews()
         {
-            if (_reelViews != null && _reelViews.Length > 0) return;
+            if (_reelViews != null && _reelViews.Length == 5) return;
 
             _reelViews = FindObjectsByType<ReelView>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-            System.Array.Sort(_reelViews, CompareReelsByXPosition);
+            if (_reelViews.Length > 0)
+            {
+                System.Array.Sort(_reelViews, CompareReelsByXPosition);
+            }
         }
 
         private static int CompareReelsByXPosition(ReelView left, ReelView right)

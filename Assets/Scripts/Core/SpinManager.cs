@@ -21,6 +21,12 @@ namespace SlotGame.Core
         {
             _random = random;
 
+            if (reels != null)
+            {
+                // UIManager と同じく X 座標順（左から右）にソートして、インデックスと物理位置を一致させる
+                System.Array.Sort(reels, (a, b) => a.transform.position.x.CompareTo(b.transform.position.x));
+            }
+
             if (strips == null) return;
 
             for (int i = 0; i < reels.Length && i < strips.Length; i++)
