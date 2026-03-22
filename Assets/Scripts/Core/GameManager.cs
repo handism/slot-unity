@@ -30,6 +30,7 @@ namespace SlotGame.Core
         [SerializeField] private ReelStripData[]  reelStrips;   // 5本
         [SerializeField] private PaylineData       paylineData;
         [SerializeField] private PayoutTableData   payoutData;
+        [SerializeField] private GameConfigData    gameConfig;
 
         private GameState              _gameState;
         private SaveDataManager        _saveDataManager;
@@ -60,7 +61,13 @@ namespace SlotGame.Core
                 // デバッグ用（Boot シーンを通さず起動した場合）
                 _saveDataManager = new SaveDataManager();
                 var save = _saveDataManager.Load();
-                _gameState = new GameState(save.coins, save.betAmount);
+                _gameState = new GameState(
+                    gameConfig.initialCoins,
+                    gameConfig.maxCoins,
+                    gameConfig.validBetAmounts,
+                    save.coins,
+                    save.betAmount
+                );
                 _gameState.RestoreStats(save.totalSpins, save.maxWin);
 
                 var random = new SystemRandomGenerator();
@@ -76,11 +83,17 @@ namespace SlotGame.Core
         {
             _saveDataManager = saveDataManager ?? new SaveDataManager();
             save ??= _saveDataManager.Load();
-            _gameState = gameState ?? new GameState(save.coins, save.betAmount);
+            _gameState = gameState ?? new GameState(
+                gameConfig.initialCoins,
+                gameConfig.maxCoins,
+                gameConfig.validBetAmounts,
+                save.coins,
+                save.betAmount
+            );
             random ??= new SystemRandomGenerator();
 
             spinManager.Initialize(random, reelStrips);
-            bonusManager.Initialize(random);
+            bonusManager.Initialize(random, gameConfig);
 
             // UIManager に使用するリールを明示的にセット
             uiManager.SetupReels(spinManager.Reels.Select(r => r.GetComponent<ReelView>()));
@@ -405,7 +418,7 @@ namespace SlotGame.Core
             TransitionTo(GamePhase.GameOver);
             uiManager.ApplyModeVisual(ModeVisualType.Normal);
             // コインをデフォルト値にリセット
-            _gameState.SetCoins(1000);
+            _gameState.SetCoins(gameConfig.initialCoins);
             uiManager.UpdateCoins(_gameState.Coins);
             SaveGame();
             await UniTask.Delay(TimeSpan.FromSeconds(1f));
@@ -485,7 +498,7 @@ namespace SlotGame.Core
 
         private void HandleResetCoinsRequested()
         {
-            _gameState.SetCoins(1000);
+            _gameState.SetCoins(gameConfig.initialCoins);
             uiManager.UpdateCoins(_gameState.Coins);
             SaveGame();
         }

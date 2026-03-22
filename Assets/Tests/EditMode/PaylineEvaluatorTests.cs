@@ -20,14 +20,16 @@ namespace SlotGame.Tests.EditMode
         private const int Scatter = 9;
         private const int Bonus   = 10;
 
-        private SymbolData[]    _defs;
-        private PaylineData     _paylines;
-        private PayoutTableData _payouts;
+        private SymbolData[]                     _defs;
+        private IReadOnlyDictionary<int, SymbolData> _defDict;
+        private PaylineData                      _paylines;
+        private PayoutTableData                  _payouts;
 
         [SetUp]
         public void SetUp()
         {
-            _defs = BuildSymbolDefs();
+            _defs     = BuildSymbolDefs();
+            _defDict  = _defs.ToDictionary(d => d.symbolId);
             _paylines = BuildPaylineData();
             _payouts  = BuildPayoutTableData();
         }
@@ -286,7 +288,7 @@ namespace SlotGame.Tests.EditMode
         // ─── ヘルパー ────────────────────────────────────────────────────
 
         private SpinResult Evaluate(int[,] grid, int bet = 10)
-            => PaylineEvaluator.Evaluate(grid, _defs, _paylines, _payouts, bet);
+            => PaylineEvaluator.Evaluate(grid, _defDict, _paylines, _payouts, bet);
 
         private static long SumLineWins(SpinResult result)
         {

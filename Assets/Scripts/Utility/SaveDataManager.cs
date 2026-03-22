@@ -35,7 +35,7 @@ namespace SlotGame.Utility
             {
                 string json = File.ReadAllText(_savePath);
                 var data    = JsonUtility.FromJson<SaveData>(json);
-                if (data == null || !Validate(data))
+                if (data == null || !Validate(data) || !VerifyChecksum(data))
                     return RecoverFromCorruption();
 
                 return data;
@@ -49,6 +49,7 @@ namespace SlotGame.Utility
         /// <summary>セーブデータを JSON ファイルに書き込む（一時ファイルを用いたアトミック書き込み）。</summary>
         public void Save(SaveData data)
         {
+            data.checksum = CalculateChecksum(data);
             string json = JsonUtility.ToJson(data, prettyPrint: true);
             string tempPath = _savePath + ".tmp";
 
@@ -76,12 +77,26 @@ namespace SlotGame.Utility
         private static bool Validate(SaveData data)
         {
             if (data.saveVersion != "1.0")                  return false;
-            if (data.coins < 0 || data.coins > GameState.MaxCoins) return false;
-            if (Array.IndexOf(GameState.ValidBetAmounts, data.betAmount) < 0) return false;
+            if (data.coins < 0)                             return false;
             if (data.bgmVolume < 0f || data.bgmVolume > 1f) return false;
             if (data.seVolume  < 0f || data.seVolume  > 1f) return false;
             if (data.totalSpins < 0 || data.maxWin < 0)     return false;
             return true;
+        }
+
+        private static string CalculateChecksum(SaveData data)
+        {
+            string raw = $"{data.coins}:{data.betAmount}:{data.totalSpins}:{data.maxWin}:{data.saveVersion}:SALTY_SLOT_2026";
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(raw));
+            return Convert.ToBase64String(bytes);
+        }
+
+        private static bool VerifyChecksum(SaveData data)
+        {
+            string actual = data.checksum;
+            string expected = CalculateChecksum(data);
+            return actual == expected;
         }
 
         private SaveData RecoverFromCorruption()

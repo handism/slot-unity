@@ -12,5 +12,6 @@ namespace SlotGame.Model
         public long   totalSpins  = 0;
         public long   maxWin      = 0;
         public string saveVersion = "1.0";
+        public string checksum    = "";
     }
 }

@@ -20,16 +20,16 @@ namespace SlotGame.Utility
         /// スピン結果を評価して SpinResult を返す。
         /// </summary>
         /// <param name="symbolGrid">停止シンボル ID のグリッド [reel, row]</param>
-        /// <param name="symbolDefs">全シンボル定義（symbolId でインデックス引きできるように並べること）</param>
+        /// <param name="symbolDefs">全シンボル定義（symbolId をキーとした辞書）</param>
         /// <param name="paylines">ペイライン定義</param>
         /// <param name="payouts">Scatter 配当・ボーナス報酬テーブル</param>
         /// <param name="betAmount">ベット額（コイン）</param>
         public static SpinResult Evaluate(
-            int[,]          symbolGrid,
-            SymbolData[]    symbolDefs,
-            PaylineData     paylines,
-            PayoutTableData payouts,
-            int             betAmount)
+            int[,]                               symbolGrid,
+            IReadOnlyDictionary<int, SymbolData> symbolDefs,
+            PaylineData                          paylines,
+            PayoutTableData                      payouts,
+            int                                  betAmount)
         {
             var lineWins = EvaluatePaylines(symbolGrid, symbolDefs, paylines, betAmount);
 
@@ -59,7 +59,7 @@ namespace SlotGame.Utility
         /// <summary>
         /// 当たりの内訳をコンソールに出力する（デバッグ用）。
         /// </summary>
-        public static void LogSpinResult(SpinResult result, SymbolData[] defs)
+        public static void LogSpinResult(SpinResult result, IReadOnlyDictionary<int, SymbolData> defs)
         {
             var sb = new StringBuilder();
             sb.AppendLine("[Spin Result Breakdown]");
@@ -107,21 +107,23 @@ namespace SlotGame.Utility
 
         // ─── ペイライン判定 ───────────────────────────────────────────────
 
+        private static readonly List<LineWin> _lineWinBuffer = new(25);
+
         private static IReadOnlyList<LineWin> EvaluatePaylines(
-            int[,] grid, SymbolData[] defs, PaylineData paylines, int bet)
+            int[,] grid, IReadOnlyDictionary<int, SymbolData> defs, PaylineData paylines, int bet)
         {
-            var wins = new List<LineWin>();
+            _lineWinBuffer.Clear();
             for (int li = 0; li < paylines.lines.Length; li++)
             {
                 var entry = paylines.lines[li];
                 var win   = EvaluateLine(li, entry.rows, grid, defs, bet);
-                if (win != null) wins.Add(win);
+                if (win != null) _lineWinBuffer.Add(win);
             }
-            return wins;
+            return new List<LineWin>(_lineWinBuffer); // Copy for the record
         }
 
         private static LineWin? EvaluateLine(
-            int lineIndex, int[] rows, int[,] grid, SymbolData[] defs, int bet)
+            int lineIndex, int[] rows, int[,] grid, IReadOnlyDictionary<int, SymbolData> defs, int bet)
         {
             // 左端のシンボルを確定（Wild の場合は後続シンボルで補完）
             int baseSymbolId = -1;
@@ -168,7 +170,7 @@ namespace SlotGame.Utility
 
         // ─── Scatter 判定 ─────────────────────────────────────────────────
 
-        private static IReadOnlyList<SymbolPosition> GetScatterPositions(int[,] grid, SymbolData[] defs)
+        private static IReadOnlyList<SymbolPosition> GetScatterPositions(int[,] grid, IReadOnlyDictionary<int, SymbolData> defs)
         {
             var positions = new List<SymbolPosition>();
             for (int r = 0; r < ReelCount; r++)
@@ -191,7 +193,7 @@ namespace SlotGame.Utility
 
         // ─── ボーナス条件判定 ─────────────────────────────────────────────
 
-        private static IReadOnlyList<SymbolPosition> GetBonusPositions(int[,] grid, SymbolData[] defs)
+        private static IReadOnlyList<SymbolPosition> GetBonusPositions(int[,] grid, IReadOnlyDictionary<int, SymbolData> defs)
         {
             var positions = new List<SymbolPosition>();
             for (int r = 0; r < ReelCount; r++)
@@ -219,18 +221,16 @@ namespace SlotGame.Utility
 
         // ─── ヘルパー ─────────────────────────────────────────────────────
 
-        private static SymbolData? FindSymbol(SymbolData[] defs, int id)
+        private static SymbolData? FindSymbol(IReadOnlyDictionary<int, SymbolData> defs, int id)
         {
-            foreach (var d in defs)
-                if (d.symbolId == id) return d;
-            return null;
+            return defs.TryGetValue(id, out var data) ? data : null;
         }
 
-        private static int FindHighestNormalSymbolId(SymbolData[] defs)
+        private static int FindHighestNormalSymbolId(IReadOnlyDictionary<int, SymbolData> defs)
         {
             int bestId      = 0;
             int bestPayout  = -1;
-            foreach (var d in defs)
+            foreach (var d in defs.Values)
             {
                 if (d.type != SymbolType.Normal) continue;
                 if (d.payouts == null || d.payouts.Length < 3) continue;

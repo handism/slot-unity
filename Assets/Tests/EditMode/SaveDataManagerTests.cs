@@ -80,15 +80,19 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
-        public void Load_InvalidBetAmount_ReturnsDefault()
+        public void Load_TamperedData_ReturnsDefault()
         {
-            var bad = new SaveData { betAmount = 999 };
-            File.WriteAllText(_tempPath, UnityEngine.JsonUtility.ToJson(bad));
-            var mgr  = new SaveDataManager(_tempPath);
-            var data = mgr.Load();
+            var mgr = new SaveDataManager(_tempPath);
+            var save = new SaveData { coins = 5000 };
+            mgr.Save(save);
 
-            Assert.AreEqual(1000, data.coins);
-            Assert.AreEqual(10,   data.betAmount);
+            // Manual tampering
+            string json = File.ReadAllText(_tempPath);
+            json = json.Replace("5000", "999999");
+            File.WriteAllText(_tempPath, json);
+
+            var loaded = mgr.Load();
+            Assert.AreEqual(1000, loaded.coins); // Back to default due to checksum failure
         }
     }
 }
