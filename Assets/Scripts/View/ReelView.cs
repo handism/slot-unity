@@ -68,6 +68,11 @@ namespace SlotGame.View
                 AdvanceStrip();
             }
 
+            UpdateSymbolPositions();
+        }
+
+        private void UpdateSymbolPositions()
+        {
             // 全シンボルを offset 分だけ下にシフト
             for (int i = 0; i < BufferSize; i++)
             {
@@ -85,23 +90,28 @@ namespace SlotGame.View
             // 停止位置にスナップ
             AlignToStopIndex(targetStopIndex);
 
-            // バウンスアニメーション（中段シンボルを基準に DOTween）
-            var midView = _symbolViews[1];   // [0]=上バッファ, [1]=上段, [2]=中段（表示）
-            var rt      = midView.GetComponent<RectTransform>();
-            float targetY = rt.anchoredPosition.y;
-
-            // 少し行き過ぎてからバウンスで戻る
+            // バウンスアニメーション（リール全体）
+            float bounceAmount = 30f;
             await DOTween.To(
-                        () => rt.anchoredPosition,
-                        value => rt.anchoredPosition = value,
-                        new Vector2(rt.anchoredPosition.x, targetY - 20f),
+                        () => _scrollOffset,
+                        value =>
+                        {
+                            _scrollOffset = value;
+                            UpdateSymbolPositions();
+                        },
+                        -bounceAmount,
                         0.1f)
                     .SetEase(Ease.OutQuad)
                     .ToUniTask(cancellationToken: ct);
+
             await DOTween.To(
-                        () => rt.anchoredPosition,
-                        value => rt.anchoredPosition = value,
-                        new Vector2(rt.anchoredPosition.x, targetY),
+                        () => _scrollOffset,
+                        value =>
+                        {
+                            _scrollOffset = value;
+                            UpdateSymbolPositions();
+                        },
+                        0f,
                         0.15f)
                     .SetEase(Ease.OutBounce)
                     .ToUniTask(cancellationToken: ct);
@@ -131,10 +141,11 @@ namespace SlotGame.View
         }
 
         /// <summary>指定行のシンボルで当選アニメーションを再生して完了を待機する。</summary>
-        public async UniTask PlayWinAnimation(int row, AnimationClip clip, CancellationToken ct)
+        public async UniTask PlayWinAnimation(int row, CancellationToken ct)
         {
             // row: 0=上段, 1=中段, 2=下段 → _symbolViews インデックスは 1〜3
-            await _symbolViews[row + 1].PlayWinAnim(clip, ct);
+            if (_symbolViews == null || row + 1 >= _symbolViews.Length) return;
+            await _symbolViews[row + 1].PlayWinAnim(ct);
         }
 
         /// <summary>指定行のシンボルの世界座標を取得する（0=上, 1=中, 2=下）。</summary>
@@ -208,6 +219,9 @@ namespace SlotGame.View
             _symbolViews[2].SetSymbol(_strip.strip[mid]);
             _symbolViews[3].SetSymbol(_strip.strip[bot]);
             _symbolViews[4].SetSymbol(_strip.strip[botBuf]);
+
+            // ストリップ位置を更新して次のスピン開始時のジャンプを防ぐ
+            _stripIndex = topBuf;
         }
 
         private void SnapAllToGrid()

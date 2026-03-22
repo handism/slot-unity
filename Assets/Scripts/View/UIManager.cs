@@ -57,57 +57,77 @@ namespace SlotGame.View
         public async UniTask ShowWinAmount(long amount, WinLevel level)
             => await winPopup.Show(amount, level, this.GetCancellationTokenOnDestroy());
 
-        public void HighlightWinLines(IReadOnlyList<LineWin> wins)
+        public void HighlightWinLines(SpinResult result)
         {
             CacheReelViews();
             if (_reelViews == null || _reelViews.Length == 0) return;
 
             var highlightedRowsByReel = new Dictionary<int, HashSet<int>>();
+            var ct = this.GetCancellationTokenOnDestroy();
 
-            // --- 安全策: データが未設定なら処理を中断する ---
-            if (paylineData == null || paylinePrefab == null)
-            {
-                Debug.LogWarning("UIManager: PaylineData or PaylinePrefab is not assigned! Lines will not be drawn.");
-                // 配当計算などは終わっているので、ライン描画だけスキップする
-                return;
-            }
-
-            // --- ライン描画の追加 ---
+            // --- ペイライン描画 ---
             ClearPaylines();
 
-            foreach (var win in wins)
+            if (paylineData != null && paylinePrefab != null)
             {
-                if (win.LineIndex < 0 || win.LineIndex >= paylineData.lines.Length) continue;
-
-                var lineDef = paylineData.lines[win.LineIndex];
-                var points = new Vector3[win.MatchCount];
-                for (int i = 0; i < win.MatchCount; i++)
+                foreach (var win in result.LineWins)
                 {
-                    int row = lineDef.rows[i];
-                    points[i] = _reelViews[i].GetSymbolWorldPosition(row);
-                }
+                    if (win.LineIndex < 0 || win.LineIndex >= paylineData.lines.Length) continue;
 
-                var lineView = Instantiate(paylinePrefab, paylineParent != null ? paylineParent : transform);
-                lineView.DrawLine(points, GetLineColor(win.LineIndex));
-                _activePaylines.Add(lineView);
-
-                // --- シンボルのハイライト（薄暗くする演出用） ---
-                for (int i = 0; i < win.MatchCount; i++)
-                {
-                    if (!highlightedRowsByReel.TryGetValue(i, out var rows))
+                    var lineDef = paylineData.lines[win.LineIndex];
+                    var points = new Vector3[win.MatchCount];
+                    for (int i = 0; i < win.MatchCount; i++)
                     {
-                        rows = new HashSet<int>();
-                        highlightedRowsByReel.Add(i, rows);
+                        int row = lineDef.rows[i];
+                        points[i] = _reelViews[i].GetSymbolWorldPosition(row);
                     }
-                    rows.Add(lineDef.rows[i]);
+
+                    var lineView = Instantiate(paylinePrefab, paylineParent != null ? paylineParent : transform);
+                    lineView.DrawLine(points, GetLineColor(win.LineIndex));
+                    _activePaylines.Add(lineView);
+
+                    // シンボルハイライト追加
+                    for (int i = 0; i < win.MatchCount; i++)
+                    {
+                        AddHighlight(highlightedRowsByReel, i, lineDef.rows[i]);
+                    }
                 }
             }
 
+            // --- Scatter / Bonus ハイライト追加 ---
+            foreach (var pos in result.ScatterPositions)
+            {
+                AddHighlight(highlightedRowsByReel, pos.Reel, pos.Row);
+            }
+            foreach (var pos in result.BonusPositions)
+            {
+                AddHighlight(highlightedRowsByReel, pos.Reel, pos.Row);
+            }
+
+            // --- 表示反映 & アニメーション開始 ---
             for (int reelIndex = 0; reelIndex < _reelViews.Length; reelIndex++)
             {
                 highlightedRowsByReel.TryGetValue(reelIndex, out var rows);
                 _reelViews[reelIndex].HighlightRows(rows);
+
+                if (rows != null)
+                {
+                    foreach (int row in rows)
+                    {
+                        _reelViews[reelIndex].PlayWinAnimation(row, ct).Forget();
+                    }
+                }
             }
+        }
+
+        private void AddHighlight(Dictionary<int, HashSet<int>> dict, int reel, int row)
+        {
+            if (!dict.TryGetValue(reel, out var rows))
+            {
+                rows = new HashSet<int>();
+                dict.Add(reel, rows);
+            }
+            rows.Add(row);
         }
 
         private void ClearPaylines()

@@ -243,15 +243,24 @@ namespace SlotGame.Core
             TransitionTo(GamePhase.Evaluating);
 
             // 通常スピンの配当を加算
-            if (result.TotalWinAmount > 0)
+            if (result.TotalWinAmount > 0 || result.HasBonusCondition || result.HasScatter)
             {
-                _gameState.AddCoins(result.TotalWinAmount);
-                _gameState.RecordSpin(result.TotalWinAmount);
-                uiManager.UpdateCoins(_gameState.Coins);
+                if (result.TotalWinAmount > 0)
+                {
+                    _gameState.AddCoins(result.TotalWinAmount);
+                    _gameState.RecordSpin(result.TotalWinAmount);
+                    uiManager.UpdateCoins(_gameState.Coins);
+                }
+                else
+                {
+                    _gameState.RecordSpin(0);
+                }
 
                 TransitionTo(GamePhase.WinPresentation);
-                await uiManager.ShowWinAmount(result.TotalWinAmount, CalcWinLevel(result.TotalWinAmount));
-                uiManager.HighlightWinLines(result.LineWins);
+                if (result.TotalWinAmount > 0)
+                    await uiManager.ShowWinAmount(result.TotalWinAmount, CalcWinLevel(result.TotalWinAmount));
+
+                uiManager.HighlightWinLines(result);
                 await UniTask.Delay(TimeSpan.FromSeconds(1.5f), cancellationToken: ct);
                 uiManager.ClearLineHighlights();
             }

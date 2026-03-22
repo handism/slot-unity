@@ -32,10 +32,13 @@ namespace SlotGame.Utility
         {
             var lineWins = EvaluatePaylines(symbolGrid, symbolDefs, paylines, betAmount);
 
-            int scatterCount    = CountScatters(symbolGrid, symbolDefs);
-            bool hasScatter     = scatterCount >= 3;
-            long scatterWin     = CalcScatterWin(scatterCount, payouts, betAmount);
-            bool hasBonusCondition = CheckBonusCondition(symbolGrid, symbolDefs);
+            var scatterPositions = GetScatterPositions(symbolGrid, symbolDefs);
+            int scatterCount     = scatterPositions.Count;
+            bool hasScatter      = scatterCount >= 3;
+            long scatterWin      = CalcScatterWin(scatterCount, payouts, betAmount);
+
+            var bonusPositions    = GetBonusPositions(symbolGrid, symbolDefs);
+            bool hasBonusCondition = CheckBonusConditionFromPositions(bonusPositions);
 
             long totalWin = scatterWin;
             foreach (var w in lineWins) totalWin += w.WinAmount;
@@ -45,7 +48,9 @@ namespace SlotGame.Utility
                 LineWins:          lineWins,
                 HasScatter:        hasScatter,
                 ScatterCount:      scatterCount,
+                ScatterPositions:  scatterPositions,
                 HasBonusCondition: hasBonusCondition,
+                BonusPositions:    bonusPositions,
                 TotalWinAmount:    totalWin
             );
         }
@@ -107,22 +112,23 @@ namespace SlotGame.Utility
             if (baseSym == null || baseSym.payouts == null || matchCount - MinMatch >= baseSym.payouts.Length)
                 return null;
 
-            long winAmount = (long)System.Math.Floor(baseSym.payouts[matchCount - MinMatch] * (bet / 25.0f));
+            long winAmount = (long)baseSym.payouts[matchCount - MinMatch] * bet;
             return new LineWin(lineIndex, baseSymbolId, matchCount, winAmount);
         }
 
         // ─── Scatter 判定 ─────────────────────────────────────────────────
 
-        private static int CountScatters(int[,] grid, SymbolData[] defs)
+        private static IReadOnlyList<SymbolPosition> GetScatterPositions(int[,] grid, SymbolData[] defs)
         {
-            int count = 0;
+            var positions = new List<SymbolPosition>();
             for (int r = 0; r < ReelCount; r++)
                 for (int row = 0; row < RowCount; row++)
                 {
                     var sym = FindSymbol(defs, grid[r, row]);
-                    if (sym?.type == SymbolType.Scatter) count++;
+                    if (sym?.type == SymbolType.Scatter)
+                        positions.Add(new SymbolPosition(r, row));
                 }
-            return count;
+            return positions;
         }
 
         private static long CalcScatterWin(int count, PayoutTableData payouts, int bet)
@@ -135,20 +141,30 @@ namespace SlotGame.Utility
 
         // ─── ボーナス条件判定 ─────────────────────────────────────────────
 
-        /// <summary>リール 0/2/4（0-indexed）それぞれに Bonus タイプのシンボルが 1 つ以上あれば true。</summary>
-        private static bool CheckBonusCondition(int[,] grid, SymbolData[] defs)
+        private static IReadOnlyList<SymbolPosition> GetBonusPositions(int[,] grid, SymbolData[] defs)
         {
-            foreach (int reel in new[] { 0, 2, 4 })
-            {
-                bool found = false;
+            var positions = new List<SymbolPosition>();
+            for (int r = 0; r < ReelCount; r++)
                 for (int row = 0; row < RowCount; row++)
                 {
-                    var sym = FindSymbol(defs, grid[reel, row]);
-                    if (sym?.type == SymbolType.Bonus) { found = true; break; }
+                    var sym = FindSymbol(defs, grid[r, row]);
+                    if (sym?.type == SymbolType.Bonus)
+                        positions.Add(new SymbolPosition(r, row));
                 }
-                if (!found) return false;
+            return positions;
+        }
+
+        /// <summary>リール 0/2/4（0-indexed）それぞれに Bonus タイプのシンボルが 1 つ以上あれば true。</summary>
+        private static bool CheckBonusConditionFromPositions(IReadOnlyList<SymbolPosition> positions)
+        {
+            bool has0 = false, has2 = false, has4 = false;
+            foreach (var pos in positions)
+            {
+                if (pos.Reel == 0) has0 = true;
+                else if (pos.Reel == 2) has2 = true;
+                else if (pos.Reel == 4) has4 = true;
             }
-            return true;
+            return has0 && has2 && has4;
         }
 
         // ─── ヘルパー ─────────────────────────────────────────────────────
