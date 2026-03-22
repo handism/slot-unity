@@ -109,13 +109,19 @@ namespace SlotGame.View
             }
 
             // --- Scatter / Bonus ハイライト追加 ---
-            foreach (var pos in result.ScatterPositions)
+            if (result.HasScatter)
             {
-                AddHighlight(highlightedRowsByReel, pos.Reel, pos.Row);
+                foreach (var pos in result.ScatterPositions)
+                {
+                    AddHighlight(highlightedRowsByReel, pos.Reel, pos.Row);
+                }
             }
-            foreach (var pos in result.BonusPositions)
+            if (result.HasBonusCondition)
             {
-                AddHighlight(highlightedRowsByReel, pos.Reel, pos.Row);
+                foreach (var pos in result.BonusPositions)
+                {
+                    AddHighlight(highlightedRowsByReel, pos.Reel, pos.Row);
+                }
             }
 
             // --- 表示反映 & アニメーション開始 ---

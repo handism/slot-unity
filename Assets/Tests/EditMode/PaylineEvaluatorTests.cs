@@ -167,6 +167,18 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void Scatter_Two_StillHasPositions()
+        {
+            var grid = new int[5, 3];
+            grid[0, 1] = Scatter;
+            grid[1, 1] = Scatter;
+            var result = Evaluate(grid, bet: 10);
+            
+            // 当選していなくても位置情報は保持されている（View側で HasScatter を見る必要があることの確認）
+            Assert.AreEqual(2, result.ScatterPositions.Count);
+        }
+
+        [Test]
         public void Scatter_Five_ScatterCountFive()
         {
             var grid = new int[5, 3];
