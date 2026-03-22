@@ -204,9 +204,8 @@ namespace SlotGame.View
             var views = FindObjectsByType<ReelView>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             if (views.Length == 0) return;
 
-            // ReelController を持っているものに限定して、ノイズを排除する
+            // フォールバック: 明示的にセットされていない場合はシーンから探す（左から順）
             _reelViews = views
-                .Where(v => v.GetComponentInParent<Core.ReelController>() != null)
                 .OrderBy(v => v.transform.position.x)
                 .ToArray();
         }
