@@ -101,6 +101,7 @@ namespace SlotGame.Core
             uiManager.SetAutoButtonText(GetAutoSpinButtonText());
             uiManager.SetSettingsVolumes(_bgmVolume, _seVolume);
             uiManager.PopulatePaytable(CollectSymbolDefinitions());
+            uiManager.ApplyModeVisual(ModeVisualType.Normal);
             uiManager.BgmVolumeChanged += HandleBgmVolumeChanged;
             uiManager.SeVolumeChanged += HandleSeVolumeChanged;
             uiManager.ResetCoinsRequested += HandleResetCoinsRequested;
@@ -199,6 +200,9 @@ namespace SlotGame.Core
             }
             catch (OperationCanceledException)
             {
+                uiManager.HideFreeSpinHUD();
+                uiManager.ClearLineHighlights();
+                uiManager.ApplyModeVisual(ModeVisualType.Normal);
                 TransitionTo(GamePhase.Idle);
             }
         }
@@ -228,6 +232,9 @@ namespace SlotGame.Core
             }
             catch (OperationCanceledException)
             {
+                uiManager.HideFreeSpinHUD();
+                uiManager.ClearLineHighlights();
+                uiManager.ApplyModeVisual(ModeVisualType.Normal);
                 TransitionTo(GamePhase.Idle);
             }
             finally
@@ -318,10 +325,17 @@ namespace SlotGame.Core
 
         private async UniTask HandleBonusRound(CancellationToken ct)
         {
+            await uiManager.ShowModeTransitionAsync(
+                "BONUS ROUND",
+                "宝箱ボーナスへ突入",
+                ModeVisualType.BonusRound,
+                ct);
+
             TransitionTo(GamePhase.BonusRound);
             audioManager.PlaySE(SEType.BonusStart);
             await audioManager.FadeOutBGM(0.5f, ct);
             audioManager.PlayBGM(BGMType.BonusRound);
+            uiManager.ApplyModeVisual(ModeVisualType.BonusRound);
 
             long win = await bonusManager.RunBonusRound(_gameState.BetAmount, payoutData, ct);
             _gameState.AddCoins(win);
@@ -331,15 +345,11 @@ namespace SlotGame.Core
 
             await audioManager.FadeOutBGM(0.5f, ct);
             audioManager.PlayBGM(BGMType.Normal);
+            uiManager.ApplyModeVisual(ModeVisualType.Normal);
         }
 
         private async UniTask HandleFreeSpins(int scatterCount, CancellationToken ct)
         {
-            TransitionTo(GamePhase.FreeSpin);
-            audioManager.PlaySE(SEType.FreeSpinStart);
-            await audioManager.FadeOutBGM(0.5f, ct);
-            audioManager.PlayBGM(BGMType.FreeSpin);
-
             int freeSpinCount = scatterCount switch
             {
                 3 => 10,
@@ -347,6 +357,18 @@ namespace SlotGame.Core
                 5 => 20,
                 _ => 0
             };
+
+            await uiManager.ShowModeTransitionAsync(
+                "FREE SPINS",
+                $"{freeSpinCount}回のフリースピン開始",
+                ModeVisualType.FreeSpin,
+                ct);
+
+            TransitionTo(GamePhase.FreeSpin);
+            audioManager.PlaySE(SEType.FreeSpinStart);
+            await audioManager.FadeOutBGM(0.5f, ct);
+            audioManager.PlayBGM(BGMType.FreeSpin);
+            uiManager.ApplyModeVisual(ModeVisualType.FreeSpin);
 
             long cumulativeFreeSpinWin = 0;
             uiManager.ShowFreeSpinHUD(freeSpinCount, cumulativeFreeSpinWin);
@@ -375,11 +397,13 @@ namespace SlotGame.Core
 
             await audioManager.FadeOutBGM(0.5f, ct);
             audioManager.PlayBGM(BGMType.Normal);
+            uiManager.ApplyModeVisual(ModeVisualType.Normal);
         }
 
         private async UniTask HandleGameOver()
         {
             TransitionTo(GamePhase.GameOver);
+            uiManager.ApplyModeVisual(ModeVisualType.Normal);
             // コインをデフォルト値にリセット
             _gameState.SetCoins(1000);
             uiManager.UpdateCoins(_gameState.Coins);

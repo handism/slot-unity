@@ -1,13 +1,24 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using SlotGame.Data;
 using SlotGame.Model;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace SlotGame.View
 {
+    public enum ModeVisualType
+    {
+        Normal,
+        FreeSpin,
+        BonusRound
+    }
+
     /// <summary>各 View パネルを統括する UIManager。</summary>
     public class UIManager : MonoBehaviour
     {
@@ -24,6 +35,21 @@ namespace SlotGame.View
         private List<PaylineView> _activePaylines = new();
 
         private ReelView[]? _reelViews;
+        private Canvas? _rootCanvas;
+        private Image? _modeTintOverlay;
+        private CanvasGroup? _modeAnnouncementGroup;
+        private RectTransform? _modeAnnouncementRoot;
+        private TMP_Text? _modeTitleText;
+        private TMP_Text? _modeSubtitleText;
+        private Camera? _mainCamera;
+
+        private static readonly Color NormalTint     = new(0.05f, 0.08f, 0.14f, 0f);
+        private static readonly Color FreeSpinTint   = new(0.08f, 0.36f, 0.52f, 0.3f);
+        private static readonly Color BonusRoundTint = new(0.42f, 0.16f, 0.06f, 0.34f);
+
+        private static readonly Color NormalCameraColor     = new(0.05f, 0.08f, 0.14f, 1f);
+        private static readonly Color FreeSpinCameraColor   = new(0.04f, 0.18f, 0.24f, 1f);
+        private static readonly Color BonusRoundCameraColor = new(0.19f, 0.09f, 0.03f, 1f);
 
         public event System.Action<float>? BgmVolumeChanged;
         public event System.Action<float>? SeVolumeChanged;
@@ -50,6 +76,7 @@ namespace SlotGame.View
         private void Start()
         {
             CacheReelViews();
+            EnsureModeVisuals();
         }
 
         public void UpdateCoins(long coins)    => mainHUD.SetCoins(coins);
@@ -189,6 +216,64 @@ namespace SlotGame.View
 
         public void HideFreeSpinHUD() => freeSpinHUD.gameObject.SetActive(false);
 
+        public void ApplyModeVisual(ModeVisualType mode)
+        {
+            EnsureModeVisuals();
+
+            if (_modeTintOverlay != null)
+            {
+                _modeTintOverlay.color = mode switch
+                {
+                    ModeVisualType.FreeSpin   => FreeSpinTint,
+                    ModeVisualType.BonusRound => BonusRoundTint,
+                    _                         => NormalTint,
+                };
+            }
+
+            _mainCamera ??= Camera.main;
+            if (_mainCamera != null)
+            {
+                _mainCamera.backgroundColor = mode switch
+                {
+                    ModeVisualType.FreeSpin   => FreeSpinCameraColor,
+                    ModeVisualType.BonusRound => BonusRoundCameraColor,
+                    _                         => NormalCameraColor,
+                };
+            }
+        }
+
+        public async UniTask ShowModeTransitionAsync(
+            string title,
+            string subtitle,
+            ModeVisualType mode,
+            CancellationToken cancellationToken)
+        {
+            EnsureModeVisuals();
+            ApplyModeVisual(mode);
+
+            if (_modeAnnouncementGroup == null || _modeTitleText == null || _modeSubtitleText == null)
+            {
+                return;
+            }
+
+            _modeTitleText.text = title;
+            _modeSubtitleText.text = subtitle;
+            _modeAnnouncementGroup.alpha = 0f;
+            _modeAnnouncementGroup.gameObject.SetActive(true);
+
+            try
+            {
+                await _modeAnnouncementGroup.DOFade(1f, 0.2f).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: cancellationToken);
+                await UniTask.Delay(900, cancellationToken: cancellationToken);
+                await _modeAnnouncementGroup.DOFade(0f, 0.25f).SetEase(Ease.InQuad).ToUniTask(cancellationToken: cancellationToken);
+            }
+            finally
+            {
+                _modeAnnouncementGroup.alpha = 0f;
+                _modeAnnouncementGroup.gameObject.SetActive(false);
+            }
+        }
+
         public void ShowSettings()  => settingsView.ShowAsync(this.GetCancellationTokenOnDestroy()).Forget();
         public void HideSettings()  => settingsView.HideAsync(this.GetCancellationTokenOnDestroy()).Forget();
         public void ShowPaytable()  => paytableView.ShowAsync(this.GetCancellationTokenOnDestroy()).Forget();
@@ -215,6 +300,103 @@ namespace SlotGame.View
             _reelViews = views
                 .OrderBy(v => v.transform.position.x)
                 .ToArray();
+        }
+
+        private void EnsureModeVisuals()
+        {
+            if (_modeTintOverlay != null && _modeAnnouncementGroup != null)
+            {
+                return;
+            }
+
+            _rootCanvas ??= mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>();
+            if (_rootCanvas == null)
+            {
+                return;
+            }
+
+            if (_modeTintOverlay == null)
+            {
+                var tintObject = new GameObject("ModeTintOverlay", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                tintObject.transform.SetParent(_rootCanvas.transform, false);
+                tintObject.transform.SetAsFirstSibling();
+
+                var rect = tintObject.GetComponent<RectTransform>();
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+                rect.offsetMin = Vector2.zero;
+                rect.offsetMax = Vector2.zero;
+
+                _modeTintOverlay = tintObject.GetComponent<Image>();
+                _modeTintOverlay.raycastTarget = false;
+                _modeTintOverlay.color = NormalTint;
+            }
+
+            if (_modeAnnouncementGroup == null)
+            {
+                var overlayObject = new GameObject("ModeAnnouncementOverlay", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(CanvasGroup));
+                overlayObject.transform.SetParent(_rootCanvas.transform, false);
+                overlayObject.transform.SetAsLastSibling();
+
+                _modeAnnouncementRoot = overlayObject.GetComponent<RectTransform>();
+                _modeAnnouncementRoot.anchorMin = Vector2.zero;
+                _modeAnnouncementRoot.anchorMax = Vector2.one;
+                _modeAnnouncementRoot.offsetMin = Vector2.zero;
+                _modeAnnouncementRoot.offsetMax = Vector2.zero;
+
+                var overlayImage = overlayObject.GetComponent<Image>();
+                overlayImage.color = new Color(0f, 0f, 0f, 0.45f);
+                overlayImage.raycastTarget = false;
+
+                _modeAnnouncementGroup = overlayObject.GetComponent<CanvasGroup>();
+                _modeAnnouncementGroup.alpha = 0f;
+                _modeAnnouncementGroup.interactable = false;
+                _modeAnnouncementGroup.blocksRaycasts = false;
+
+                CreateAnnouncementTexts(overlayObject.transform);
+                overlayObject.SetActive(false);
+            }
+        }
+
+        private void CreateAnnouncementTexts(Transform parent)
+        {
+            var titleObject = CreateTextObject("ModeTitle", parent, 56, FontStyles.Bold);
+            var subtitleObject = CreateTextObject("ModeSubtitle", parent, 28, FontStyles.Normal);
+
+            var titleRect = titleObject.rectTransform;
+            titleRect.anchorMin = new Vector2(0.5f, 0.5f);
+            titleRect.anchorMax = new Vector2(0.5f, 0.5f);
+            titleRect.anchoredPosition = new Vector2(0f, 28f);
+            titleRect.sizeDelta = new Vector2(960f, 80f);
+
+            var subtitleRect = subtitleObject.rectTransform;
+            subtitleRect.anchorMin = new Vector2(0.5f, 0.5f);
+            subtitleRect.anchorMax = new Vector2(0.5f, 0.5f);
+            subtitleRect.anchoredPosition = new Vector2(0f, -28f);
+            subtitleRect.sizeDelta = new Vector2(960f, 60f);
+
+            titleObject.alignment = TextAlignmentOptions.Center;
+            subtitleObject.alignment = TextAlignmentOptions.Center;
+            titleObject.color = new Color(1f, 0.96f, 0.8f, 1f);
+            subtitleObject.color = new Color(0.9f, 0.96f, 1f, 1f);
+
+            _modeTitleText = titleObject;
+            _modeSubtitleText = subtitleObject;
+        }
+
+        private static TMP_Text CreateTextObject(string name, Transform parent, float fontSize, FontStyles fontStyle)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            go.transform.SetParent(parent, false);
+
+            var text = go.GetComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
+            text.fontSize = fontSize;
+            text.fontStyle = fontStyle;
+            text.enableWordWrapping = false;
+            text.text = string.Empty;
+
+            return text;
         }
     }
 }
