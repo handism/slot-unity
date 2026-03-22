@@ -43,6 +43,8 @@ namespace SlotGame.View
         public async UniTask Show(long amount, WinLevel level, CancellationToken ct)
         {
             _currentSequence?.Kill();
+            transform.DOKill();
+            winAmountText.transform.DOKill();
             
             // 初期のカウント値を 0 にリセット
             _countValue = 0;
@@ -70,15 +72,17 @@ namespace SlotGame.View
             // 3. 滞在中のループ演出（レベル別）
             if (level >= WinLevel.Big)
             {
-                // BIG 以上は脈動と光のゆらぎ
-                _currentSequence.Append(transform.DOScale(1.15f, 0.4f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine));
-                
-                if (level == WinLevel.Mega)
-                {
-                    // MEGA は回転シェイクとズーム
-                    _currentSequence.Join(transform.DOShakeRotation(displayDuration, 8f, 15, 90f, false).SetLoops(-1));
-                    _currentSequence.Join(winAmountText.transform.DOScale(1.2f, 0.3f).SetLoops(-1, LoopType.Yoyo));
-                }
+                // BIG 以上は脈動と光のゆらぎ（Sequence の完了後に開始するようにし、Sequence 内には含めない）
+                _currentSequence.OnComplete(() => {
+                    transform.DOScale(1.15f, 0.4f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
+                    
+                    if (level == WinLevel.Mega)
+                    {
+                        // MEGA は回転シェイクとズーム
+                        transform.DOShakeRotation(1f, 8f, 15, 90f, false).SetLoops(-1);
+                        winAmountText.transform.DOScale(1.2f, 0.3f).SetLoops(-1, LoopType.Yoyo);
+                    }
+                });
             }
 
             // 指定された時間表示（MEGA の場合は少し長めに）
@@ -86,10 +90,13 @@ namespace SlotGame.View
             await UniTask.Delay(TimeSpan.FromSeconds(finalDuration), cancellationToken: ct);
 
             // 4. フェードアウト
+            _currentSequence?.Kill();
+            transform.DOKill();
+            winAmountText.transform.DOKill();
             await DOTween.To(() => _canvasGroup.alpha, v => _canvasGroup.alpha = v, 0f, 0.4f).ToUniTask(cancellationToken: ct);
             
             _canvasGroup.alpha = 0;
-            _currentSequence?.Kill();
+            _currentSequence = null;
         }
 
         private void SetupDisplayByLevel(WinLevel level)
