@@ -48,7 +48,7 @@ namespace SlotGame.View
             DOTween.To(() => _displayedCoins, v =>
             {
                 _displayedCoins = v;
-                coinText.SetText("{0:N0}", v);
+                coinText.text = v.ToString("N0");
             }, coins, 0.5f).SetEase(Ease.OutQuad);
         }
 
