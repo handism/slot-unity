@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 8
   symbolName: Wild
-  sprite: {fileID: 21300000, guid: 9d51df20069b64cd3a02246a3a151719, type: 3}
+  sprite: {fileID: -1399729640528519541, guid: 9d716f8a74f584158bfec9c4d3f56e71, type: 3}
   type: 1
   payouts: 000000000000000000000000
   winAnim: {fileID: 0}

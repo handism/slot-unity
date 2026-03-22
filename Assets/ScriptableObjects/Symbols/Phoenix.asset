@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 1
   symbolName: Phoenix
-  sprite: {fileID: 21300000, guid: 47a81a0923e0849ee9943c80189ae72b, type: 3}
+  sprite: {fileID: 6586461156150141773, guid: e036c375ac4424eecbeef33b8174a460, type: 3}
   type: 0
-  payouts: 3200000064000000f4010000
+  payouts: 070000000f0000004b000000
   winAnim: {fileID: 0}

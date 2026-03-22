@@ -217,7 +217,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 10
@@ -279,7 +279,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 設定
+  m_text: "\u8A2D\u5B9A"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 7340969328800398461, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
@@ -1074,7 +1074,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: コインリセット
+  m_text: "\u30B3\u30A4\u30F3\u30EA\u30BB\u30C3\u30C8"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 1604218670}
@@ -1423,8 +1423,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 809827326}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 180, y: 540}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -2372,7 +2372,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294965234
   m_fontColor: {r: 0.95, g: 0.97, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -2385,7 +2385,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -2667,7 +2667,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294965234
   m_fontColor: {r: 0.95, g: 0.97, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -2680,7 +2680,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -2908,13 +2908,13 @@ MonoBehaviour:
   uiManager: {fileID: 1697366830}
   audioManager: {fileID: 1508278674}
   reelStrips:
-  - {fileID: 11400000, guid: 1fbd409d698ee4d2894f344cf0ad66c8, type: 2}
-  - {fileID: 11400000, guid: a9517e113724145138fbf080d9ee1360, type: 2}
-  - {fileID: 11400000, guid: 08127c23441b44f5f87f6df940276942, type: 2}
-  - {fileID: 11400000, guid: 678d582f3a03f4848824dbb659b21080, type: 2}
-  - {fileID: 11400000, guid: 4ce54f30c33e345b5a35feaa6b0554c3, type: 2}
-  paylineData: {fileID: 11400000, guid: d17e0e0a474fb46a69a417ebf69645aa, type: 2}
-  payoutData: {fileID: 11400000, guid: b016baf36e68c43cdb0c68d4f4277ce1, type: 2}
+  - {fileID: 11400000, guid: c92d7686e6f73471aa4c93f1322f76f2, type: 2}
+  - {fileID: 11400000, guid: 357e5e382c79d424585fcec369a990eb, type: 2}
+  - {fileID: 11400000, guid: 71cff7dffcb384d88bcae7b7e0f4aa69, type: 2}
+  - {fileID: 11400000, guid: b387cb5b27a0d4c609c6352fea203cf6, type: 2}
+  - {fileID: 11400000, guid: 84bea64850cf740d4bc99db901ba10d3, type: 2}
+  paylineData: {fileID: 0}
+  payoutData: {fileID: 0}
 --- !u!4 &498727847
 Transform:
   m_ObjectHideFlags: 0
@@ -2987,7 +2987,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 配当表
+  m_text: "\u914D\u5F53\u8868"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 7340969328800398461, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
@@ -3357,7 +3357,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: シンボル
+  m_text: "\u30B7\u30F3\u30DC\u30EB"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 7340969328800398461, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
@@ -3958,7 +3958,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 閉じる
+  m_text: "\u9589\u3058\u308B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 1572953142}
@@ -4241,7 +4241,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294965234
   m_fontColor: {r: 0.95, g: 0.97, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -4254,7 +4254,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -4801,8 +4801,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 809827326}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 180, y: 540}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5504,7 +5504,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 配当表
+  m_text: "\u914D\u5F53\u8868"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 1725529540}
@@ -5513,7 +5513,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294965234
   m_fontColor: {r: 0.95, g: 0.97, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -5526,7 +5526,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -5650,7 +5650,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294966522
   m_fontColor: {r: 0.98, g: 0.99, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -5663,12 +5663,12 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 34
+  m_fontSize: 24.8
   m_fontSizeBase: 34
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -5902,7 +5902,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -6438,7 +6438,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 設定
+  m_text: "\u8A2D\u5B9A"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 1005834325}
@@ -6447,7 +6447,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294965234
   m_fontColor: {r: 0.95, g: 0.97, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -6460,7 +6460,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -7261,8 +7261,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 809827326}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 180, y: 540}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -7394,7 +7394,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294966522
   m_fontColor: {r: 0.98, g: 0.99, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -7407,7 +7407,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -7531,7 +7531,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 3958099115
   m_fontColor: {r: 0.67, g: 0.8, b: 0.92, a: 0.92}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -7544,7 +7544,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -7636,8 +7636,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 809827326}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 180, y: 540}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -7760,7 +7760,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: オート x10
+  m_text: "\u30AA\u30FC\u30C8 x10"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 623531505}
@@ -7769,7 +7769,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294965234
   m_fontColor: {r: 0.95, g: 0.97, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -7782,7 +7782,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -8204,7 +8204,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 3958099115
   m_fontColor: {r: 0.67, g: 0.8, b: 0.92, a: 0.92}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -8217,7 +8217,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -9257,7 +9257,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 閉じる
+  m_text: "\u9589\u3058\u308B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 1063672981}
@@ -9424,7 +9424,7 @@ MonoBehaviour:
   paytableView: {fileID: 1800248186}
   paylinePrefab: {fileID: 6289988904971302765, guid: e09662fb78ba04c63abd7101fdb41551, type: 3}
   paylineParent: {fileID: 0}
-  paylineData: {fileID: 11400000, guid: d17e0e0a474fb46a69a417ebf69645aa, type: 2}
+  paylineData: {fileID: 0}
 --- !u!1 &1716045313
 GameObject:
   m_ObjectHideFlags: 0
@@ -11894,7 +11894,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: GO！
+  m_text: "GO\uFF01"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 69173940}
@@ -11903,7 +11903,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4279179807
   m_fontColor: {r: 0.12, g: 0.1, b: 0.06, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -11916,7 +11916,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -12031,7 +12031,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: スロットマシーン
+  m_text: "\u30B9\u30ED\u30C3\u30C8\u30DE\u30B7\u30FC\u30F3"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 7340969328800398461, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
@@ -12040,7 +12040,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294965234
   m_fontColor: {r: 0.95, g: 0.97, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -12053,7 +12053,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -12177,7 +12177,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 3958099115
   m_fontColor: {r: 0.67, g: 0.8, b: 0.92, a: 0.92}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -12190,7 +12190,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -12547,7 +12547,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294965234
   m_fontColor: {r: 0.95, g: 0.97, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -12560,7 +12560,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -12776,7 +12776,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294965234
   m_fontColor: {r: 0.95, g: 0.97, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -12789,7 +12789,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -12881,8 +12881,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 809827326}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 180, y: 540}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -13014,7 +13014,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294966522
   m_fontColor: {r: 0.98, g: 0.99, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -13027,12 +13027,12 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 34
+  m_fontSize: 24.8
   m_fontSizeBase: 34
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -13150,7 +13150,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'フリースピン残り: 0'
+  m_text: "\u30D5\u30EA\u30FC\u30B9\u30D4\u30F3\u6B8B\u308A: 0"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}
   m_sharedMaterial: {fileID: 7340969328800398461, guid: 5d81d7776e1644d2e969d9a1339e9cce, type: 2}

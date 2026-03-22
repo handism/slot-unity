@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d8800de2a875041b9a7edef1eabbd7e6, type: 3}
-  m_Name: Dragon
+  m_Name: Blank
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
-  symbolId: 0
-  symbolName: Dragon
-  sprite: {fileID: 7044563021175377470, guid: 7deb8d028a7924907bd74774191b96d5, type: 3}
-  type: 0
-  payouts: 0a000000190000007d000000
+  symbolId: 11
+  symbolName: Blank
+  sprite: {fileID: -2720922381176439266, guid: 1e310a53b8f70435da46c714af937451, type: 3}
+  type: 4
+  payouts: 000000000000000000000000
   winAnim: {fileID: 0}

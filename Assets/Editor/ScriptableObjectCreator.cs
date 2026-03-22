@@ -69,24 +69,31 @@ namespace SlotGame.Editor
             // Normal 以外は payouts を 0 で登録（PaylineEvaluator では参照されない）
             var defs = new (int id, string name, SymbolType type, int p3, int p4, int p5)[]
             {
-                (0,  "Dragon",  SymbolType.Normal,  70,  140, 700),
-                (1,  "Phoenix", SymbolType.Normal,  50,  100, 500),
-                (2,  "Crystal", SymbolType.Normal,  35,   70, 350),
-                (3,  "Sword",   SymbolType.Normal,  25,   50, 250),
-                (4,  "Ace",     SymbolType.Normal,  12,   24, 120),
-                (5,  "King",    SymbolType.Normal,  10,   18,  90),
-                (6,  "Queen",   SymbolType.Normal,   8,   15,  75),
-                (7,  "Jack",    SymbolType.Normal,   5,   10,  50),
+                (0,  "Dragon",  SymbolType.Normal,  10,   25, 125),
+                (1,  "Phoenix", SymbolType.Normal,   7,   15,  75),
+                (2,  "Crystal", SymbolType.Normal,   5,   10,  50),
+                (3,  "Sword",   SymbolType.Normal,   3,    6,  30),
+                (4,  "Ace",     SymbolType.Normal,   2,    4,  12),
+                (5,  "King",    SymbolType.Normal,   1,    3,  10),
+                (6,  "Queen",   SymbolType.Normal,   1,    2,   8),
+                (7,  "Jack",    SymbolType.Normal,   1,    2,   5),
                 (8,  "Wild",    SymbolType.Wild,     0,    0,   0),
                 (9,  "Scatter", SymbolType.Scatter,  0,    0,   0),
                 (10, "Bonus",   SymbolType.Bonus,    0,    0,   0),
+                (11, "Blank",   SymbolType.Filler,   0,    0,   0),
             };
 
             foreach (var d in defs)
             {
                 string path = $"{BasePath}/Symbols/{d.name}.asset";
-                if (AssetDatabase.LoadAssetAtPath<SymbolData>(path) != null)
+                var existing = AssetDatabase.LoadAssetAtPath<SymbolData>(path);
+                if (existing != null)
+                {
+                    // 既存アセットはスプライト参照を保持しつつ payouts のみ更新する
+                    existing.payouts = new[] { d.p3, d.p4, d.p5 };
+                    EditorUtility.SetDirty(existing);
                     continue;
+                }
 
                 var asset = ScriptableObject.CreateInstance<SymbolData>();
                 asset.symbolId = d.id;
@@ -113,6 +120,7 @@ namespace SlotGame.Editor
                 ("Wild",    new Color32(255, 180,  37, 255), new Color32(120,  43,   0, 255)),
                 ("Scatter", new Color32( 98, 204, 189, 255), new Color32( 11,  77,  90, 255)),
                 ("Bonus",   new Color32(156, 101,  31, 255), new Color32(255, 231, 163, 255)),
+                ("Blank",   new Color32( 20,  20,  30, 255), new Color32( 35,  35,  50, 255)),
             };
 
             foreach (var def in defs)
@@ -287,23 +295,23 @@ namespace SlotGame.Editor
             SymbolData Load(string name) =>
                 AssetDatabase.LoadAssetAtPath<SymbolData>($"{BasePath}/Symbols/{name}.asset");
 
-            var dragon = Load("Dragon");
+            var dragon  = Load("Dragon");
             var phoenix = Load("Phoenix");
             var crystal = Load("Crystal");
-            var sword = Load("Sword");
-            var ace = Load("Ace");
-            var king = Load("King");
-            var queen = Load("Queen");
-            var jack = Load("Jack");
-            var wild = Load("Wild");
+            var sword   = Load("Sword");
+            var ace     = Load("Ace");
+            var king    = Load("King");
+            var queen   = Load("Queen");
+            var jack    = Load("Jack");
+            var wild    = Load("Wild");
             var scatter = Load("Scatter");
-            var bonus = Load("Bonus");
+            var bonus   = Load("Bonus");
+            var blank   = Load("Blank");
 
-            // 各リールのシンボル出現数（計 60）
-            // Dragon×2, Phoenix×3, Crystal×4, Sword×5,
-            // Ace×8, King×8, Queen×8, Jack×8,
-            // Wild×3, Scatter×2, Bonus×1  → 合計 52
-            // + 低配当各1追加（Ace+2, King+2, Queen+2, Jack+2 = +8）→ 60
+            // 各リールのシンボル出現数（計 88）
+            // 通常シンボル 62 スロット分、残り 26 を Blank（Filler）で埋める。
+            // Blank はペイラインを遮断するだけで配当なし。
+            // これにより全シンボルの有効出現率が約 2/3 に下がり、RTP を ~95% に抑える。
             var baseCounts = new (SymbolData sym, int count)[]
             {
                 (jack,      9),
@@ -315,15 +323,22 @@ namespace SlotGame.Editor
                 (phoenix,   3),
                 (wild,      3),
                 (dragon,    2),
-                (scatter,   2),
-                (bonus,     2), // 1/60 * 1/60 * 1/60 * 27 ... ok, once in 10k spins.
+                (scatter,   3),
+                (bonus,     3),
+                (blank,    26), // Filler: ペイライン遮断用（配当なし）
             };
 
             for (int reelIdx = 0; reelIdx < 5; reelIdx++)
             {
                 string path = $"{BasePath}/Reels/Reel{reelIdx}.asset";
-                if (AssetDatabase.LoadAssetAtPath<ReelStripData>(path) != null)
+                var existing = AssetDatabase.LoadAssetAtPath<ReelStripData>(path);
+                if (existing != null)
+                {
+                    // 既存アセットは GUID を保持しつつ strip 内容のみ更新する
+                    existing.strip = BuildStrip(baseCounts, reelIdx);
+                    EditorUtility.SetDirty(existing);
                     continue;
+                }
 
                 var asset = ScriptableObject.CreateInstance<ReelStripData>();
                 asset.reelIndex = reelIdx;
@@ -333,21 +348,28 @@ namespace SlotGame.Editor
         }
 
         /// <summary>
-        /// 60 シンボルのリールストリップを組み立てる。
+        /// 88 シンボルのリールストリップを組み立てる（うち 26 は Blank Filler）。
         /// 素数ステップ（7）を使ったインターリーブでシンボルを均等分散させる。
         /// reelOffset でリールごとに配置を少しずらし、単調なパターンを防ぐ。
         /// </summary>
         private static List<SymbolData> BuildStrip(
             (SymbolData sym, int count)[] counts, int reelOffset)
         {
-            const int totalSlots = 60;
-            const int step = 7; // gcd(7, 60) = 1 → 全スロットを一巡する
+            const int totalSlots = 88; // 62 通常シンボル + 26 Blank Filler
+            const int step = 7; // gcd(7, 88) = 1 → 全スロットを一巡する
 
             // フラットリストを作成（出現数分のシンボル）
             var flat = new List<SymbolData>(totalSlots);
             foreach (var (sym, count) in counts)
                 for (int i = 0; i < count; i++)
                     flat.Add(sym);
+
+            // シンボル総数とスロット数の不一致は無限ループを引き起こすため事前チェック
+            if (flat.Count != totalSlots)
+            {
+                Debug.LogError($"[BuildStrip] シンボル合計 {flat.Count} が totalSlots {totalSlots} と一致しません。baseCounts を確認してください。");
+                return new List<SymbolData>();
+            }
 
             // インターリーブ配置
             var strip = new SymbolData[totalSlots];
