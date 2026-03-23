@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -45,7 +46,8 @@ namespace SlotGame.Utility.Editor
             int  totalFreeSpinSpins  = 0;
 
             var random   = new SeededRandomGenerator(12345);
-            var defDict  = CollectDefs(strips);
+            var allDefs  = CollectDefs(strips);
+            var defDict  = allDefs;
 
             var sb = new StringBuilder();
             sb.AppendLine("spin,bet,normalWin,freeSpinWin,bonusWin,totalWin,rtp_cumulative");
@@ -67,7 +69,7 @@ namespace SlotGame.Utility.Editor
                     freeSpinTriggers++;
                     int fsCount = CalcFreeSpinCount(result.ScatterCount);
                     spinFreeSpinWin = SimulateFreeSpins(
-                        fsCount, strips, defDict, paylines, payouts,
+                        fsCount, strips, allDefs, paylines, payouts,
                         BetAmount, random, ref totalFreeSpinSpins);
                 }
 
@@ -132,13 +134,14 @@ namespace SlotGame.Utility.Editor
 
         private static long SimulateFreeSpins(
             int initialCount,
-            ReelStripData[] strips, SymbolData[] defs,
+            ReelStripData[] strips, IReadOnlyDictionary<int, SymbolData> defs,
             PaylineData paylines, PayoutTableData payouts,
             int bet, IRandomGenerator rng,
             ref int totalFreeSpinsOut)
         {
             long freeSpinWin = 0;
             int  remaining   = initialCount;
+            var  defDict     = defs;
 
             while (remaining > 0)
             {
@@ -146,7 +149,7 @@ namespace SlotGame.Utility.Editor
                 totalFreeSpinsOut++;
 
                 var grid   = RollGrid(strips, rng);
-                var result = PaylineEvaluator.Evaluate(grid, defs, paylines, payouts, bet);
+                var result = PaylineEvaluator.Evaluate(grid, defDict, paylines, payouts, bet);
 
                 freeSpinWin += result.TotalWinAmount * 2; // フリースピン中は ×2 倍
 
@@ -227,15 +230,14 @@ namespace SlotGame.Utility.Editor
             return arr.Length > 0 ? arr[0] : null;
         }
 
-        private static Data.SymbolData[] CollectDefs(ReelStripData[] strips)
+        private static Dictionary<int, SymbolData> CollectDefs(ReelStripData[] strips)
         {
-            var set = new System.Collections.Generic.HashSet<Data.SymbolData>();
+            var dict = new Dictionary<int, SymbolData>();
             foreach (var s in strips)
                 foreach (var sym in s.strip)
-                    set.Add(sym);
-            var arr = new Data.SymbolData[set.Count];
-            set.CopyTo(arr);
-            return arr;
+                    if (!dict.ContainsKey(sym.symbolId))
+                        dict[sym.symbolId] = sym;
+            return dict;
         }
     }
 }

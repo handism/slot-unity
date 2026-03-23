@@ -20,6 +20,8 @@ namespace SlotGame.Core
     /// <summary>ゲーム全体のステートマシン頂点。状態遷移のみを担う。</summary>
     public class GameManager : MonoBehaviour
     {
+        private static readonly int[] DefaultBetAmounts = { 10, 20, 50, 100 };
+
         [Header("Managers")]
         [SerializeField] private SpinManager   spinManager;
         [SerializeField] private BonusManager  bonusManager;
@@ -41,6 +43,8 @@ namespace SlotGame.Core
         private float                  _seVolume  = 1f;
         private bool                   _hasLoggedSaveSkip;
         private int                    _autoSpinCount = 10;
+        private bool                   _isInitialized;
+        private SlotConfig             _config;
 
         // ─── ライフサイクル ──────────────────────────────────────────────
 
@@ -59,13 +63,7 @@ namespace SlotGame.Core
             else
             {
                 // デバッグ用（Boot シーンを通さず起動した場合）
-                if (gameConfig == null)
-                {
-                    Debug.LogError("[GameManager] gameConfig is not set in Inspector!");
-                    return;
-                }
-
-                var config = gameConfig.ToModelConfig();
+                var config = ResolveSlotConfig();
                 _saveDataManager = new SaveDataManager(config);
                 var save = _saveDataManager.Load();
                 _gameState = new GameState(
@@ -88,13 +86,20 @@ namespace SlotGame.Core
             IRandomGenerator random,
             SaveData save)
         {
-            if (gameConfig == null)
+            if (spinManager == null || bonusManager == null || uiManager == null || audioManager == null)
             {
-                Debug.LogError("[GameManager] gameConfig is not set in Inspector!");
+                Debug.LogError("[GameManager] Manager references are not fully set in Inspector.");
                 return;
             }
 
-            var config = gameConfig.ToModelConfig();
+            if (reelStrips == null || reelStrips.Length == 0 || paylineData == null || payoutData == null)
+            {
+                Debug.LogError("[GameManager] Data references are not fully set in Inspector.");
+                return;
+            }
+
+            var config = ResolveSlotConfig();
+            _config = config;
 
             _saveDataManager = saveDataManager ?? new SaveDataManager(config);
             save ??= _saveDataManager.Load();
@@ -128,10 +133,17 @@ namespace SlotGame.Core
             audioManager.SetBGMVolume(_bgmVolume);
             audioManager.SetSEVolume(_seVolume);
             audioManager.PlayBGM(BGMType.Normal);
+            _isInitialized = true;
         }
 
         private void Start()
         {
+            if (!_isInitialized || _gameState == null)
+            {
+                Debug.LogError("[GameManager] Initialization did not complete. Start was skipped.");
+                return;
+            }
+
             uiManager.UpdateCoins(_gameState.Coins);
             uiManager.UpdateBet(_gameState.BetAmount);
             uiManager.UpdateWin(0);
@@ -146,6 +158,26 @@ namespace SlotGame.Core
             uiManager.PaytableCloseRequested += uiManager.HidePaytable;
             spinManager.ReelStopped += HandleReelStopped;
             TransitionTo(GamePhase.Idle);
+        }
+
+        private SlotConfig ResolveSlotConfig()
+        {
+            if (gameConfig != null)
+                return gameConfig.ToModelConfig();
+
+            Debug.LogWarning("[GameManager] gameConfig is not set in Inspector. Falling back to default config.");
+            return new SlotConfig(
+                1000,
+                9_999_999,
+                DefaultBetAmounts,
+                5,
+                3,
+                3,
+                20,
+                10,
+                0.8f,
+                1.0f,
+                "SALTY_SLOT_2026");
         }
 
         private void OnApplicationPause(bool pauseStatus)
@@ -300,10 +332,9 @@ namespace SlotGame.Core
             audioManager.PlaySE(SEType.SpinStart);
 
             TransitionTo(GamePhase.Spinning);
-            var config = gameConfig.ToModelConfig();
             var result = await spinManager.ExecuteSpin(
                 reelStrips, paylineData, payoutData, _gameState.BetAmount, ct,
-                config.ReelCount, config.RowCount, config.MinMatch,
+                _config.ReelCount, _config.RowCount, _config.MinMatch,
                 new[] { 0, 2, 4 }); // ボーナストリガーリール
 
             TransitionTo(GamePhase.Evaluating);
@@ -446,7 +477,7 @@ namespace SlotGame.Core
             TransitionTo(GamePhase.GameOver);
             uiManager.ApplyModeVisual(ModeVisualType.Normal);
             // コインをデフォルト値にリセット
-            _gameState.SetCoins(gameConfig != null ? gameConfig.initialCoins : 1000);
+            _gameState.SetCoins(_config.InitialCoins);
             uiManager.UpdateCoins(_gameState.Coins);
             SaveGame();
             await UniTask.Delay(TimeSpan.FromSeconds(1f));
@@ -526,7 +557,7 @@ namespace SlotGame.Core
 
         private void HandleResetCoinsRequested()
         {
-            _gameState.SetCoins(gameConfig != null ? gameConfig.initialCoins : 1000);
+            _gameState.SetCoins(_config.InitialCoins);
             uiManager.UpdateCoins(_gameState.Coins);
             SaveGame();
         }

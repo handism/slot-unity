@@ -14,7 +14,7 @@ namespace SlotGame.Core
     public class BootManager : MonoBehaviour
     {
         private const string TitleSceneName = "Title";
-        private const string MainSceneName  = "Main";
+        private const string MainSceneName = "Main";
 
         [SerializeField] private Slider         progressBar;
         [SerializeField] private GameConfigData gameConfig;
@@ -43,13 +43,14 @@ namespace SlotGame.Core
             var random = new SystemRandomGenerator();
 
             // 3. 起動先シーンのロード
-            var nextSceneName = ResolveStartupSceneName();
+            string nextSceneName = ResolveStartupSceneName();
             var op = SceneManager.LoadSceneAsync(nextSceneName, LoadSceneMode.Single);
             if (op == null)
             {
-                Debug.LogError($"[BootManager] Failed to load startup scene: {nextSceneName}");
+                Debug.LogError($"[BootManager] Failed to load scene '{nextSceneName}'. Add it to the active build profile/shared scene list.");
                 return;
             }
+
             op.allowSceneActivation = false;
 
             while (op.progress < 0.9f)
@@ -77,12 +78,12 @@ namespace SlotGame.Core
 
             if (Application.CanStreamedLevelBeLoaded(MainSceneName))
             {
-                Debug.LogWarning($"[BootManager] {TitleSceneName} scene is not available in the active build profile. Falling back to {MainSceneName}.");
+                Debug.LogWarning($"[BootManager] Scene '{TitleSceneName}' is not in the active build profile/shared scene list. Falling back to '{MainSceneName}'.");
                 return MainSceneName;
             }
 
-            Debug.LogError($"[BootManager] Neither {TitleSceneName} nor {MainSceneName} is available in the active build profile.");
-            return TitleSceneName;
+            Debug.LogError($"[BootManager] Neither '{TitleSceneName}' nor '{MainSceneName}' can be loaded. Check File > Build Profiles.");
+            return MainSceneName;
         }
     }
 }

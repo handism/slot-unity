@@ -12,13 +12,13 @@ namespace SlotGame.Utility
     /// </summary>
     public class SaveDataManager
     {
-        private readonly string      _savePath;
-        private readonly SlotConfig? _config;
+        private readonly string     _savePath;
+        private readonly SlotConfig _config;
 
-        public SaveDataManager(SlotConfig? config = null)
+        public SaveDataManager(SlotConfig config = null)
             : this(Path.Combine(Application.persistentDataPath, "savedata.json"), config) { }
 
-        public SaveDataManager(string savePath, SlotConfig? config = null)
+        public SaveDataManager(string savePath, SlotConfig config = null)
         {
             _savePath = savePath;
             _config   = config;
@@ -86,7 +86,7 @@ namespace SlotGame.Utility
 
         // ─── バリデーション ──────────────────────────────────────────────
 
-        private static bool Validate(SaveData data, SlotConfig? config)
+        private static bool Validate(SaveData data, SlotConfig config)
         {
             if (data.saveVersion != "1.0")                  return false;
             if (data.coins < 0)                             return false;
@@ -101,7 +101,7 @@ namespace SlotGame.Utility
             return true;
         }
 
-        private static string CalculateChecksum(SaveData data, SlotConfig? config)
+        private static string CalculateChecksum(SaveData data, SlotConfig config)
         {
             string salt = config != null ? config.ChecksumSalt : "SALTY_SLOT_2026";
             string raw = $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}:{data.totalSpins}:{data.maxWin}:{data.saveVersion}:{salt}";
