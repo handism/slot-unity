@@ -36,6 +36,10 @@ namespace SlotGame.Editor
         private const string SeScatterAppearPath = AudioBasePath + "/SE/se_scatter_appear.mp3";
         private const string SeButtonClickPath  = AudioBasePath + "/SE/se_button_click.mp3";
 
+        private const string SpriteDragonPath  = "Assets/Art/Sprites/Generated/Dragon.png";
+        private const string SpriteWildPath    = "Assets/Art/Sprites/Generated/Wild.png";
+        private const string SpritePhoenixPath = "Assets/Art/Sprites/Generated/Phoenix.png";
+
         // ─── エントリーポイント ─────────────────────────────────────────
 
         [MenuItem("SlotGame/Build All Scenes")]
@@ -132,7 +136,7 @@ namespace SlotGame.Editor
             CreateEventSystem();
 
             // Main Camera
-            CreateUICamera(scene, "Main Camera", new Color(0.03f, 0.05f, 0.09f));
+            CreateUICamera(scene, "Main Camera", new Color(0.02f, 0.03f, 0.06f));
 
             // Canvas
             var canvas = CreateCanvas("Canvas", RenderMode.ScreenSpaceOverlay);
@@ -141,31 +145,85 @@ namespace SlotGame.Editor
             var bg = new GameObject("Background", typeof(Image));
             SetParent(bg, canvas);
             StretchFull(bg);
-            StyleImage(bg.GetComponent<Image>(), new Color(0.03f, 0.05f, 0.09f), new Color(0.01f, 0.02f, 0.05f, 0.88f), 0f);
+            StyleImage(bg.GetComponent<Image>(), new Color(0.02f, 0.03f, 0.06f));
+
+            // Decorative Glows
+            var glow1 = new GameObject("Glow1", typeof(Image));
+            SetParent(glow1, bg);
+            AnchorCenter(glow1, new Vector2(-400f, 200f), new Vector2(1200f, 1200f));
+            StyleImage(glow1.GetComponent<Image>(), new Color(0.1f, 0.2f, 0.5f, 0.15f));
+
+            var glow2 = new GameObject("Glow2", typeof(Image));
+            SetParent(glow2, bg);
+            AnchorCenter(glow2, new Vector2(400f, -200f), new Vector2(1000f, 1000f));
+            StyleImage(glow2.GetComponent<Image>(), new Color(0.4f, 0.1f, 0.3f, 0.12f));
+
+            // Floating Symbols
+            var sym1 = CreateDecorativeSymbol(bg, "Symbol_Dragon", SpriteDragonPath, new Vector2(-600f, -100f), 240f, 0.4f);
+            var sym2 = CreateDecorativeSymbol(bg, "Symbol_Wild", SpriteWildPath, new Vector2(650f, 250f), 200f, 0.3f);
+            var sym3 = CreateDecorativeSymbol(bg, "Symbol_Phoenix", SpritePhoenixPath, new Vector2(-550f, 350f), 180f, 0.25f);
+
+            // Logo Shadow (Glow effect)
+            var logoGlow = CreateTMPText(canvas, "LogoGlow", "FANTASY SLOT", 124);
+            StyleHeadline(logoGlow.GetComponent<TMP_Text>(), 12f);
+            logoGlow.GetComponent<TMP_Text>().color = new Color(0.24f, 0.76f, 0.95f, 0.3f);
+            AnchorCenter(logoGlow, new Vector2(0f, 190f), new Vector2(1500f, 200f));
 
             // Logo
-            var logo = CreateTMPText(canvas, "Logo", "FANTASY SLOT", 120);
-            StyleHeadline(logo.GetComponent<TMP_Text>(), 12f);
+            var logo = CreateTMPText(canvas, "Logo", "FANTASY SLOT", 150);
+            StyleHeadline(logo.GetComponent<TMP_Text>(), 20f);
             var logoText = logo.GetComponent<TMP_Text>();
             logoText.textWrappingMode = TextWrappingModes.NoWrap;
             logoText.overflowMode = TextOverflowModes.Overflow;
-            AnchorCenter(logo, new Vector2(0f, 190f), new Vector2(1500f, 180f));
+            logoText.color = new Color(1f, 0.9f, 0.5f, 1f);
+            AnchorCenter(logo, new Vector2(0f, 220f), new Vector2(1500f, 220f));
 
             // Start Button
-            var startBtnGO = CreateButton(canvas, "StartButton", "START GAME", new Vector2(360, 88), new Color(0.95f, 0.72f, 0.22f));
-            AnchorCenter(startBtnGO, new Vector2(0f, -170f), new Vector2(360f, 88f));
+            var startBtnGO = CreateButton(canvas, "StartButton", "START GAME", new Vector2(480, 110), new Color(0.95f, 0.72f, 0.22f));
+            AnchorCenter(startBtnGO, new Vector2(0f, -240f), new Vector2(480f, 110f));
             var startBtn = startBtnGO.GetComponent<Button>();
+            var startBtnCG = startBtnGO.AddComponent<CanvasGroup>();
 
             // TitleManager
             var titleGO = new GameObject("TitleManager");
             SceneManager.MoveGameObjectToScene(titleGO, scene);
             var titleManager = titleGO.AddComponent<TitleManager>();
+            var effects = titleGO.AddComponent<TitleEffects>();
+
+            // Wiring Effects
+            WireField(effects, "logoTransform", logo.GetComponent<RectTransform>());
+            WireField(effects, "startButtonTransform", startBtnGO.GetComponent<RectTransform>());
+            WireField(effects, "startButtonCanvasGroup", startBtnCG);
+
+            var effectsSO = new SerializedObject(effects);
+            var glowProp = effectsSO.FindProperty("backgroundGlows");
+            glowProp.arraySize = 2;
+            glowProp.GetArrayElementAtIndex(0).objectReferenceValue = glow1.GetComponent<RectTransform>();
+            glowProp.GetArrayElementAtIndex(1).objectReferenceValue = glow2.GetComponent<RectTransform>();
+
+            var symProp = effectsSO.FindProperty("floatingSymbols");
+            symProp.arraySize = 3;
+            symProp.GetArrayElementAtIndex(0).objectReferenceValue = sym1.GetComponent<RectTransform>();
+            symProp.GetArrayElementAtIndex(1).objectReferenceValue = sym2.GetComponent<RectTransform>();
+            symProp.GetArrayElementAtIndex(2).objectReferenceValue = sym3.GetComponent<RectTransform>();
+            effectsSO.ApplyModifiedPropertiesWithoutUndo();
 
             // Button Action
             UnityEventTools.AddPersistentListener(startBtn.onClick, titleManager.StartGame);
 
             EditorSceneManager.SaveScene(scene, $"{ScenesPath}/Title.unity");
             Debug.Log("[SceneBuilder] Title.unity built.");
+        }
+
+        private static GameObject CreateDecorativeSymbol(GameObject parent, string name, string spritePath, Vector2 pos, float size, float alpha)
+        {
+            var go = new GameObject(name, typeof(Image));
+            SetParent(go, parent);
+            var img = go.GetComponent<Image>();
+            img.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+            img.color = new Color(1f, 1f, 1f, alpha);
+            AnchorCenter(go, pos, new Vector2(size, size));
+            return go;
         }
 
         // ─── Main.unity ─────────────────────────────────────────────────
@@ -1075,7 +1133,12 @@ namespace SlotGame.Editor
             return (card, labelGo, valueGo);
         }
 
-        private static void StyleImage(Image image, Color color, Color? outlineColor = null, float outlineDistance = 0f)
+        private static void StyleImage(Image image, Color color)
+        {
+            StyleImage(image, color, null, 0f);
+        }
+
+        private static void StyleImage(Image image, Color color, Color? outlineColor, float outlineDistance)
         {
             if (image == null) return;
             image.color = color;
