@@ -22,6 +22,8 @@ namespace SlotGame.View
     /// <summary>各 View パネルを統括する UIManager。</summary>
     public class UIManager : MonoBehaviour
     {
+        private const int MaxPaylinePoolSize = 50;
+
         [SerializeField] private MainHUDView     mainHUD = null!;
         [SerializeField] private FreeSpinHUDView freeSpinHUD = null!;
         [SerializeField] private WinPopupView    winPopup = null!;
@@ -198,7 +200,14 @@ namespace SlotGame.View
                 {
                     pl.Clear();
                     pl.gameObject.SetActive(false);
-                    _paylinePool.Enqueue(pl);
+                    if (_paylinePool.Count < MaxPaylinePoolSize)
+                    {
+                        _paylinePool.Enqueue(pl);
+                    }
+                    else
+                    {
+                        Destroy(pl.gameObject);
+                    }
                 }
             }
             _activePaylines.Clear();

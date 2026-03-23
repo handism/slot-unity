@@ -25,19 +25,13 @@ namespace SlotGame.Core
             if (progressBar != null) progressBar.value = 0;
 
             // 2. データのロードと Model の生成
-            if (gameConfig == null)
-                Debug.LogWarning("[BootManager] gameConfig が未設定です。デフォルト値で起動します。SlotGame > Create All ScriptableObject Assets を実行してください。");
-
-            long   initialCoins    = gameConfig != null ? gameConfig.initialCoins    : 1000;
-            long   maxCoins        = gameConfig != null ? gameConfig.maxCoins        : 9_999_999;
-            int[]  validBetAmounts = gameConfig != null ? gameConfig.validBetAmounts : new[] { 10, 20, 50, 100 };
-
-            var saveDataManager = new SaveDataManager(gameConfig);
+            var config = gameConfig != null ? gameConfig.ToModelConfig() : null;
+            var saveDataManager = new SaveDataManager(config);
             var save = saveDataManager.Load();
             var gameState = new GameState(
-                initialCoins,
-                maxCoins,
-                validBetAmounts,
+                config?.InitialCoins ?? 1000,
+                config?.MaxCoins ?? 9_999_999,
+                config?.ValidBetAmounts ?? new[] { 10, 20, 50, 100 },
                 save.coins,
                 save.betAmount
             );

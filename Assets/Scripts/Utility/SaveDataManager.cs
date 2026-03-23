@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using UnityEngine;
-using SlotGame.Data;
 using SlotGame.Model;
 
 namespace SlotGame.Utility
@@ -12,13 +11,13 @@ namespace SlotGame.Utility
     /// </summary>
     public class SaveDataManager
     {
-        private readonly string         _savePath;
-        private readonly GameConfigData? _config;
+        private readonly string      _savePath;
+        private readonly SlotConfig? _config;
 
-        public SaveDataManager(GameConfigData? config = null)
+        public SaveDataManager(SlotConfig? config = null)
             : this(Path.Combine(Application.persistentDataPath, "savedata.json"), config) { }
 
-        public SaveDataManager(string savePath, GameConfigData? config = null)
+        public SaveDataManager(string savePath, SlotConfig? config = null)
         {
             _savePath = savePath;
             _config   = config;
@@ -86,14 +85,14 @@ namespace SlotGame.Utility
 
         // ─── バリデーション ──────────────────────────────────────────────
 
-        private static bool Validate(SaveData data, GameConfigData? config)
+        private static bool Validate(SaveData data, SlotConfig? config)
         {
             if (data.saveVersion != "1.0")                  return false;
             if (data.coins < 0)                             return false;
             if (config != null)
             {
-                if (data.coins > config.maxCoins) return false;
-                if (System.Array.IndexOf(config.validBetAmounts, data.betAmount) < 0) return false;
+                if (data.coins > config.MaxCoins) return false;
+                if (System.Array.IndexOf(config.ValidBetAmounts, data.betAmount) < 0) return false;
             }
             if (data.bgmVolume < 0f || data.bgmVolume > 1f) return false;
             if (data.seVolume  < 0f || data.seVolume  > 1f) return false;
@@ -101,9 +100,9 @@ namespace SlotGame.Utility
             return true;
         }
 
-        private static string CalculateChecksum(SaveData data, GameConfigData? config)
+        private static string CalculateChecksum(SaveData data, SlotConfig? config)
         {
-            string salt = config != null ? config.checksumSalt : "SALTY_SLOT_2026";
+            string salt = config != null ? config.ChecksumSalt : "SALTY_SLOT_2026";
             string raw = $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}:{data.totalSpins}:{data.maxWin}:{data.saveVersion}:{salt}";
             using var sha256 = System.Security.Cryptography.SHA256.Create();
             byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(raw));

@@ -23,6 +23,7 @@ namespace SlotGame.Core
         public void Initialize(IRandomGenerator random, ReelStripData[] strips = null)
         {
             _random = random;
+            _cachedSymbolDefs = null; // キャッシュをクリア
 
             if (reels != null)
             {
@@ -46,7 +47,10 @@ namespace SlotGame.Core
             PayoutTableData  payouts,
             int              betAmount,
             CancellationToken ct,
-            GameConfigData?  config = null)
+            int              reelCount = 5,
+            int              rowCount = 3,
+            int              minMatch = 3,
+            int[]?           bonusReels = null)
         {
             _skipRequested = false;
 
@@ -96,7 +100,7 @@ namespace SlotGame.Core
             if (_cachedSymbolDefs == null)
                 _cachedSymbolDefs = CollectSymbolDefs(strips);
 
-            var result = PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount, config);
+            var result = PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount, reelCount, rowCount, minMatch, bonusReels);
 
             // 当たりがあれば詳細をログ出力
             if (result.TotalWinAmount > 0 || result.HasScatter || result.HasBonusCondition)

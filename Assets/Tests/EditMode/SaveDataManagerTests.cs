@@ -94,5 +94,20 @@ namespace SlotGame.Tests.EditMode
             var loaded = mgr.Load();
             Assert.AreEqual(1000, loaded.coins); // Back to default due to checksum failure
         }
+
+        [Test]
+        public void Load_InvalidBetAmount_ReturnsDefault()
+        {
+            var config = new SlotConfig(1000, 999999, new[] { 10, 20, 50, 100 }, 5, 3, 3, 20, 10, 0.8f, 1.0f, "SALT");
+            var mgr = new SaveDataManager(_tempPath, config);
+
+            var bad = new SaveData { betAmount = 999 };
+            // Manually save valid json but with invalid betAmount (skipping mgr.Save which would add checksum)
+            File.WriteAllText(_tempPath, UnityEngine.JsonUtility.ToJson(bad));
+
+            var data = mgr.Load();
+            Assert.AreEqual(1000, data.coins);
+            Assert.AreEqual(10,   data.betAmount);
+        }
     }
 }

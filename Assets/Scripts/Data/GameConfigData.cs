@@ -26,6 +26,24 @@ namespace SlotGame.Data
         public float defaultSeVolume = 1.0f;
 
         [Header("Security")]
-        public string checksumSalt = "SALTY_SLOT_2026";
+        [SerializeField] private string checksumSalt = "SALTY_SLOT_2026";
+        public string ChecksumSalt => checksumSalt;
+
+        public Model.SlotConfig ToModelConfig()
+        {
+            return new Model.SlotConfig(
+                initialCoins,
+                maxCoins,
+                validBetAmounts,
+                reelCount,
+                rowCount,
+                minMatch,
+                maxFreeSpinAddition,
+                defaultAutoSpinCount,
+                defaultBgmVolume,
+                defaultSeVolume,
+                checksumSalt
+            );
+        }
     }
 }
