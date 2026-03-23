@@ -24,11 +24,29 @@ namespace SlotGame.View
 
         [Header("Background Effects")]
         [SerializeField] private Image overlayFade;
+        [SerializeField] private RectTransform[] backgroundGlows;
+        [SerializeField] private float glowRotationSpeed = 10f;
 
+        [Header("Floating Symbols")]
+        [SerializeField] private RectTransform[] floatingSymbols;
+        [SerializeField] private float floatAmount = 20f;
+        [SerializeField] private float floatSpeed = 1f;
+
+        private Vector2[] initialSymbolPositions;
         private CancellationTokenSource cts;
 
         private void Start()
         {
+            if (floatingSymbols != null)
+            {
+                initialSymbolPositions = new Vector2[floatingSymbols.Length];
+                for (int i = 0; i < floatingSymbols.Length; i++)
+                {
+                    if (floatingSymbols[i] != null)
+                        initialSymbolPositions[i] = floatingSymbols[i].anchoredPosition;
+                }
+            }
+
             cts = new CancellationTokenSource();
             StartAnimations(cts.Token).Forget();
         }
@@ -66,6 +84,33 @@ namespace SlotGame.View
                 {
                     float btnScale = 1f + Mathf.Sin(elapsed * pulseSpeed) * 0.02f;
                     startButtonTransform.localScale = new Vector3(btnScale, btnScale, 1f);
+                }
+
+                // 背景グローの回転
+                if (backgroundGlows != null)
+                {
+                    for (int i = 0; i < backgroundGlows.Length; i++)
+                    {
+                        if (backgroundGlows[i] != null)
+                        {
+                            float direction = (i % 2 == 0) ? 1f : -1f;
+                            backgroundGlows[i].Rotate(Vector3.forward, direction * glowRotationSpeed * Time.deltaTime);
+                        }
+                    }
+                }
+
+                // 装飾シンボルの浮遊
+                if (floatingSymbols != null && initialSymbolPositions != null)
+                {
+                    for (int i = 0; i < floatingSymbols.Length; i++)
+                    {
+                        if (floatingSymbols[i] != null && i < initialSymbolPositions.Length)
+                        {
+                            float offset = i * 1.5f;
+                            float y = Mathf.Sin((elapsed + offset) * floatSpeed) * floatAmount;
+                            floatingSymbols[i].anchoredPosition = initialSymbolPositions[i] + new Vector2(0f, y);
+                        }
+                    }
                 }
 
                 await UniTask.Yield(PlayerLoopTiming.Update, token);
