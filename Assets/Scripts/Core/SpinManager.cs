@@ -18,7 +18,7 @@ namespace SlotGame.Core
 
         private IRandomGenerator _random;
         private bool             _skipRequested;
-        private SlotGame.Data.SymbolData[] _cachedSymbolDefs;
+        private IReadOnlyDictionary<int, SymbolData> _cachedSymbolDefs;
 
         public void Initialize(IRandomGenerator random, ReelStripData[] strips = null)
         {
@@ -45,7 +45,8 @@ namespace SlotGame.Core
             PaylineData      paylines,
             PayoutTableData  payouts,
             int              betAmount,
-            CancellationToken ct)
+            CancellationToken ct,
+            GameConfigData?  config = null)
         {
             _skipRequested = false;
 
@@ -91,11 +92,11 @@ namespace SlotGame.Core
                     grid[r, row] = ids[row];
             }
 
-            // シンボル定義の配列を集約（SymbolData は各ストリップに含まれる）
+            // シンボル定義の辞書を集約（SymbolData は各ストリップに含まれる）
             if (_cachedSymbolDefs == null)
                 _cachedSymbolDefs = CollectSymbolDefs(strips);
 
-            var result = PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount);
+            var result = PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount, config);
 
             // 当たりがあれば詳細をログ出力
             if (result.TotalWinAmount > 0 || result.HasScatter || result.HasBonusCondition)
@@ -109,15 +110,18 @@ namespace SlotGame.Core
         /// <summary>スピン中に呼ぶとリールが即座に停止位置へスナップする。</summary>
         public void RequestSkip() => _skipRequested = true;
 
-        private static SlotGame.Data.SymbolData[] CollectSymbolDefs(ReelStripData[] strips)
+        private static IReadOnlyDictionary<int, SymbolData> CollectSymbolDefs(ReelStripData[] strips)
         {
-            var set = new System.Collections.Generic.HashSet<SlotGame.Data.SymbolData>();
+            var dict = new Dictionary<int, SymbolData>();
             foreach (var strip in strips)
+            {
                 foreach (var sym in strip.strip)
-                    set.Add(sym);
-            var arr = new SlotGame.Data.SymbolData[set.Count];
-            set.CopyTo(arr);
-            return arr;
+                {
+                    if (!dict.ContainsKey(sym.symbolId))
+                        dict.Add(sym.symbolId, sym);
+                }
+            }
+            return dict;
         }
     }
 }

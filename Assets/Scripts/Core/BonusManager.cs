@@ -13,13 +13,16 @@ namespace SlotGame.Core
     /// <summary>フリースピン・ボーナスラウンドのフローを管理する Presenter。</summary>
     public class BonusManager : MonoBehaviour
     {
-        private const int MaxFreeSpinAddition = 20;
-
         [SerializeField] private SpinManager spinManager;
 
         private IRandomGenerator _random;
+        private GameConfigData   _config;
 
-        public void Initialize(IRandomGenerator random) => _random = random;
+        public void Initialize(IRandomGenerator random, GameConfigData config)
+        {
+            _random = random;
+            _config = config;
+        }
 
         /// <summary>
         /// フリースピンを実行する。
@@ -42,7 +45,7 @@ namespace SlotGame.Core
                 ct.ThrowIfCancellationRequested();
 
                 state.ConsumeFreeSpin();
-                var result = await spinManager.ExecuteSpin(strips, paylines, payouts, state.BetAmount, ct);
+                var result = await spinManager.ExecuteSpin(strips, paylines, payouts, state.BetAmount, ct, _config);
 
                 // フリースピン中は配当 ×2
                 long freeSpinWin = result.TotalWinAmount * 2;
@@ -53,7 +56,8 @@ namespace SlotGame.Core
                 if (result.HasScatter)
                 {
                     int extra = CalcFreeSpinCount(result.ScatterCount);
-                    extra = Math.Min(extra, MaxFreeSpinAddition);
+                    if (_config != null)
+                        extra = Math.Min(extra, _config.maxFreeSpinAddition);
                     state.AddFreeSpins(extra);
                 }
 

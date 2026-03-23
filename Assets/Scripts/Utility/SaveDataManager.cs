@@ -11,14 +11,16 @@ namespace SlotGame.Utility
     /// </summary>
     public class SaveDataManager
     {
-        private readonly string _savePath;
+        private readonly string         _savePath;
+        private readonly GameConfigData? _config;
 
-        public SaveDataManager()
-            : this(Path.Combine(Application.persistentDataPath, "savedata.json")) { }
+        public SaveDataManager(GameConfigData? config = null)
+            : this(Path.Combine(Application.persistentDataPath, "savedata.json"), config) { }
 
-        public SaveDataManager(string savePath)
+        public SaveDataManager(string savePath, GameConfigData? config = null)
         {
             _savePath = savePath;
+            _config   = config;
         }
 
         /// <summary>
@@ -35,7 +37,16 @@ namespace SlotGame.Utility
             {
                 string json = File.ReadAllText(_savePath);
                 var data    = JsonUtility.FromJson<SaveData>(json);
-                if (data == null || !Validate(data))
+                if (data == null || !Validate(data, _config))
+                    return RecoverFromCorruption();
+
+                // 移行戦略: チェックサムがない旧データの場合はバリデーションのみで通し、次回保存時にチェックサムを付与する
+                if (string.IsNullOrEmpty(data.checksum))
+                {
+                    return data;
+                }
+
+                if (!VerifyChecksum(data))
                     return RecoverFromCorruption();
 
                 return data;
@@ -49,6 +60,7 @@ namespace SlotGame.Utility
         /// <summary>セーブデータを JSON ファイルに書き込む（一時ファイルを用いたアトミック書き込み）。</summary>
         public void Save(SaveData data)
         {
+            data.checksum = CalculateChecksum(data, _config);
             string json = JsonUtility.ToJson(data, prettyPrint: true);
             string tempPath = _savePath + ".tmp";
 
@@ -73,15 +85,35 @@ namespace SlotGame.Utility
 
         // ─── バリデーション ──────────────────────────────────────────────
 
-        private static bool Validate(SaveData data)
+        private static bool Validate(SaveData data, GameConfigData? config)
         {
             if (data.saveVersion != "1.0")                  return false;
-            if (data.coins < 0 || data.coins > GameState.MaxCoins) return false;
-            if (Array.IndexOf(GameState.ValidBetAmounts, data.betAmount) < 0) return false;
+            if (data.coins < 0)                             return false;
+            if (config != null)
+            {
+                if (data.coins > config.maxCoins) return false;
+                if (System.Array.IndexOf(config.validBetAmounts, data.betAmount) < 0) return false;
+            }
             if (data.bgmVolume < 0f || data.bgmVolume > 1f) return false;
             if (data.seVolume  < 0f || data.seVolume  > 1f) return false;
             if (data.totalSpins < 0 || data.maxWin < 0)     return false;
             return true;
+        }
+
+        private static string CalculateChecksum(SaveData data, GameConfigData? config)
+        {
+            string salt = config != null ? config.checksumSalt : "SALTY_SLOT_2026";
+            string raw = $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}:{data.totalSpins}:{data.maxWin}:{data.saveVersion}:{salt}";
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(raw));
+            return Convert.ToBase64String(bytes);
+        }
+
+        private bool VerifyChecksum(SaveData data)
+        {
+            string actual = data.checksum;
+            string expected = CalculateChecksum(data, _config);
+            return actual == expected;
         }
 
         private SaveData RecoverFromCorruption()

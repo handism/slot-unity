@@ -5,8 +5,9 @@ namespace SlotGame.Model
     /// <summary>ゲーム全体の状態を保持するモデル（ピュア C#、Unity 非依存）</summary>
     public class GameState
     {
-        public const long MaxCoins = 9_999_999L;
-        public static readonly int[] ValidBetAmounts = { 10, 20, 50, 100 };
+        public long InitialCoins     { get; }
+        public long MaxCoins         { get; }
+        public int[] ValidBetAmounts { get; }
 
         public long Coins         { get; private set; }
         public int  BetAmount     { get; private set; }
@@ -15,10 +16,13 @@ namespace SlotGame.Model
         public long TotalSpins    { get; private set; }
         public long MaxWin        { get; private set; }
 
-        public GameState(long coins = 1000, int betAmount = 10)
+        public GameState(long initialCoins, long maxCoins, int[] validBetAmounts, long currentCoins, int currentBetAmount)
         {
-            Coins     = Math.Clamp(coins, 0, MaxCoins);
-            BetAmount = betAmount;
+            InitialCoins = initialCoins;
+            MaxCoins = maxCoins;
+            ValidBetAmounts = validBetAmounts;
+            Coins = Math.Clamp(currentCoins, 0, MaxCoins);
+            BetAmount = currentBetAmount;
         }
 
         /// <summary>ベット額を消費する。残高不足の場合は false を返してコインを変更しない。</summary>
