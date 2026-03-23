@@ -48,6 +48,7 @@ View（MonoBehaviour・表示専用）
   SymbolView       ← 個別シンボルのスプライト・アニメーション
   MainHUDView      ← コイン残高・ベット額・スピンボタン表示
   WinPopupView     ← 獲得コインポップアップ
+  WinLevel         ← 配当額に応じた演出レベル定義（Small/Big/Mega）
   FreeSpinHUDView  ← フリースピン残数表示
   SettingsView     ← 音量設定パネル
   PaytableView     ← 配当表パネル
@@ -56,6 +57,7 @@ View（MonoBehaviour・表示専用）
 
 - **Model は View を参照しない**。View はデータを受け取って描画するのみ
 - ゲームパラメータ（配当・確率・ライン定義）はすべて **ScriptableObject** で外出し。コード変更なしに調整可能
+- RTP 調整・アセット一括生成のための **Editor ツール**（`RtpTuner`）を完備。シミュレーション結果は `RTP_Result.csv` に出力
 - 非同期処理は **UniTask**（`async UniTask`）に統一。Coroutine は使わない
 
 ## シーン構成
@@ -76,13 +78,17 @@ Assets/
                    BonusManager, AudioManager, BootManager, GameContext
     Model/      ← GameState, SpinResult, SaveData（ピュア C#）
     View/       ← UIManager, ReelView, SymbolView, MainHUDView,
-                   WinPopupView, FreeSpinHUDView, SettingsView,
-                   PaytableView, BonusRoundView
+                   WinPopupView, PaylineView, WinLevel, FreeSpinHUDView,
+                   SettingsView, PaytableView, BonusRoundView
     Audio/      ← AudioManager
     Data/       ← ScriptableObject 定義クラス群
     Utility/    ← PaylineEvaluator（static）, SaveDataManager,
                    IRandomGenerator, SystemRandomGenerator,
-                   SeededRandomGenerator, RtpCalculator（エディタ専用）
+                   SeededRandomGenerator
+  Editor/
+    Utility/    ← RtpCalculator.cs
+    RtpTuner.cs, SceneBuilder.cs, ScriptableObjectCreator.cs,
+    ViewSetupTool.cs
   ScriptableObjects/
     Symbols/    ← SymbolData × 11（Bonus シンボル含む）
     Reels/      ← ReelStripData × 5
@@ -90,6 +96,8 @@ Assets/
     PayoutTable/← PayoutTableData
   Art/
   Audio/
+  Tests/        ← EditMode / PlayMode ユニットテスト
+  Settings/     ← URP / InputSystem 設定アセット
 docs/
   requirements.md   ← 要件定義書
   design.md         ← 設計書
@@ -129,8 +137,8 @@ docs/
 | Phase 2 | ScriptableObject アセット作成 | 完了 |
 | Phase 3 | Presenter / Core 実装 | 完了 |
 | Phase 4 | View 実装・シーン構築 | 完了 |
-| Phase 5 | RTP 検証・リールストリップ調整 | 進行中 |
-| Phase 6 | 統合テスト・最終ビルド確認 | 未着手 |
+| Phase 5 | RTP 検証・リールストリップ調整 | 完了 |
+| Phase 6 | 統合テスト・最終ビルド確認 | 完了 |
 
 ## ドキュメント
 
