@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -12,24 +13,21 @@ namespace SlotGame.Core
     /// <summary>全リールの回転・停止を調整し SpinResult を返す Presenter。</summary>
     public class SpinManager : MonoBehaviour
     {
-        [SerializeField] private ReelController[] reels;   // 5 個
+        [SerializeField] private ReelController[] reels = Array.Empty<ReelController>();   // 5 個
         public IReadOnlyList<ReelController> Reels => reels;
-        public event Action<int> ReelStopped;
+        public event Action<int>? ReelStopped;
 
-        private IRandomGenerator _random;
+        private IRandomGenerator? _random;
         private bool             _skipRequested;
-        private IReadOnlyDictionary<int, SymbolData> _cachedSymbolDefs;
+        private IReadOnlyDictionary<int, SymbolData>? _cachedSymbolDefs;
 
-        public void Initialize(IRandomGenerator random, ReelStripData[] strips = null)
+        public void Initialize(IRandomGenerator random, ReelStripData[]? strips = null)
         {
             _random = random;
             _cachedSymbolDefs = null; // キャッシュをクリア
 
-            if (reels != null)
-            {
-                // UIManager と同じく X 座標順（左から右）にソートして、インデックスと物理位置を一致させる
-                System.Array.Sort(reels, (a, b) => a.transform.position.x.CompareTo(b.transform.position.x));
-            }
+            // UIManager と同じく X 座標順（左から右）にソートして、インデックスと物理位置を一致させる
+            Array.Sort(reels, (a, b) => a.transform.position.x.CompareTo(b.transform.position.x));
 
             if (strips == null) return;
 
@@ -52,6 +50,9 @@ namespace SlotGame.Core
             int              minMatch = 3,
             int[]?           bonusReels = null)
         {
+            if (_random == null)
+                throw new InvalidOperationException($"{nameof(SpinManager)} is not initialized.");
+
             _skipRequested = false;
 
             // 停止位置をリールごとに乱数決定
@@ -97,15 +98,14 @@ namespace SlotGame.Core
             }
 
             // シンボル定義の辞書を集約（SymbolData は各ストリップに含まれる）
-            if (_cachedSymbolDefs == null)
-                _cachedSymbolDefs = CollectSymbolDefs(strips);
+            var symbolDefs = _cachedSymbolDefs ??= CollectSymbolDefs(strips);
 
-            var result = PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount, reelCount, rowCount, minMatch, bonusReels);
+            var result = PaylineEvaluator.Evaluate(grid, symbolDefs, paylines, payouts, betAmount, reelCount, rowCount, minMatch, bonusReels);
 
             // 当たりがあれば詳細をログ出力
             if (result.TotalWinAmount > 0 || result.HasScatter || result.HasBonusCondition)
             {
-                PaylineEvaluator.LogSpinResult(result, _cachedSymbolDefs);
+                PaylineEvaluator.LogSpinResult(result, symbolDefs);
             }
 
             return result;

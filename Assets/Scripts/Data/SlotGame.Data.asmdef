@@ -1,7 +1,9 @@
 {
     "name": "SlotGame.Data",
     "rootNamespace": "SlotGame.Data",
-    "references": [],
+    "references": [
+        "SlotGame.Model"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

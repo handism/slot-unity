@@ -45,8 +45,7 @@ namespace SlotGame.Utility.Editor
             int  totalFreeSpinSpins  = 0;
 
             var random   = new SeededRandomGenerator(12345);
-            var allDefs  = CollectDefs(strips);
-            var defDict  = allDefs.ToDictionary(d => d.symbolId);
+            var defDict  = CollectDefs(strips);
 
             var sb = new StringBuilder();
             sb.AppendLine("spin,bet,normalWin,freeSpinWin,bonusWin,totalWin,rtp_cumulative");
@@ -68,7 +67,7 @@ namespace SlotGame.Utility.Editor
                     freeSpinTriggers++;
                     int fsCount = CalcFreeSpinCount(result.ScatterCount);
                     spinFreeSpinWin = SimulateFreeSpins(
-                        fsCount, strips, allDefs, paylines, payouts,
+                        fsCount, strips, defDict, paylines, payouts,
                         BetAmount, random, ref totalFreeSpinSpins);
                 }
 
@@ -140,7 +139,6 @@ namespace SlotGame.Utility.Editor
         {
             long freeSpinWin = 0;
             int  remaining   = initialCount;
-            var  defDict     = defs.ToDictionary(d => d.symbolId);
 
             while (remaining > 0)
             {
@@ -148,7 +146,7 @@ namespace SlotGame.Utility.Editor
                 totalFreeSpinsOut++;
 
                 var grid   = RollGrid(strips, rng);
-                var result = PaylineEvaluator.Evaluate(grid, defDict, paylines, payouts, bet);
+                var result = PaylineEvaluator.Evaluate(grid, defs, paylines, payouts, bet);
 
                 freeSpinWin += result.TotalWinAmount * 2; // フリースピン中は ×2 倍
 

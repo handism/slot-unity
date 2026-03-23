@@ -1,3 +1,4 @@
+using SlotGame.Model;
 using UnityEngine;
 
 namespace SlotGame.Data
@@ -29,9 +30,9 @@ namespace SlotGame.Data
         [SerializeField] private string checksumSalt = "SALTY_SLOT_2026";
         public string ChecksumSalt => checksumSalt;
 
-        public Model.SlotConfig ToModelConfig()
+        public SlotConfig ToModelConfig()
         {
-            return new Model.SlotConfig(
+            return new SlotConfig(
                 initialCoins,
                 maxCoins,
                 validBetAmounts,

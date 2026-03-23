@@ -150,7 +150,7 @@ namespace SlotGame.View
             text.enableAutoSizing = true;
             text.fontSizeMax = text.fontSize;
             text.fontSizeMin = minFontSize;
-            text.enableWordWrapping = false;
+            text.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
             text.overflowMode = TextOverflowModes.Truncate;
             text.characterSpacing = 0f;
             text.margin = new Vector4(0f, 0f, 4f, 0f);
