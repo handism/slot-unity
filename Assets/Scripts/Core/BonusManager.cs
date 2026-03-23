@@ -16,9 +16,9 @@ namespace SlotGame.Core
         [SerializeField] private SpinManager spinManager;
 
         private IRandomGenerator _random;
-        private GameConfigData   _config;
+        private SlotConfig       _config;
 
-        public void Initialize(IRandomGenerator random, GameConfigData config)
+        public void Initialize(IRandomGenerator random, SlotConfig config)
         {
             _random = random;
             _config = config;
@@ -45,7 +45,12 @@ namespace SlotGame.Core
                 ct.ThrowIfCancellationRequested();
 
                 state.ConsumeFreeSpin();
-                var result = await spinManager.ExecuteSpin(strips, paylines, payouts, state.BetAmount, ct, _config);
+                var result = await spinManager.ExecuteSpin(
+                    strips, paylines, payouts, state.BetAmount, ct,
+                    _config?.ReelCount ?? 5,
+                    _config?.RowCount ?? 3,
+                    _config?.MinMatch ?? 3,
+                    new[] { 0, 2, 4 });
 
                 // フリースピン中は配当 ×2
                 long freeSpinWin = result.TotalWinAmount * 2;
@@ -57,7 +62,7 @@ namespace SlotGame.Core
                 {
                     int extra = CalcFreeSpinCount(result.ScatterCount);
                     if (_config != null)
-                        extra = Math.Min(extra, _config.maxFreeSpinAddition);
+                        extra = Math.Min(extra, _config.MaxFreeSpinAddition);
                     state.AddFreeSpins(extra);
                 }
 

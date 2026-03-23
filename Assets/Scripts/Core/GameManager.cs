@@ -59,12 +59,19 @@ namespace SlotGame.Core
             else
             {
                 // デバッグ用（Boot シーンを通さず起動した場合）
-                _saveDataManager = new SaveDataManager(gameConfig);
+                if (gameConfig == null)
+                {
+                    Debug.LogError("[GameManager] gameConfig is not set in Inspector!");
+                    return;
+                }
+
+                var config = gameConfig.ToModelConfig();
+                _saveDataManager = new SaveDataManager(config);
                 var save = _saveDataManager.Load();
                 _gameState = new GameState(
-                    gameConfig.initialCoins,
-                    gameConfig.maxCoins,
-                    gameConfig.validBetAmounts,
+                    config.InitialCoins,
+                    config.MaxCoins,
+                    config.ValidBetAmounts,
                     save.coins,
                     save.betAmount
                 );
@@ -81,31 +88,41 @@ namespace SlotGame.Core
             IRandomGenerator random,
             SaveData save)
         {
-            _saveDataManager = saveDataManager ?? new SaveDataManager(gameConfig);
+            if (gameConfig == null)
+            {
+                Debug.LogError("[GameManager] gameConfig is not set in Inspector!");
+                return;
+            }
+
+            var config = gameConfig.ToModelConfig();
+
+            _saveDataManager = saveDataManager ?? new SaveDataManager(config);
             save ??= _saveDataManager.Load();
             _gameState = gameState ?? new GameState(
-                gameConfig.initialCoins,
-                gameConfig.maxCoins,
-                gameConfig.validBetAmounts,
+                config.InitialCoins,
+                config.MaxCoins,
+                config.ValidBetAmounts,
                 save.coins,
                 save.betAmount
             );
             random ??= new SystemRandomGenerator();
 
             spinManager.Initialize(random, reelStrips);
-            bonusManager.Initialize(random, gameConfig);
+            bonusManager.Initialize(random, config);
 
             // UIManager に使用するリールを明示的にセット
             uiManager.SetupReels(spinManager.Reels.Select(r => r.GetComponent<ReelView>()));
 
             _bgmVolume = save.bgmVolume;
             _seVolume  = save.seVolume;
+            _autoSpinCount = config.DefaultAutoSpinCount;
 
-            if (save.totalSpins == 0) // Assume new game
+            // セーブデータが完全に新規（一度も保存されていない）場合のみ、Config のデフォルト値を優先する。
+            // チェックサムがない、または totalSpins が 0 かつ default 値と一致する場合は新規とみなす。
+            if (string.IsNullOrEmpty(save.checksum) && save.totalSpins == 0)
             {
-                _bgmVolume = gameConfig.defaultBgmVolume;
-                _seVolume  = gameConfig.defaultSeVolume;
-                _autoSpinCount = gameConfig.defaultAutoSpinCount;
+                _bgmVolume = config.DefaultBgmVolume;
+                _seVolume  = config.DefaultSeVolume;
             }
 
             audioManager.SetBGMVolume(_bgmVolume);
@@ -283,7 +300,10 @@ namespace SlotGame.Core
             audioManager.PlaySE(SEType.SpinStart);
 
             TransitionTo(GamePhase.Spinning);
-            var result = await spinManager.ExecuteSpin(reelStrips, paylineData, payoutData, _gameState.BetAmount, ct, gameConfig);
+            var result = await spinManager.ExecuteSpin(
+                reelStrips, paylineData, payoutData, _gameState.BetAmount, ct,
+                gameConfig.reelCount, gameConfig.rowCount, gameConfig.minMatch,
+                new[] { 0, 2, 4 }); // ボーナストリガーリール
 
             TransitionTo(GamePhase.Evaluating);
 
@@ -425,7 +445,7 @@ namespace SlotGame.Core
             TransitionTo(GamePhase.GameOver);
             uiManager.ApplyModeVisual(ModeVisualType.Normal);
             // コインをデフォルト値にリセット
-            _gameState.SetCoins(gameConfig.initialCoins);
+            _gameState.SetCoins(gameConfig != null ? gameConfig.initialCoins : 1000);
             uiManager.UpdateCoins(_gameState.Coins);
             SaveGame();
             await UniTask.Delay(TimeSpan.FromSeconds(1f));
@@ -505,7 +525,7 @@ namespace SlotGame.Core
 
         private void HandleResetCoinsRequested()
         {
-            _gameState.SetCoins(gameConfig.initialCoins);
+            _gameState.SetCoins(gameConfig != null ? gameConfig.initialCoins : 1000);
             uiManager.UpdateCoins(_gameState.Coins);
             SaveGame();
         }

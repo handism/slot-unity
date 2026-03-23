@@ -26,11 +26,11 @@ namespace SlotGame.Utility
             PaylineData                          paylines,
             PayoutTableData                      payouts,
             int                                  betAmount,
-            GameConfigData?                      config = null)
+            int                                  reelCount = 5,
+            int                                  rowCount = 3,
+            int                                  minMatch = 3,
+            int[]?                               bonusReels = null)
         {
-            int reelCount = config?.reelCount ?? 5;
-            int rowCount  = config?.rowCount ?? 3;
-            int minMatch  = config?.minMatch ?? 3;
 
             var lineWins = EvaluatePaylines(symbolGrid, symbolDefs, paylines, betAmount, reelCount, minMatch);
 
@@ -40,7 +40,7 @@ namespace SlotGame.Utility
             long scatterWin      = CalcScatterWin(scatterCount, payouts, betAmount);
 
             var bonusPositions    = GetBonusPositions(symbolGrid, symbolDefs, reelCount, rowCount);
-            bool hasBonusCondition = CheckBonusConditionFromPositions(bonusPositions);
+            bool hasBonusCondition = CheckBonusConditionFromPositions(bonusPositions, bonusReels);
 
             long totalWin = scatterWin;
             foreach (var w in lineWins) totalWin += w.WinAmount;
@@ -208,17 +208,28 @@ namespace SlotGame.Utility
             return positions;
         }
 
-        /// <summary>リール 0/2/4（0-indexed）それぞれに Bonus タイプのシンボルが 1 つ以上あれば true。</summary>
-        private static bool CheckBonusConditionFromPositions(IReadOnlyList<SymbolPosition> positions)
+        /// <summary>指定されたリールインデックス（デフォルト: 0/2/4）それぞれに Bonus タイプのシンボルが 1 つ以上あれば true。</summary>
+        private static bool CheckBonusConditionFromPositions(
+            IReadOnlyList<SymbolPosition> positions,
+            int[]? bonusReels = null)
         {
-            bool has0 = false, has2 = false, has4 = false;
+            bonusReels ??= new[] { 0, 2, 4 };
+            var flags = new bool[bonusReels.Length];
+
             foreach (var pos in positions)
             {
-                if (pos.Reel == 0) has0 = true;
-                else if (pos.Reel == 2) has2 = true;
-                else if (pos.Reel == 4) has4 = true;
+                for (int i = 0; i < bonusReels.Length; i++)
+                {
+                    if (pos.Reel == bonusReels[i])
+                    {
+                        flags[i] = true;
+                        break;
+                    }
+                }
             }
-            return has0 && has2 && has4;
+
+            foreach (bool f in flags) if (!f) return false;
+            return bonusReels.Length > 0;
         }
 
         // ─── ヘルパー ─────────────────────────────────────────────────────

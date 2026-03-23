@@ -53,6 +53,7 @@ namespace SlotGame.Editor
 
             CreateSymbolViewPrefab();
             BuildBootScene();
+            BuildTitleScene();
             BuildMainScene();
             BuildBonusRoundScene();
             AddScenesToBuildSettings();
@@ -120,6 +121,47 @@ namespace SlotGame.Editor
 
             EditorSceneManager.SaveScene(scene, $"{ScenesPath}/Boot.unity");
             Debug.Log("[SceneBuilder] Boot.unity built.");
+        }
+
+        private static void BuildTitleScene()
+        {
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            SceneManager.SetActiveScene(scene);
+
+            // EventSystem
+            CreateEventSystem();
+
+            // Canvas
+            var canvas = CreateCanvas("Canvas", RenderMode.ScreenSpaceOverlay);
+
+            // Background
+            var bg = new GameObject("Background", typeof(Image));
+            SetParent(bg, canvas);
+            StretchFull(bg);
+            StyleImage(bg.GetComponent<Image>(), new Color(0.03f, 0.05f, 0.09f), new Color(0.01f, 0.02f, 0.05f, 0.88f), 0f);
+
+            // Logo
+            var logo = CreateTMPText(canvas, "Logo", "FANTASY SLOT", 120);
+            StyleHeadline(logo.GetComponent<TMP_Text>(), 12f);
+            var logoRT = logo.GetComponent<RectTransform>();
+            logoRT.anchoredPosition = new Vector2(0, 200);
+
+            // Start Button
+            var startBtnGO = CreateButton(canvas, "StartButton", "START GAME", new Vector2(400, 100), new Color(0.95f, 0.72f, 0.22f));
+            var startBtnRT = startBtnGO.GetComponent<RectTransform>();
+            startBtnRT.anchoredPosition = new Vector2(0, -100);
+            var startBtn = startBtnGO.GetComponent<Button>();
+
+            // TitleManager
+            var titleGO = new GameObject("TitleManager");
+            SceneManager.MoveGameObjectToScene(titleGO, scene);
+            var titleManager = titleGO.AddComponent<TitleManager>();
+
+            // Button Action
+            UnityEventTools.AddPersistentListener(startBtn.onClick, titleManager.StartGame);
+
+            EditorSceneManager.SaveScene(scene, $"{ScenesPath}/Title.unity");
+            Debug.Log("[SceneBuilder] Title.unity built.");
         }
 
         // ─── Main.unity ─────────────────────────────────────────────────
@@ -795,6 +837,7 @@ namespace SlotGame.Editor
             var paths = new[]
             {
                 $"{ScenesPath}/Boot.unity",
+                $"{ScenesPath}/Title.unity",
                 $"{ScenesPath}/Main.unity",
                 $"{ScenesPath}/BonusRound.unity",
             };

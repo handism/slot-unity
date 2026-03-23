@@ -288,7 +288,7 @@ namespace SlotGame.Tests.EditMode
         // ─── ヘルパー ────────────────────────────────────────────────────
 
         private SpinResult Evaluate(int[,] grid, int bet = 10)
-            => PaylineEvaluator.Evaluate(grid, _defDict, _paylines, _payouts, bet, null);
+            => PaylineEvaluator.Evaluate(grid, _defDict, _paylines, _payouts, bet);
 
         private static long SumLineWins(SpinResult result)
         {
