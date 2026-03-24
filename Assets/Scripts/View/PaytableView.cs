@@ -43,7 +43,7 @@ namespace SlotGame.View
             });
         }
 
-        public void Populate(SymbolData[] symbols)
+        public void Populate(SymbolData[] symbols, PayoutTableData payoutData)
         {
             EnsureRowPrefab();
             if (rowPrefab == null || contentRoot == null) return;
@@ -98,7 +98,8 @@ namespace SlotGame.View
 
             foreach (var sym in symbols)
             {
-                if (sym.type != SymbolType.Normal) continue;
+                if (sym.type != SymbolType.Normal && sym.type != SymbolType.Scatter && sym.type != SymbolType.Bonus) continue;
+                
                 var row = Instantiate(rowPrefab, contentRoot);
                 row.SetActive(true);
                 row.name = $"Row_{sym.symbolName}";
@@ -126,9 +127,34 @@ namespace SlotGame.View
                     var iconRect = img.rectTransform;
                     iconRect.sizeDelta = new Vector2(IconSize, IconSize);
                 }
-                if (texts.Length > 0) texts[0].text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
-                if (texts.Length > 1) texts[1].text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
-                if (texts.Length > 2) texts[2].text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
+
+                if (sym.type == SymbolType.Normal)
+                {
+                    if (texts.Length > 0) texts[0].text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
+                    if (texts.Length > 1) texts[1].text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
+                    if (texts.Length > 2) texts[2].text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
+                }
+                else if (sym.type == SymbolType.Scatter)
+                {
+                    // Scatter payouts from payoutData
+                    if (payoutData != null && payoutData.scatterPayouts != null)
+                    {
+                        var p3 = payoutData.scatterPayouts.FirstOrDefault(p => p.scatterCount == 3);
+                        var p4 = payoutData.scatterPayouts.FirstOrDefault(p => p.scatterCount == 4);
+                        var p5 = payoutData.scatterPayouts.FirstOrDefault(p => p.scatterCount == 5);
+                        
+                        if (texts.Length > 0) texts[0].text = p3.multiplier > 0 ? p3.multiplier.ToString("N0") : "-";
+                        if (texts.Length > 1) texts[1].text = p4.multiplier > 0 ? p4.multiplier.ToString("N0") : "-";
+                        if (texts.Length > 2) texts[2].text = p5.multiplier > 0 ? p5.multiplier.ToString("N0") : "-";
+                    }
+                }
+                else if (sym.type == SymbolType.Bonus)
+                {
+                    // Bonus symbol - just show info or leave blank
+                    if (texts.Length > 0) texts[0].text = "Mini";
+                    if (texts.Length > 1) texts[1].text = "Game";
+                    if (texts.Length > 2) texts[2].text = "Trigger";
+                }
             }
 
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);

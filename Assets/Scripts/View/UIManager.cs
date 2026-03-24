@@ -348,9 +348,9 @@ namespace SlotGame.View
             settingsView?.SetVolumes(bgm, se);
         }
 
-        public void PopulatePaytable(SymbolData[] symbols)
+        public void PopulatePaytable(SymbolData[] symbols, PayoutTableData payoutData)
         {
-            paytableView?.Populate(symbols);
+            paytableView?.Populate(symbols, payoutData);
         }
 
         private void CacheReelViews()

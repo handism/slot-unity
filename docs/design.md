@@ -37,7 +37,7 @@
 
 [ScriptableObject 群]
   ReelStripData × 5
-  SymbolData × 10
+  SymbolData × 12
   PaylineData
   PayoutTableData
 ```
@@ -110,8 +110,8 @@ public class SymbolData : ScriptableObject
     public int       symbolId;
     public string    symbolName;
     public Sprite    sprite;
-    public SymbolType type;          // Normal / Wild / Scatter
-    public int[]     payouts;        // [0]=3揃え倍率, [1]=4揃え, [2]=5揃え
+    public SymbolType type;          // Normal / Wild / Scatter / Bonus / Filler
+    public int[]     payouts;        // [0]=3揃え倍率, [1]=4揃え, [2]=5揃え（Normal のみ）
     public AnimationClip winAnim;
 }
 
@@ -119,9 +119,9 @@ public enum SymbolType
 {
     Normal,   // 通常シンボル（Dragon〜Jack）
     Wild,     // ワイルド（魔法使い）: 通常シンボルの代替として機能
-    Scatter,  // スキャター（魔法陣）: ペイラインに依存しない全体判定、フリースピン発動
-    Bonus     // ボーナストリガー（宝箱）: リール 0/2/4 全てに出現でボーナスラウンド発動
-              // ※ Scatter と独立した別シンボルとして扱い、ペイライン配当を持たない
+    Scatter,  // スキャター（魔法陣）: ペイラインに依存しない全体判定
+    Bonus,    // ボーナストリガー（宝箱）: リール 0/2/4 全てに出現でボーナスラウンド発動
+    Filler    // 空白シンボル: ペイラインを遮断するだけで配当なし（RTP 調整用）
 }
 
 // リールストリップ（各リールの出目テーブル）
@@ -436,7 +436,7 @@ public class SeededRandomGenerator : IRandomGenerator { ... }
 
 **方針:**
 
-- 全 Wild ラインの配当ルール: ペイライン上の 5 シンボルがすべて Wild のとき、最高配当シンボル（Dragon）の 5 揃え配当（×500）と同等の配当を与える
+- 全 Wild ラインの配当ルール: ペイライン上の 5 シンボルがすべて Wild のとき、最高配当シンボル（Dragon）の 5 揃え配当（×125）と同等の配当を与える
 - 乱数の予測可能性はローカルオフラインのアーケードゲームにおいてセキュリティリスクではないため、`System.Security.Cryptography.RandomNumberGenerator`（暗号論的乱数）は使用しない
 - `IRandomGenerator` でラップする主目的は**テスト容易性（決定論的な再現）**
 - `SpinManager` は DI（SerializeField または コンストラクタ）で `IRandomGenerator` を受け取る

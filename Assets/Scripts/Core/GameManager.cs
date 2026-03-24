@@ -149,7 +149,7 @@ namespace SlotGame.Core
             uiManager.UpdateWin(0);
             uiManager.SetAutoButtonText(GetAutoSpinButtonText());
             uiManager.SetSettingsVolumes(_bgmVolume, _seVolume);
-            uiManager.PopulatePaytable(CollectSymbolDefinitions());
+            uiManager.PopulatePaytable(CollectSymbolDefinitions(), payoutData);
             uiManager.ApplyModeVisual(ModeVisualType.Normal);
             uiManager.BgmVolumeChanged += HandleBgmVolumeChanged;
             uiManager.SeVolumeChanged += HandleSeVolumeChanged;

@@ -54,7 +54,7 @@ namespace SlotGame.Tests.EditMode
             Assert.AreEqual(1, result.LineWins.Count);
             Assert.AreEqual(Dragon, result.LineWins[0].SymbolId);
             Assert.AreEqual(3,      result.LineWins[0].MatchCount);
-            Assert.AreEqual(500,    result.LineWins[0].WinAmount); // 50 × bet=10
+            Assert.AreEqual(100,    result.LineWins[0].WinAmount); // 10 × bet=10
         }
 
         [Test]
@@ -63,7 +63,7 @@ namespace SlotGame.Tests.EditMode
             var grid = MakeGrid(Dragon, Dragon, Dragon, Dragon, Phoenix);
             var result = Evaluate(grid, bet: 10);
 
-            Assert.AreEqual(100 * 10, result.LineWins[0].WinAmount); // 100 × 10 = 1000
+            Assert.AreEqual(25 * 10,  result.LineWins[0].WinAmount); // 25 × 10 = 250
             Assert.AreEqual(4,        result.LineWins[0].MatchCount);
         }
 
@@ -73,7 +73,7 @@ namespace SlotGame.Tests.EditMode
             var grid = MakeGrid(Dragon, Dragon, Dragon, Dragon, Dragon);
             var result = Evaluate(grid, bet: 10);
 
-            Assert.AreEqual(500 * 10, result.LineWins[0].WinAmount); // 500 × 10 = 5000
+            Assert.AreEqual(125 * 10, result.LineWins[0].WinAmount); // 125 × 10 = 1250
             Assert.AreEqual(5,        result.LineWins[0].MatchCount);
         }
 
@@ -134,7 +134,7 @@ namespace SlotGame.Tests.EditMode
 
             Assert.AreEqual(1, result.LineWins.Count);
             Assert.AreEqual(5,          result.LineWins[0].MatchCount);
-            Assert.AreEqual(500 * 10,   result.LineWins[0].WinAmount);
+            Assert.AreEqual(125 * 10,   result.LineWins[0].WinAmount);
         }
 
         [Test]
@@ -269,9 +269,9 @@ namespace SlotGame.Tests.EditMode
 
             var result = Evaluate(grid, bet: 10);
 
-            long expectedLine0Win = 500 * 10; // Dragon 5-match on mid
-            long expectedLine1Win = 400 * 10; // Phoenix 5-match on top
-            long expectedLine2Win = 500 * 10; // Dragon 5-match on bot
+            long expectedLine0Win = 125 * 10; // Dragon 5-match on mid
+            long expectedLine1Win = 75 * 10;  // Phoenix 5-match on top
+            long expectedLine2Win = 125 * 10; // Dragon 5-match on bot
 
             // 3つのペイライン（上段・中段・下段）が当選していることを確認
             Assert.AreEqual(3, result.LineWins.Count);
@@ -327,14 +327,14 @@ namespace SlotGame.Tests.EditMode
 
             return new[]
             {
-                Make(Dragon,  "Dragon",  SymbolType.Normal,  new[] { 50, 100, 500 }),
-                Make(Phoenix, "Phoenix", SymbolType.Normal,  new[] { 40, 80,  400 }),
-                Make(2,       "Crystal", SymbolType.Normal,  new[] { 30, 60,  300 }),
-                Make(3,       "Sword",   SymbolType.Normal,  new[] { 20, 40,  200 }),
-                Make(4,       "Ace",     SymbolType.Normal,  new[] { 10, 20,  100 }),
-                Make(5,       "King",    SymbolType.Normal,  new[] { 10, 20,  100 }),
-                Make(6,       "Queen",   SymbolType.Normal,  new[] {  5, 10,   50 }),
-                Make(7,       "Jack",    SymbolType.Normal,  new[] {  5, 10,   50 }),
+                Make(Dragon,  "Dragon",  SymbolType.Normal,  new[] { 10, 25, 125 }),
+                Make(Phoenix, "Phoenix", SymbolType.Normal,  new[] { 7,  15, 75  }),
+                Make(2,       "Crystal", SymbolType.Normal,  new[] { 5,  10, 50  }),
+                Make(3,       "Sword",   SymbolType.Normal,  new[] { 3,  6,  30  }),
+                Make(4,       "Ace",     SymbolType.Normal,  new[] { 2,  4,  12  }),
+                Make(5,       "King",    SymbolType.Normal,  new[] { 1,  3,  10  }),
+                Make(6,       "Queen",   SymbolType.Normal,  new[] { 1,  2,  8   }),
+                Make(7,       "Jack",    SymbolType.Normal,  new[] { 1,  2,  5   }),
                 Make(Wild,    "Wild",    SymbolType.Wild,    new int[0]),
                 Make(Scatter, "Scatter", SymbolType.Scatter, new int[0]),
                 Make(Bonus,   "Bonus",   SymbolType.Bonus,   new int[0]),
