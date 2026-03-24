@@ -397,12 +397,17 @@ namespace SlotGame.View
             EnsureModalBlocker();
             if (_modalBlocker == null) return;
 
+            // ブロッカーを最前面に移動
+            _modalBlocker.transform.SetAsLastSibling();
+
             if (modalTransform != null)
             {
-                // ブロッカーをモーダルパネルの直前（背後）に配置する
+                // ブロッカーをモーダルパネルの直前（背後）に配置するために、まずブロッカーを移動し、次にパネルを移動する。
                 var directChild = GetDirectChildOfCanvas(modalTransform);
                 if (directChild != null)
-                    _modalBlocker.transform.SetSiblingIndex(directChild.GetSiblingIndex());
+                {
+                    directChild.SetAsLastSibling();
+                }
             }
 
             _modalBlocker.gameObject.SetActive(true);
