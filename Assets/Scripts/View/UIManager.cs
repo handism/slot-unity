@@ -45,7 +45,7 @@ namespace SlotGame.View
         private TMP_Text? _modeTitleText;
         private TMP_Text? _modeSubtitleText;
         private Camera? _mainCamera;
-        private CanvasGroup? _modalBlocker;
+        private CanvasGroup? _hudCanvasGroup;
 
         private static readonly Color NormalTint     = new(0.05f, 0.08f, 0.14f, 0f);
         private static readonly Color FreeSpinTint   = new(0.08f, 0.36f, 0.52f, 0.3f);
@@ -317,7 +317,7 @@ namespace SlotGame.View
 
         public void ShowSettings()
         {
-            ShowModalBlocker(settingsView != null ? settingsView.transform : null);
+            SetHudInteractable(false);
             settingsView.ShowAsync(this.GetCancellationTokenOnDestroy()).Forget();
         }
 
@@ -325,7 +325,7 @@ namespace SlotGame.View
 
         public void ShowPaytable()
         {
-            ShowModalBlocker(paytableView != null ? paytableView.transform : null);
+            SetHudInteractable(false);
             paytableView.ShowAsync(this.GetCancellationTokenOnDestroy()).Forget();
         }
 
@@ -333,14 +333,14 @@ namespace SlotGame.View
 
         private async UniTaskVoid HideSettingsAsync(CancellationToken ct)
         {
-            try   { await settingsView.HideAsync(ct); }
-            finally { HideModalBlocker(); }
+            await settingsView.HideAsync(ct);
+            SetHudInteractable(true);
         }
 
         private async UniTaskVoid HidePaytableAsync(CancellationToken ct)
         {
-            try   { await paytableView.HideAsync(ct); }
-            finally { HideModalBlocker(); }
+            await paytableView.HideAsync(ct);
+            SetHudInteractable(true);
         }
 
         public void SetSettingsVolumes(float bgm, float se)
@@ -366,71 +366,19 @@ namespace SlotGame.View
                 .ToArray();
         }
 
-        private void EnsureModalBlocker()
+        private void SetHudInteractable(bool interactable)
         {
-            if (_modalBlocker != null) return;
-
-            _rootCanvas ??= mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>();
-            if (_rootCanvas == null) return;
-
-            var go = new GameObject("ModalBlocker", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(CanvasGroup));
-            go.transform.SetParent(_rootCanvas.transform, false);
-
-            var rect = go.GetComponent<RectTransform>();
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-
-            var img = go.GetComponent<Image>();
-            img.color = new Color(0f, 0f, 0f, 0.45f);
-            img.raycastTarget = true;
-
-            _modalBlocker = go.GetComponent<CanvasGroup>();
-            _modalBlocker.alpha = 0f;
-            _modalBlocker.blocksRaycasts = false;
-            go.SetActive(false);
-        }
-
-        private void ShowModalBlocker(Transform? modalTransform)
-        {
-            EnsureModalBlocker();
-            if (_modalBlocker == null) return;
-
-            // ブロッカーを最前面に移動
-            _modalBlocker.transform.SetAsLastSibling();
-
-            if (modalTransform != null)
+            if (_hudCanvasGroup == null)
             {
-                // ブロッカーをモーダルパネルの直前（背後）に配置するために、まずブロッカーを移動し、次にパネルを移動する。
-                var directChild = GetDirectChildOfCanvas(modalTransform);
-                if (directChild != null)
+                var hudCanvas = mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : null;
+                if (hudCanvas != null)
                 {
-                    directChild.SetAsLastSibling();
+                    var cg = hudCanvas.GetComponent<CanvasGroup>();
+                    _hudCanvasGroup = cg != null ? cg : hudCanvas.gameObject.AddComponent<CanvasGroup>();
                 }
             }
-
-            _modalBlocker.gameObject.SetActive(true);
-            _modalBlocker.blocksRaycasts = true;
-            _modalBlocker.alpha = 1f;
-        }
-
-        private void HideModalBlocker()
-        {
-            if (_modalBlocker == null) return;
-            _modalBlocker.blocksRaycasts = false;
-            _modalBlocker.alpha = 0f;
-            _modalBlocker.gameObject.SetActive(false);
-        }
-
-        /// <summary>transform の祖先のうち、ルートキャンバスの直接の子を返す。</summary>
-        private Transform? GetDirectChildOfCanvas(Transform target)
-        {
-            if (_rootCanvas == null) return target;
-            var current = target;
-            while (current != null && current.parent != null && current.parent != _rootCanvas.transform)
-                current = current.parent;
-            return current;
+            if (_hudCanvasGroup != null)
+                _hudCanvasGroup.interactable = interactable;
         }
 
         private void EnsureModeVisuals()
