@@ -16,6 +16,13 @@ namespace SlotGame.Model
         public long TotalSpins { get; private set; }
         public long MaxWin { get; private set; }
 
+        // ─── セッション統計（インメモリのみ・永続化なし） ───────────────────
+        private long _sessionStartCoins;
+        private long _sessionTotalSpins;
+        private long _sessionWins;
+        private long _sessionLargestWin;
+        private int  _sessionFreeSpinTriggers;
+
         public GameState(
             long initialCoins,
             long maxCoins,
@@ -29,6 +36,7 @@ namespace SlotGame.Model
             ValidBetAmounts = validBetAmounts;
             Coins = Math.Clamp(currentCoins, 0, MaxCoins);
             BetAmount = currentBetAmount;
+            _sessionStartCoins = Coins;
         }
 
         /// <summary>ベット額を消費する。残高不足の場合は false を返してコインを変更しない。</summary>
@@ -79,12 +87,42 @@ namespace SlotGame.Model
             FreeSpinsLeft--;
         }
 
-        /// <summary>スピン結果を記録する（統計用）。</summary>
+        /// <summary>スピン結果を記録する（ライフタイム統計 + セッション統計）。</summary>
         public void RecordSpin(long winAmount)
         {
             TotalSpins++;
             if (winAmount > MaxWin)
                 MaxWin = winAmount;
+
+            _sessionTotalSpins++;
+            if (winAmount > 0)
+            {
+                _sessionWins++;
+                if (winAmount > _sessionLargestWin)
+                    _sessionLargestWin = winAmount;
+            }
+        }
+
+        /// <summary>フリースピンが発動した回数をセッション統計に記録する。</summary>
+        public void RecordFreeSpinTrigger()
+        {
+            _sessionFreeSpinTriggers++;
+        }
+
+        /// <summary>現在のセッション統計のスナップショットを返す。</summary>
+        public SessionStats GetSessionStats()
+        {
+            float winRate = _sessionTotalSpins > 0
+                ? (float)_sessionWins / _sessionTotalSpins * 100f
+                : 0f;
+
+            return new SessionStats(
+                _sessionTotalSpins,
+                _sessionWins,
+                winRate,
+                _sessionLargestWin,
+                _sessionFreeSpinTriggers,
+                Coins - _sessionStartCoins);
         }
 
         /// <summary>統計・フリースピンを含む全状態をセーブデータから復元する。</summary>

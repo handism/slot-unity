@@ -156,6 +156,7 @@ namespace SlotGame.Core
             uiManager.ResetCoinsRequested += HandleResetCoinsRequested;
             uiManager.SettingsCloseRequested += uiManager.HideSettings;
             uiManager.PaytableCloseRequested += uiManager.HidePaytable;
+            uiManager.StatsCloseRequested    += uiManager.HideStats;
             spinManager.ReelStopped += HandleReelStopped;
             TransitionTo(GamePhase.Idle);
         }
@@ -199,6 +200,7 @@ namespace SlotGame.Core
                 uiManager.ResetCoinsRequested -= HandleResetCoinsRequested;
                 uiManager.SettingsCloseRequested -= uiManager.HideSettings;
                 uiManager.PaytableCloseRequested -= uiManager.HidePaytable;
+                uiManager.StatsCloseRequested    -= uiManager.HideStats;
             }
 
             if (spinManager != null)
@@ -257,6 +259,11 @@ namespace SlotGame.Core
         public void OnPaytableButtonPressed()
         {
             uiManager.ShowPaytable();
+        }
+
+        public void OnStatsButtonPressed()
+        {
+            uiManager.ShowStats();
         }
 
         // ─── スピンフロー ────────────────────────────────────────────────
@@ -375,6 +382,7 @@ namespace SlotGame.Core
             }
 
             SaveGame();
+            uiManager.UpdateStats(_gameState.GetSessionStats());
 
             // ボーナス判定
             bool pendingFreeSpin = result.HasScatter;
@@ -414,6 +422,7 @@ namespace SlotGame.Core
             uiManager.UpdateCoins(_gameState.Coins);
             uiManager.UpdateWin(win);
             SaveGame();
+            uiManager.UpdateStats(_gameState.GetSessionStats());
 
             await audioManager.FadeOutBGM(0.5f, ct);
             audioManager.PlayBGM(BGMType.Normal);
@@ -422,6 +431,8 @@ namespace SlotGame.Core
 
         private async UniTask HandleFreeSpins(int scatterCount, CancellationToken ct)
         {
+            _gameState.RecordFreeSpinTrigger();
+
             int freeSpinCount = scatterCount switch
             {
                 3 => 10,
@@ -466,6 +477,7 @@ namespace SlotGame.Core
 
             uiManager.HideFreeSpinHUD();
             SaveGame();
+            uiManager.UpdateStats(_gameState.GetSessionStats());
 
             await audioManager.FadeOutBGM(0.5f, ct);
             audioManager.PlayBGM(BGMType.Normal);

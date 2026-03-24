@@ -29,6 +29,7 @@ namespace SlotGame.View
         [SerializeField] private WinPopupView    winPopup = null!;
         [SerializeField] private SettingsView    settingsView = null!;
         [SerializeField] private PaytableView    paytableView = null!;
+        [SerializeField] private StatsView       statsView    = null!;
         [SerializeField] private PaylineView     paylinePrefab = null!;
         [SerializeField] private Transform       paylineParent = null!;
         [Header("Debug/Fallback")]
@@ -60,6 +61,7 @@ namespace SlotGame.View
         public event System.Action? ResetCoinsRequested;
         public event System.Action? SettingsCloseRequested;
         public event System.Action? PaytableCloseRequested;
+        public event System.Action? StatsCloseRequested;
 
         private void Awake()
         {
@@ -74,6 +76,11 @@ namespace SlotGame.View
             if (paytableView != null)
             {
                 paytableView.OnCloseRequested += () => PaytableCloseRequested?.Invoke();
+            }
+
+            if (statsView != null)
+            {
+                statsView.OnCloseRequested += () => StatsCloseRequested?.Invoke();
             }
         }
 
@@ -331,6 +338,17 @@ namespace SlotGame.View
 
         public void HidePaytable() => HidePaytableAsync(this.GetCancellationTokenOnDestroy()).Forget();
 
+        public void ShowStats()
+        {
+            if (statsView == null) return;
+            SetHudInteractable(false);
+            statsView.ShowAsync(this.GetCancellationTokenOnDestroy()).Forget();
+        }
+
+        public void HideStats() => HideStatsAsync(this.GetCancellationTokenOnDestroy()).Forget();
+
+        public void UpdateStats(in SlotGame.Model.SessionStats stats) => statsView?.UpdateDisplay(stats);
+
         private async UniTaskVoid HideSettingsAsync(CancellationToken ct)
         {
             await settingsView.HideAsync(ct);
@@ -340,6 +358,12 @@ namespace SlotGame.View
         private async UniTaskVoid HidePaytableAsync(CancellationToken ct)
         {
             await paytableView.HideAsync(ct);
+            SetHudInteractable(true);
+        }
+
+        private async UniTaskVoid HideStatsAsync(CancellationToken ct)
+        {
+            if (statsView != null) await statsView.HideAsync(ct);
             SetHudInteractable(true);
         }
 
