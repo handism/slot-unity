@@ -65,6 +65,7 @@ View（MonoBehaviour・表示専用）
 | シーン | 役割 |
 |-------|------|
 | `Boot.unity` | 初期化・ロード画面 |
+| `Title.unity` | タイトル画面 |
 | `Main.unity` | スロット本体（メインシーン） |
 | `BonusRound.unity` | ボーナスラウンド（Additive ロード） |
 

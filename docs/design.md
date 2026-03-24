@@ -205,6 +205,12 @@ public sealed record LineWin(
 
 ```csharp
 // ゲーム全体フロー管理（MonoBehaviour + ステートマシン）
+public class TitleManager : MonoBehaviour
+{
+    // タイトルシーンから Main シーンへの遷移を担当
+    public void StartGame();
+}
+
 public class GameManager : MonoBehaviour
 {
     [SerializeField] SpinManager      spinManager;
@@ -298,6 +304,13 @@ public enum SEType   { SpinStart, ReelStop, SmallWin, BigWin, MegaWin,
 ### 4.4 View 層
 
 ```csharp
+public class TitleEffects : MonoBehaviour
+{
+    // タイトル画面の演出（ブリージング、パルス、回転、浮遊）を担当
+    public void StartAnimations();
+    public async UniTask FadeOutAsync(CancellationToken ct);
+}
+
 // UI 統括
 public class UIManager : MonoBehaviour
 {
@@ -504,7 +517,8 @@ private async UniTask RunAutoSpin(int count, CancellationToken destroyToken)
 ```
 Assets/
   Scenes/
-    Boot.unity          ← 初期化・ロード画面（Additive でMain をロード）
+    Boot.unity          ← 初期化・ロード画面
+    Title.unity         ← タイトル画面（エントランス）
     Main.unity          ← ゲームメイン（スロット本体）
     BonusRound.unity    ← ボーナスラウンド専用シーン（Additive）
 
@@ -535,7 +549,7 @@ Assets/
 
 ---
 
-## 8. UI レイアウト（Main シーン）
+## 9. UI レイアウト（Main シーン）
 
 ```
 ┌──────────────────────────────────────────────────┐
@@ -568,7 +582,7 @@ Assets/
 
 ---
 
-## 9. 依存ライブラリ
+## 10. 依存ライブラリ
 
 | ライブラリ | 用途 | 導入方法 |
 |-----------|------|---------|
@@ -578,7 +592,7 @@ Assets/
 
 ---
 
-## 10. テスト方針
+## 11. テスト方針
 
 | 対象 | 方式 |
 |------|------|
