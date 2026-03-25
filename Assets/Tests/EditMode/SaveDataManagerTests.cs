@@ -98,7 +98,7 @@ namespace SlotGame.Tests.EditMode
         [Test]
         public void Load_InvalidBetAmount_ReturnsDefault()
         {
-            var config = new SlotConfig(1000, 999999, new[] { 10, 20, 50, 100 }, 5, 3, 3, 20, 10, 0.8f, 1.0f, "SALT");
+            var config = new SlotConfig(1000, 999999, new[] { 10, 20, 50, 100 }, 5, 3, 3, new[] { 0, 2, 4 }, 2, 20, 10, 0.8f, 1.0f, "SALT");
             var mgr = new SaveDataManager(_tempPath, config);
 
             var bad = new SaveData { betAmount = 999 };
