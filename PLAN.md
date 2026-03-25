@@ -140,8 +140,8 @@ Assets/
   - 配当倍率を `docs/requirements.md` の値に従って設定
   - `SymbolType.Bonus` シンボル（ID=10、宝箱用）を追加済み
   - **生成方法**: Unity Editor で `SlotGame/Create All ScriptableObject Assets` を実行
-- [x] `ReelStripData` アセット × 5（仮データ、各リール 60 シンボル・フェーズ 5 で最終調整）
-  - Dragon×2, Phoenix×3, Crystal×4, Sword×5, Ace×10, King×10, Queen×10, Jack×10, Wild×3, Scatter×2, Bonus×1
+- [x] `ReelStripData` アセット × 5（各リール 88 スロット）
+  - Dragon×2, Phoenix×3, Crystal×4, Sword×5, Ace×10, King×10, Queen×10, Jack×9, Wild×3, Scatter×3, Bonus×3, Blank×26
   - 素数ステップ（7）インターリーブで均等分散、リールごとにオフセット
 - [x] `PaylineData` アセット（25 ライン定義を `requirements.md` から転記済み）
 - [x] `PayoutTableData` アセット

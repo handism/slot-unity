@@ -460,7 +460,7 @@ public class SeededRandomGenerator : IRandomGenerator { ... }
   - `SymbolData.payouts` は `int[]`（倍率を整数で保持）
   - 最終配当は `betAmount * payouts[matchCount - 3]`（整数演算のみ）で算出する
 - `ReelStripData` のストリップは重み付き確率テーブルとして機能
-  - 例: Dragon はストリップ 60 マス中 2 マス（出現率 3.3%）
+  - 例: Dragon はストリップ 88 マス中 2 マス（出現率 2.3%）
 - フリースピン中の乱数は通常と同じ系列（有利化なし、倍率のみ変化）
 - ボーナスラウンドの宝箱報酬は `PayoutTableData` の重みに従い抽選
 
