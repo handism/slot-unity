@@ -259,10 +259,12 @@ namespace SlotGame.Editor
         private static void CreatePayoutTableAsset()
         {
             string path = $"{BasePath}/PayoutTable/PayoutTableData.asset";
-            if (AssetDatabase.LoadAssetAtPath<PayoutTableData>(path) != null)
-                return;
-
-            var asset = ScriptableObject.CreateInstance<PayoutTableData>();
+            var existing = AssetDatabase.LoadAssetAtPath<PayoutTableData>(path);
+            var asset = existing;
+            if (asset == null)
+            {
+                asset = ScriptableObject.CreateInstance<PayoutTableData>();
+            }
 
             // requirements.md より: Scatter 3個→×2, 4個→×10, 5個→×50
             asset.scatterPayouts = new[]
@@ -271,6 +273,15 @@ namespace SlotGame.Editor
                 new ScatterPayout { scatterCount = 4, multiplier = 10 },
                 new ScatterPayout { scatterCount = 5, multiplier = 50 },
             };
+
+            // フリースピン回数: 3個→10回, 4個→15回, 5個→20回
+            asset.freeSpinRewards = new[]
+            {
+                new FreeSpinReward { scatterCount = 3, spinCount = 10 },
+                new FreeSpinReward { scatterCount = 4, spinCount = 15 },
+                new FreeSpinReward { scatterCount = 5, spinCount = 20 },
+            };
+            asset.freeSpinMultiplier = 2;
 
             // ボーナスラウンド報酬（PLAN.md 暫定値）
             asset.bonusRewards = new[]
@@ -283,7 +294,14 @@ namespace SlotGame.Editor
                 new BonusRewardEntry { multiplier = 100, weight =  3 },
             };
 
-            AssetDatabase.CreateAsset(asset, path);
+            if (existing == null)
+            {
+                AssetDatabase.CreateAsset(asset, path);
+            }
+            else
+            {
+                EditorUtility.SetDirty(existing);
+            }
         }
 
         // ---------------------------------------------------------------
@@ -293,8 +311,15 @@ namespace SlotGame.Editor
         private static void CreateGameConfigAsset()
         {
             string path = $"{BasePath}/GameConfig.asset";
-            if (AssetDatabase.LoadAssetAtPath<GameConfigData>(path) != null) return;
+            var existing = AssetDatabase.LoadAssetAtPath<GameConfigData>(path);
+            if (existing != null)
+            {
+                existing.bonusTriggerReels = new[] { 0, 2, 4 };
+                EditorUtility.SetDirty(existing);
+                return;
+            }
             var asset = ScriptableObject.CreateInstance<GameConfigData>();
+            asset.bonusTriggerReels = new[] { 0, 2, 4 };
             AssetDatabase.CreateAsset(asset, path);
         }
 

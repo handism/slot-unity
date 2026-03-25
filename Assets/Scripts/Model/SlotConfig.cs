@@ -11,6 +11,8 @@ namespace SlotGame.Model
         int ReelCount,
         int RowCount,
         int MinMatch,
+        int[] BonusTriggerReels,
+        int FreeSpinMultiplier,
         int MaxFreeSpinAddition,
         int DefaultAutoSpinCount,
         float DefaultBgmVolume,

@@ -105,7 +105,7 @@ namespace SlotGame.Core
             // 当たりがあれば詳細をログ出力
             if (result.TotalWinAmount > 0 || result.HasScatter || result.HasBonusCondition)
             {
-                PaylineEvaluator.LogSpinResult(result, _cachedSymbolDefs);
+                PaylineEvaluator.LogSpinResult(result, _cachedSymbolDefs, payouts, betAmount);
             }
 
             return result;

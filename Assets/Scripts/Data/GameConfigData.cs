@@ -15,6 +15,7 @@ namespace SlotGame.Data
         public int reelCount = 5;
         public int rowCount = 3;
         public int minMatch = 3;
+        public int[] bonusTriggerReels = { 0, 2, 4 };
 
         [Header("Free Spins")]
         public int maxFreeSpinAddition = 20;
@@ -30,7 +31,7 @@ namespace SlotGame.Data
         [SerializeField] private string checksumSalt = "SALTY_SLOT_2026";
         public string ChecksumSalt => checksumSalt;
 
-        public SlotConfig ToModelConfig()
+        public SlotConfig ToModelConfig(int freeSpinMultiplier = 2)
         {
             return new SlotConfig(
                 initialCoins,
@@ -39,6 +40,8 @@ namespace SlotGame.Data
                 reelCount,
                 rowCount,
                 minMatch,
+                bonusTriggerReels,
+                freeSpinMultiplier,
                 maxFreeSpinAddition,
                 defaultAutoSpinCount,
                 defaultBgmVolume,

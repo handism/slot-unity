@@ -163,8 +163,10 @@ namespace SlotGame.Core
 
         private SlotConfig ResolveSlotConfig()
         {
+            int fsMultiplier = payoutData != null ? payoutData.freeSpinMultiplier : 2;
+
             if (gameConfig != null)
-                return gameConfig.ToModelConfig();
+                return gameConfig.ToModelConfig(fsMultiplier);
 
             Debug.LogWarning("[GameManager] gameConfig is not set in Inspector. Falling back to default config.");
             return new SlotConfig(
@@ -174,6 +176,8 @@ namespace SlotGame.Core
                 5,
                 3,
                 3,
+                new[] { 0, 2, 4 },
+                fsMultiplier,
                 20,
                 10,
                 0.8f,
@@ -342,7 +346,7 @@ namespace SlotGame.Core
             var result = await spinManager.ExecuteSpin(
                 reelStrips, paylineData, payoutData, _gameState.BetAmount, ct,
                 _config.ReelCount, _config.RowCount, _config.MinMatch,
-                new[] { 0, 2, 4 }); // ボーナストリガーリール
+                _config.BonusTriggerReels); // ボーナストリガーリール
 
             TransitionTo(GamePhase.Evaluating);
 
@@ -433,13 +437,7 @@ namespace SlotGame.Core
         {
             _gameState.RecordFreeSpinTrigger();
 
-            int freeSpinCount = scatterCount switch
-            {
-                3 => 10,
-                4 => 15,
-                5 => 20,
-                _ => 0
-            };
+            int freeSpinCount = PaylineEvaluator.CalculateFreeSpinCount(scatterCount, payoutData);
 
             await uiManager.ShowModeTransitionAsync(
                 "フリースピン",
@@ -461,14 +459,16 @@ namespace SlotGame.Core
                 reelStrips, paylineData, payoutData,
                 async result =>
                 {
-                    cumulativeFreeSpinWin += result.TotalWinAmount * 2;
+                    int multiplier = payoutData != null ? payoutData.freeSpinMultiplier : 2;
+                    long win = result.TotalWinAmount * multiplier;
+                    cumulativeFreeSpinWin += win;
                     uiManager.UpdateCoins(_gameState.Coins);
-                    uiManager.UpdateWin(result.TotalWinAmount * 2);
+                    uiManager.UpdateWin(win);
                     uiManager.ShowFreeSpinHUD(_gameState.FreeSpinsLeft, cumulativeFreeSpinWin);
                     if (result.TotalWinAmount > 0)
                     {
                         uiManager.HighlightWinLines(result, paylineData);
-                        await uiManager.ShowWinAmount(result.TotalWinAmount * 2, CalcWinLevel(result.TotalWinAmount * 2));
+                        await uiManager.ShowWinAmount(win, CalcWinLevel(win));
                         await UniTask.Delay(TimeSpan.FromSeconds(1.5f), cancellationToken: ct);
                         uiManager.ClearLineHighlights();
                     }

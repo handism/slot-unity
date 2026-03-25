@@ -50,17 +50,18 @@ namespace SlotGame.Core
                     _config?.ReelCount ?? 5,
                     _config?.RowCount ?? 3,
                     _config?.MinMatch ?? 3,
-                    new[] { 0, 2, 4 });
+                    _config?.BonusTriggerReels ?? new[] { 0, 2, 4 });
 
-                // フリースピン中は配当 ×2
-                long freeSpinWin = result.TotalWinAmount * 2;
+                // フリースピン中は配当を指定倍率（デフォルト×2）で計算
+                int multiplier = payouts != null ? payouts.freeSpinMultiplier : 2;
+                long freeSpinWin = result.TotalWinAmount * multiplier;
                 state.AddCoins(freeSpinWin);
                 state.RecordSpin(freeSpinWin);
 
-                // 再トリガー: Scatter 3 個以上で追加
+                // 再トリガー: Scatter 個数に応じて追加
                 if (result.HasScatter)
                 {
-                    int extra = CalcFreeSpinCount(result.ScatterCount);
+                    int extra = PaylineEvaluator.CalculateFreeSpinCount(result.ScatterCount, payouts);
                     if (_config != null)
                         extra = Math.Min(extra, _config.MaxFreeSpinAddition);
                     state.AddFreeSpins(extra);
@@ -122,12 +123,5 @@ namespace SlotGame.Core
             return payouts.bonusRewards[^1].multiplier;
         }
 
-        private static int CalcFreeSpinCount(int scatterCount) => scatterCount switch
-        {
-            3 => 10,
-            4 => 15,
-            5 => 20,
-            _ => 0
-        };
     }
 }

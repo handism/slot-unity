@@ -60,7 +60,7 @@ namespace SlotGame.Utility
         /// <summary>
         /// 当たりの内訳をコンソールに出力する（デバッグ用）。
         /// </summary>
-        public static void LogSpinResult(SpinResult result, IReadOnlyDictionary<int, SymbolData> defs)
+        public static void LogSpinResult(SpinResult result, IReadOnlyDictionary<int, SymbolData> defs, PayoutTableData payouts, int betAmount)
         {
             var sb = new StringBuilder();
             sb.AppendLine("[Spin Result Breakdown]");
@@ -98,7 +98,10 @@ namespace SlotGame.Utility
             {
                 sb.AppendLine("--- Special Hits ---");
                 if (result.HasScatter)
-                    sb.AppendLine($"- Scatter Hit: {result.ScatterCount} symbols");
+                {
+                    long scatterWin = CalcScatterWin(result.ScatterCount, payouts, betAmount);
+                    sb.AppendLine($"- Scatter Hit: {result.ScatterCount} symbols => {scatterWin} coins");
+                }
                 if (result.HasBonusCondition)
                     sb.AppendLine("- Bonus Triggered!");
             }
@@ -191,6 +194,28 @@ namespace SlotGame.Utility
                 if (sp.scatterCount == count)
                     return (long)sp.multiplier * bet;
             return 0;
+        }
+
+        /// <summary>Scatter 個数に基づき、付与されるフリースピン回数を計算する。</summary>
+        public static int CalculateFreeSpinCount(int scatterCount, PayoutTableData? payouts)
+        {
+            if (payouts != null && payouts.freeSpinRewards != null)
+            {
+                foreach (var reward in payouts.freeSpinRewards)
+                {
+                    if (reward.scatterCount == scatterCount)
+                        return reward.spinCount;
+                }
+            }
+
+            // Fallback (3:10, 4:15, 5+:20)
+            return scatterCount switch
+            {
+                3 => 10,
+                4 => 15,
+                >= 5 => 20,
+                _ => 0
+            };
         }
 
         // ─── ボーナス条件判定 ─────────────────────────────────────────────

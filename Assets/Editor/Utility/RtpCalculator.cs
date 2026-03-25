@@ -27,6 +27,7 @@ namespace SlotGame.Utility.Editor
             var strips   = LoadAssets<ReelStripData>("t:ReelStripData");
             var paylines = LoadAsset<PaylineData>("t:PaylineData");
             var payouts  = LoadAsset<PayoutTableData>("t:PayoutTableData");
+            var config   = LoadAsset<GameConfigData>("t:GameConfigData");
 
             if (strips == null || strips.Length < 5 || paylines == null || payouts == null)
             {
@@ -48,6 +49,7 @@ namespace SlotGame.Utility.Editor
             var random   = new SeededRandomGenerator(12345);
             var allDefs  = CollectDefs(strips);
             var defDict  = allDefs;
+            var bonusReels = config != null ? config.bonusTriggerReels : new[] { 0, 2, 4 };
 
             var sb = new StringBuilder();
             sb.AppendLine("spin,bet,normalWin,freeSpinWin,bonusWin,totalWin,rtp_cumulative");
@@ -57,7 +59,7 @@ namespace SlotGame.Utility.Editor
                 totalBet += BetAmount;
 
                 var grid   = RollGrid(strips, random);
-                var result = PaylineEvaluator.Evaluate(grid, defDict, paylines, payouts, BetAmount);
+                var result = PaylineEvaluator.Evaluate(grid, defDict, paylines, payouts, BetAmount, bonusReels: bonusReels);
 
                 long spinNormalWin   = result.TotalWinAmount;
                 long spinFreeSpinWin = 0;
@@ -67,10 +69,10 @@ namespace SlotGame.Utility.Editor
                 if (result.HasScatter)
                 {
                     freeSpinTriggers++;
-                    int fsCount = CalcFreeSpinCount(result.ScatterCount);
+                    int fsCount = PaylineEvaluator.CalculateFreeSpinCount(result.ScatterCount, payouts);
                     spinFreeSpinWin = SimulateFreeSpins(
                         fsCount, strips, allDefs, paylines, payouts,
-                        BetAmount, random, ref totalFreeSpinSpins);
+                        BetAmount, random, ref totalFreeSpinSpins, bonusReels);
                 }
 
                 // ボーナスラウンド発動（リール0/2/4 全てに Bonus シンボル）
@@ -137,11 +139,13 @@ namespace SlotGame.Utility.Editor
             ReelStripData[] strips, IReadOnlyDictionary<int, SymbolData> defs,
             PaylineData paylines, PayoutTableData payouts,
             int bet, IRandomGenerator rng,
-            ref int totalFreeSpinsOut)
+            ref int totalFreeSpinsOut,
+            int[] bonusReels)
         {
             long freeSpinWin = 0;
             int  remaining   = initialCount;
             var  defDict     = defs;
+            int  multiplier  = payouts != null ? payouts.freeSpinMultiplier : 2;
 
             while (remaining > 0)
             {
@@ -149,14 +153,14 @@ namespace SlotGame.Utility.Editor
                 totalFreeSpinsOut++;
 
                 var grid   = RollGrid(strips, rng);
-                var result = PaylineEvaluator.Evaluate(grid, defDict, paylines, payouts, bet);
+                var result = PaylineEvaluator.Evaluate(grid, defDict, paylines, payouts, bet, bonusReels: bonusReels);
 
-                freeSpinWin += result.TotalWinAmount * 2; // フリースピン中は ×2 倍
+                freeSpinWin += result.TotalWinAmount * multiplier;
 
                 // Scatter 再トリガー（BonusManager.MaxFreeSpinAddition = 20 に準拠）
                 if (result.HasScatter)
                 {
-                    int additional = CalcFreeSpinCount(result.ScatterCount);
+                    int additional = PaylineEvaluator.CalculateFreeSpinCount(result.ScatterCount, payouts);
                     remaining += Math.Min(additional, MaxFreeSpinAddition);
                 }
             }
@@ -200,16 +204,6 @@ namespace SlotGame.Utility.Editor
             return totalWin;
         }
 
-        // ---------------------------------------------------------------
-        // ヘルパー
-        // ---------------------------------------------------------------
-
-        private static int CalcFreeSpinCount(int scatterCount) => scatterCount switch
-        {
-            3 => 10,
-            4 => 15,
-            _ => 20, // 5個以上
-        };
 
         private static T[] LoadAssets<T>(string filter) where T : UnityEngine.Object
         {
