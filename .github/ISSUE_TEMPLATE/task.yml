@@ -1,0 +1,58 @@
+name: タスク
+description: PLAN.md に基づく実装タスクや技術的作業を登録する
+labels: ["task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        開発タスクの登録フォームです。PLAN.md のタスク番号があれば記載してください。
+
+  - type: input
+    id: plan_ref
+    attributes:
+      label: PLAN.md 参照
+      placeholder: 例）M3-4、または「なし」
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: 目的・やること
+      placeholder: 例）PaylineEvaluator の Edit Mode ユニットテストを追加する
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 完了条件
+      description: 何を満たしたらこのタスクが完了か
+      placeholder: |
+        - [ ] 全ペイライン 25 本の判定テストが通る
+        - [ ] カバレッジ 90% 以上
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 対象領域
+      multiple: true
+      options:
+        - Model
+        - Presenter
+        - View
+        - ScriptableObject / データ
+        - テスト
+        - ドキュメント
+        - CI / ビルド
+        - その他
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: 備考・依存関係
+      description: 先行タスクや注意点があれば
