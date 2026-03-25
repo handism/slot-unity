@@ -152,9 +152,22 @@ public struct PaylineEntry
 [CreateAssetMenu]
 public class PayoutTableData : ScriptableObject
 {
-    public ScatterPayout[] scatterPayouts;  // Scatter個数→倍率
-    public BonusRewardRange bonusRange;     // ×5 〜 ×100
+    public ScatterPayout[]    scatterPayouts;    // Scatter個数→倍率
+    public FreeSpinReward[]   freeSpinRewards;   // Scatter個数→フリースピン回数
+    public int                freeSpinMultiplier; // フリースピン中の配当倍率
+    public BonusRewardEntry[] bonusRewards;      // ボーナスラウンド報酬の重み付きテーブル
 }
+
+// ボーナス報酬エントリ（重み付き抽選テーブル）
+// 宝箱選択時に weight に従って抽選し、multiplier × betAmount がプレイヤーに付与される
+[Serializable]
+public struct BonusRewardEntry
+{
+    public int multiplier;  // ベット額に掛ける倍率（例: ×5〜×100）
+    public int weight;      // 抽選重み（合計に対する比率で確率が決まる）
+}
+// 例: { multiplier=5, weight=40 }, { multiplier=10, weight=25 }, ..., { multiplier=100, weight=3 }
+// → ×5 が最も出やすく（40/100）、×100 は低確率（3/100）
 ```
 
 ---
