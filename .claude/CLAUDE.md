@@ -71,7 +71,7 @@ View（MonoBehaviour・表示専用）
 
 | アセット | 内容 |
 |---------|------|
-| `SymbolData` × 11 | 各シンボルの配当倍率・スプライト・アニメ（Bonus シンボル含む） |
+| `SymbolData` × 12 | 各シンボルの配当倍率・スプライト・アニメ（Bonus・Blank シンボル含む） |
 | `ReelStripData` × 5 | リールの出目テーブル（重み付き確率、1リール 88 スロット） |
 | `PaylineData` | 25 ペイラインの定義（行インデックス配列） |
 | `PayoutTableData` | Scatter 配当・ボーナス報酬の重み |

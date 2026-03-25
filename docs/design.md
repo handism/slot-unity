@@ -531,7 +531,7 @@ Assets/
     Utility/            ← PaylineEvaluator（static）, SaveDataManager
 
   ScriptableObjects/
-    Symbols/            ← SymbolData × 10
+    Symbols/            ← SymbolData × 12
     Reels/              ← ReelStripData × 5
     Paylines/           ← PaylineData（1ファイル）
     PayoutTable/        ← PayoutTableData（1ファイル）
