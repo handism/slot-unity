@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # GitHub Actions のバージョン更新
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+
+  # Unity UPM (git 参照パッケージ) の更新
+  # Dependabot は UPM を直接サポートしないため、
+  # gitsubmodule エコシステムで Packages/manifest.json の
+  # git URL 依存 (com.cysharp.unitask) を監視する
+  # ※ 自動 PR は作成されないが、手動更新の参考として記載
