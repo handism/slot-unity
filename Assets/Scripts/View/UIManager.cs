@@ -127,7 +127,8 @@ namespace SlotGame.View
                 {
                     await ShowSingleLineWinAsync(win, currentPaylineData, ct);
                     await UniTask.Delay(500, cancellationToken: ct);
-                    ClearPaylines();
+                    // 次のライン表示前に状態をリセット
+                    ClearLineHighlights();
                 }
             }
             else if (result.LineWins.Count == 1)
@@ -152,19 +153,18 @@ namespace SlotGame.View
                 points[i] = _reelViews[i].GetSymbolWorldPosition(lineDef.rows[i]);
             }
 
-            // 非当選シンボルを暗くする
+            // 非当選シンボルを暗くし、当選シンボルをパルスさせる
             for (int r = 0; r < _reelViews.Length; r++)
             {
                 var highlightedRows = new HashSet<int>();
-                if (r < win.MatchCount) highlightedRows.Add(lineDef.rows[r]);
-                _reelViews[r].HighlightRows(highlightedRows);
-
                 if (r < win.MatchCount)
                 {
+                    highlightedRows.Add(lineDef.rows[r]);
                     _reelViews[r].PlayWinAnimation(lineDef.rows[r], ct).Forget();
                     var symbol = _reelViews[r].GetSymbolView(lineDef.rows[r]);
                     symbol?.PlayPulseAnimation();
                 }
+                _reelViews[r].HighlightRows(highlightedRows);
             }
 
             var lineView = GetPaylineView();
