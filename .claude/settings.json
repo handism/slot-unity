@@ -1,26 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(git pull:*)",
-      "Bash(git fetch:*)",
-      "Bash(git checkout:*)",
-      "Bash(git rebase:*)",
-      "Bash(gh pr:*)",
-      "Bash(gh api:*)",
-      "Bash(chmod:*)",
-      "Bash(dotnet tool:*)",
-      "Bash(dotnet build:*)",
-      "Bash(~/.dotnet/tools/csharpier:*)",
-      "Bash(python3 -c:*)",
-      "Read(//private/tmp/**)",
-      "WebFetch(domain:api.github.com)",
-      "Skill(update-config)",
-      "Bash(bash /Users/mac/git/slot-unity/.claude/hooks/cs_check.sh)",
-      "Bash(bash /Users/mac/git/slot-unity/.claude/hooks/cs_check.sh 2)"
-    ]
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "WebFetch",
+      "Skill",
+      "Grep",
+      "Glob",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "deny": ["Bash(rm -rf)"]
   },
   "hooks": {
     "PostToolUse": [
@@ -35,6 +27,7 @@
       }
     ]
   },
+  "language": "japanese",
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true
