@@ -48,6 +48,7 @@ namespace SlotGame.View
         private TMP_Text? _modeSubtitleText;
         private Camera? _mainCamera;
         private CanvasGroup? _hudCanvasGroup;
+        private DotPatternBackground? _dotPatternBg;
 
         private static readonly Color NormalTint     = new(0.05f, 0.08f, 0.14f, 0f);
         private static readonly Color FreeSpinTint   = new(0.08f, 0.36f, 0.52f, 0.3f);
@@ -339,6 +340,8 @@ namespace SlotGame.View
                     _                         => NormalCameraColor,
                 };
             }
+
+            _dotPatternBg?.SetMode(mode);
         }
 
         public async UniTask ShowModeTransitionAsync(
@@ -469,7 +472,7 @@ namespace SlotGame.View
 
         private void EnsureModeVisuals()
         {
-            if (_modeTintOverlay != null && _modeAnnouncementGroup != null)
+            if (_dotPatternBg != null && _modeTintOverlay != null && _modeAnnouncementGroup != null)
             {
                 return;
             }
@@ -480,11 +483,21 @@ namespace SlotGame.View
                 return;
             }
 
+            // ドットパターン背景を最背面（sibling 0）に生成
+            if (_dotPatternBg == null)
+            {
+                var dotObject = new GameObject("DotPatternBackground", typeof(RectTransform), typeof(CanvasRenderer), typeof(UnityEngine.UI.RawImage));
+                dotObject.transform.SetParent(_rootCanvas.transform, false);
+                _dotPatternBg = dotObject.AddComponent<DotPatternBackground>();
+                dotObject.transform.SetAsFirstSibling();
+            }
+
             if (_modeTintOverlay == null)
             {
                 var tintObject = new GameObject("ModeTintOverlay", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
                 tintObject.transform.SetParent(_rootCanvas.transform, false);
-                tintObject.transform.SetAsFirstSibling();
+                // DotPatternBackground（index 0）の直後 index 1 に配置
+                tintObject.transform.SetSiblingIndex(1);
 
                 var rect = tintObject.GetComponent<RectTransform>();
                 rect.anchorMin = Vector2.zero;

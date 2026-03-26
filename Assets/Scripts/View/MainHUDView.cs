@@ -33,6 +33,28 @@ namespace SlotGame.View
             if (autoButtonText == null && autoSpinButton != null)
                 autoButtonText = autoSpinButton.GetComponentInChildren<TMP_Text>();
 
+            // スピンボタンにブルー系グラデーションを適用
+            var spinImg = spinButton != null ? spinButton.GetComponent<Image>() : null;
+            if (spinImg != null)
+            {
+                var grad = spinImg.gameObject.AddComponent<UIGradient>();
+                grad.SetColors(
+                    new Color(0.3f, 0.5f, 0.9f, 1f),
+                    new Color(0.05f, 0.15f, 0.4f, 1f)
+                );
+            }
+
+            // オートスピンボタンにも同系統のグラデーションを適用
+            var autoImg = autoSpinButton != null ? autoSpinButton.GetComponent<Image>() : null;
+            if (autoImg != null)
+            {
+                var grad = autoImg.gameObject.AddComponent<UIGradient>();
+                grad.SetColors(
+                    new Color(0.25f, 0.4f, 0.75f, 1f),
+                    new Color(0.04f, 0.12f, 0.32f, 1f)
+                );
+            }
+
             for (int i = 0; i < betButtons.Length; i++)
             {
                 int bet = betValues[i];
@@ -76,23 +98,38 @@ namespace SlotGame.View
                 var button = betButtons[i];
                 var image = button != null ? button.GetComponent<Image>() : null;
                 var label = button != null ? button.GetComponentInChildren<TMP_Text>() : null;
+
                 if (image != null)
                 {
-                    var baseColor = isSelected
-                        ? new Color(0.95f, 0.71f, 0.24f, 0.96f)
-                        : new Color(0.16f, 0.23f, 0.37f, 0.92f);
-                    image.color = baseColor;
+                    // グラデーションコンポーネントに色を委譲するため Image.color は白に統一
+                    image.color = Color.white;
+
+                    var grad = image.GetComponent<UIGradient>() ?? image.gameObject.AddComponent<UIGradient>();
+                    if (isSelected)
+                    {
+                        grad.SetColors(
+                            new Color(1f,   0.85f, 0.4f,  0.96f),
+                            new Color(0.7f, 0.45f, 0.1f,  0.96f)
+                        );
+                    }
+                    else
+                    {
+                        grad.SetColors(
+                            new Color(0.22f, 0.32f, 0.5f,  0.92f),
+                            new Color(0.1f,  0.15f, 0.28f, 0.92f)
+                        );
+                    }
 
                     var colors = button.colors;
-                    colors.normalColor = baseColor;
+                    colors.normalColor = Color.white;
                     colors.highlightedColor = isSelected
-                        ? new Color(1f, 0.78f, 0.34f, 1f)
-                        : new Color(0.22f, 0.3f, 0.46f, 1f);
+                        ? new Color(1f, 0.92f, 0.55f, 1f)
+                        : new Color(0.3f, 0.4f, 0.6f, 1f);
                     colors.pressedColor = isSelected
-                        ? new Color(0.82f, 0.58f, 0.16f, 1f)
-                        : new Color(0.1f, 0.16f, 0.28f, 1f);
-                    colors.selectedColor = colors.highlightedColor;
-                    colors.disabledColor = new Color(baseColor.r, baseColor.g, baseColor.b, 0.45f);
+                        ? new Color(0.85f, 0.6f, 0.2f, 1f)
+                        : new Color(0.08f, 0.12f, 0.22f, 1f);
+                    colors.selectedColor    = colors.highlightedColor;
+                    colors.disabledColor    = new Color(1f, 1f, 1f, 0.35f);
                     button.colors = colors;
                 }
 
@@ -100,7 +137,7 @@ namespace SlotGame.View
                 {
                     label.color = isSelected
                         ? new Color(0.11f, 0.09f, 0.06f, 1f)
-                        : new Color(0.92f, 0.96f, 1f, 0.96f);
+                        : new Color(0.92f, 0.96f, 1f,    0.96f);
                 }
             }
         }

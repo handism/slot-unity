@@ -23,7 +23,18 @@ namespace SlotGame.View
             _canvasGroup = GetComponent<CanvasGroup>();
             if (_canvasGroup == null) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             _canvasGroup.alpha = 0;
-            
+
+            // ポップアップ背景 Image にダークネイビーグラデーションを適用
+            var bgImage = GetComponent<UnityEngine.UI.Image>();
+            if (bgImage != null)
+            {
+                var grad = bgImage.gameObject.AddComponent<UIGradient>();
+                grad.SetColors(
+                    new Color(0.08f, 0.12f, 0.25f, 0.95f),
+                    new Color(0.03f, 0.05f, 0.15f, 0.98f)
+                );
+            }
+
             // テキストの初期スタイル設定
             ApplyInitialStyle(winAmountText);
             ApplyInitialStyle(winLevelText);
