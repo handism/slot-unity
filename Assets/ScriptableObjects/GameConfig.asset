@@ -18,6 +18,7 @@ MonoBehaviour:
   reelCount: 5
   rowCount: 3
   minMatch: 3
+  bonusTriggerReels: 000000000200000004000000
   maxFreeSpinAddition: 20
   defaultAutoSpinCount: 10
   defaultBgmVolume: 0.8

@@ -19,6 +19,14 @@ MonoBehaviour:
     multiplier: 10
   - scatterCount: 5
     multiplier: 50
+  freeSpinRewards:
+  - scatterCount: 3
+    spinCount: 10
+  - scatterCount: 4
+    spinCount: 15
+  - scatterCount: 5
+    spinCount: 20
+  freeSpinMultiplier: 2
   bonusRewards:
   - multiplier: 5
     weight: 40
