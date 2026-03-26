@@ -352,17 +352,22 @@ public class MainHUDView : MonoBehaviour
 // 個別リールの視覚表現
 public class ReelView : MonoBehaviour
 {
-    // ReelController から参照され、シンボル画像のスクロールを担当
+    // ReelController から参照され、シンボル画像のスクロールを担当。
     //
-    //【オブジェクトプーリング】
-    //   スピン中に画面外へ出たシンボル GameObject は Destroy せずプールに返却し、
-    //   新たに必要なシンボルはプールから取得することで GC Allocation のスパイクを防ぐ。
-    //   Unity 組み込みの UnityEngine.Pool.ObjectPool<SymbolView> を使用する。
-    private ObjectPool<SymbolView> _symbolPool;
+    //【循環バッファ方式】
+    //   固定 5 スロット（上下バッファ 1 + 表示 3 + バッファ合計）の SymbolView を
+    //   循環バッファとして使い回すことで、Instantiate/Destroy を排除し
+    //   GC Allocation のスパイクを防止する。
+    private SymbolView[] _symbolViews;
 
-    public void ScrollSymbols(float normalizedSpeed);
-    public void SnapToPosition(int stopIndex);
-    public async UniTask PlayWinAnimation(int row, AnimationClip clip);
+    public void Initialize(ReelStripData strip);
+    public void StartScrolling();
+    public async UniTask DecelerateAndStop(int targetStopIndex, CancellationToken ct);
+    public void SnapToPosition(int targetStopIndex);
+    public int[] GetVisibleSymbolIds();
+    public async UniTask PlayWinAnimation(int row, CancellationToken ct);
+    public void HighlightRows(IReadOnlyCollection<int> rows);
+    public void ClearHighlights();
 }
 ```
 
