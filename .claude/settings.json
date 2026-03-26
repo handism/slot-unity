@@ -20,7 +20,9 @@
       "Skill(update-config)",
       "Bash(bash /Users/mac/git/slot-unity/.claude/hooks/cs_check.sh)",
       "Bash(bash /Users/mac/git/slot-unity/.claude/hooks/cs_check.sh 2)",
-      "Bash(1 echo:*)"
+      "Bash(1 echo:*)",
+      "Bash(curl -sk \"https://api.github.com/repos/handism/slot-unity/issues/25\")",
+      "Bash(python3 -m json.tool)"
     ]
   },
   "hooks": {
