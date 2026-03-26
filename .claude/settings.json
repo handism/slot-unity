@@ -17,11 +17,11 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "bash /Users/mac/git/slot-unity/.claude/hooks/cs_check.sh"
+            "command": "bash /Users/mac/git/slot-unity/.claude/hooks/cs_check.sh 2>&1 | head -20"
           }
         ]
       }

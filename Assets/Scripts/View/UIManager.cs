@@ -23,6 +23,7 @@ namespace SlotGame.View
     public class UIManager : MonoBehaviour
     {
         private const int MaxPaylinePoolSize = 50;
+        private const int SequentialLineDelayMs = 500;
 
         [SerializeField] private MainHUDView     mainHUD = null!;
         [SerializeField] private FreeSpinHUDView freeSpinHUD = null!;
@@ -104,7 +105,11 @@ namespace SlotGame.View
             _reelViews = reels.ToArray();
         }
 
-        public void HighlightWinLines(SpinResult result, PaylineData? overridePaylineData = null)
+        /// <summary>
+        /// 当選ペイラインと特殊シンボルのハイライトを表示する。
+        /// 複数ライン当選時は順番に表示してから全点灯させる。
+        /// </summary>
+        public async UniTask HighlightWinLinesAsync(SpinResult result, CancellationToken ct, PaylineData? overridePaylineData = null)
         {
             var currentPaylineData = overridePaylineData != null ? overridePaylineData : paylineData;
 
@@ -114,65 +119,124 @@ namespace SlotGame.View
             }
             if (_reelViews == null || _reelViews.Length == 0) return;
 
-            var highlightedRowsByReel = new Dictionary<int, HashSet<int>>();
-            var ct = this.GetCancellationTokenOnDestroy();
+            ClearLineHighlights();
 
-            // --- ペイライン描画 ---
-            ClearPaylines();
-
-            if (currentPaylineData != null && paylinePrefab != null)
+            try
             {
-                foreach (var win in result.LineWins)
+                // 1. 各当選ラインを順番に表示
+                if (result.LineWins.Count > 1)
                 {
-                    if (win.LineIndex < 0 || win.LineIndex >= currentPaylineData.lines.Length) continue;
-
-                    var lineDef = currentPaylineData.lines[win.LineIndex];
-                    var points = new Vector3[win.MatchCount];
-                    for (int i = 0; i < win.MatchCount; i++)
+                    foreach (var win in result.LineWins)
                     {
-                        int row = lineDef.rows[i];
-                        points[i] = _reelViews[i].GetSymbolWorldPosition(row);
-                    }
-
-                    var lineView = GetPaylineView();
-                    lineView.DrawLine(points, GetLineColor(win.LineIndex));
-                    _activePaylines.Add(lineView);
-
-                    // シンボルハイライト追加
-                    for (int i = 0; i < win.MatchCount; i++)
-                    {
-                        AddHighlight(highlightedRowsByReel, i, lineDef.rows[i]);
+                        await ShowSingleLineWinAsync(win, currentPaylineData, ct);
+                        await UniTask.Delay(SequentialLineDelayMs, cancellationToken: ct);
+                        ClearLineHighlights();
                     }
                 }
+                else if (result.LineWins.Count == 1)
+                {
+                    await ShowSingleLineWinAsync(result.LineWins[0], currentPaylineData, ct);
+                    await UniTask.Delay(SequentialLineDelayMs, cancellationToken: ct);
+                }
+
+                // 2. 全点灯（最終状態）
+                ShowAllWins(result, currentPaylineData);
+            }
+            finally
+            {
+                // ここで ClearLineHighlights を呼ぶと最終状態も消えてしまうため、
+                // キャンセル時のみクリアしたい場合は例外をキャッチして処理する。
+                // ただし、GameManager 側でスピン開始時にクリアされるため、ここでは何もしないか、
+                // ct.IsCancellationRequested をチェックする。
+                if (ct.IsCancellationRequested)
+                {
+                    ClearLineHighlights();
+                }
+            }
+        }
+
+        private async UniTask ShowSingleLineWinAsync(LineWin win, PaylineData currentPaylineData, CancellationToken ct)
+        {
+            if (_reelViews == null) return;
+            if (win.LineIndex < 0 || win.LineIndex >= currentPaylineData.lines.Length) return;
+
+            var lineDef = currentPaylineData.lines[win.LineIndex];
+            var points = new Vector3[win.MatchCount];
+            for (int i = 0; i < win.MatchCount; i++)
+            {
+                if (i >= lineDef.rows.Length) break;
+                points[i] = _reelViews[i].GetSymbolWorldPosition(lineDef.rows[i]);
             }
 
-            // --- Scatter / Bonus ハイライト追加 ---
+            // 非当選シンボルを暗くし、当選シンボルをパルスさせる
+            for (int r = 0; r < _reelViews.Length; r++)
+            {
+                var highlightedRows = new HashSet<int>();
+                if (r < win.MatchCount && r < lineDef.rows.Length)
+                {
+                    highlightedRows.Add(lineDef.rows[r]);
+                    _reelViews[r].PlayWinAnimation(lineDef.rows[r], ct).Forget();
+                    var symbol = _reelViews[r].GetSymbolView(lineDef.rows[r]);
+                    symbol?.PlayPulseAnimation();
+                }
+                _reelViews[r].HighlightRows(highlightedRows);
+            }
+
+            var lineView = GetPaylineView();
+            _activePaylines.Add(lineView);
+            await lineView.AnimateDrawAsync(points, GetLineColor(win.LineIndex), ct);
+        }
+
+        private void ShowAllWins(SpinResult result, PaylineData currentPaylineData)
+        {
+            if (_reelViews == null) return;
+            var destroyCt = this.GetCancellationTokenOnDestroy();
+            var highlightedRowsByReel = new Dictionary<int, HashSet<int>>();
+
+            // ペイライン描画
+            foreach (var win in result.LineWins)
+            {
+                if (win.LineIndex < 0 || win.LineIndex >= currentPaylineData.lines.Length) continue;
+
+                var lineDef = currentPaylineData.lines[win.LineIndex];
+                var points = new Vector3[win.MatchCount];
+                for (int i = 0; i < win.MatchCount; i++)
+                {
+                    if (i >= lineDef.rows.Length) break;
+                    points[i] = _reelViews[i].GetSymbolWorldPosition(lineDef.rows[i]);
+                    AddHighlight(highlightedRowsByReel, i, lineDef.rows[i]);
+                }
+
+                var lineView = GetPaylineView();
+                lineView.DrawLine(points, GetLineColor(win.LineIndex));
+                _activePaylines.Add(lineView);
+            }
+
+            // Scatter / Bonus ハイライト
             if (result.HasScatter)
             {
                 foreach (var pos in result.ScatterPositions)
-                {
                     AddHighlight(highlightedRowsByReel, pos.Reel, pos.Row);
-                }
             }
             if (result.HasBonusCondition)
             {
                 foreach (var pos in result.BonusPositions)
-                {
                     AddHighlight(highlightedRowsByReel, pos.Reel, pos.Row);
-                }
             }
 
-            // --- 表示反映 & アニメーション開始 ---
-            for (int reelIndex = 0; reelIndex < _reelViews.Length; reelIndex++)
+            // 表示反映
+            for (int i = 0; i < _reelViews.Length; i++)
             {
-                highlightedRowsByReel.TryGetValue(reelIndex, out var rows);
-                _reelViews[reelIndex].HighlightRows(rows);
+                highlightedRowsByReel.TryGetValue(i, out var rows);
+                _reelViews[i].HighlightRows(rows);
 
                 if (rows != null)
                 {
                     foreach (int row in rows)
                     {
-                        _reelViews[reelIndex].PlayWinAnimation(row, ct).Forget();
+                        _reelViews[i].PlayWinAnimation(row, destroyCt).Forget();
+                        var symbol = _reelViews[i].GetSymbolView(row);
+                        symbol?.PlayPulseAnimation();
                     }
                 }
             }
@@ -223,7 +287,6 @@ namespace SlotGame.View
 
         private Color GetLineColor(int index)
         {
-            // インデックスごとに異なる色を割り当てる（視認性向上）
             float hue = (index * 0.15f) % 1f;
             return Color.HSVToRGB(hue, 0.8f, 1f);
         }
@@ -384,7 +447,6 @@ namespace SlotGame.View
             var views = FindObjectsByType<ReelView>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             if (views.Length == 0) return;
 
-            // フォールバック: 明示的にセットされていない場合はシーンから探す（左から順）
             _reelViews = views
                 .OrderBy(v => v.transform.position.x)
                 .ToArray();

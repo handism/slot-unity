@@ -1,5 +1,7 @@
+#nullable enable
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using SlotGame.Data;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,10 +12,13 @@ namespace SlotGame.View
     [RequireComponent(typeof(Image))]
     public class SymbolView : MonoBehaviour
     {
-        private Image         _image;
-        private Animator      _animator;
+        private const string IdleStateName = "Idle";
+
+        private Image?         _image;
+        private Animator?      _animator;
         private int           _symbolId;
-        private AnimationClip _winAnim;
+        private AnimationClip? _winAnim;
+        private Tween?         _pulseTween;
 
         private void Awake()
         {
@@ -26,8 +31,11 @@ namespace SlotGame.View
         public void SetSymbol(SymbolData data)
         {
             _symbolId    = data.symbolId;
-            _image.sprite = data.sprite;
-            _image.enabled = true;
+            if (_image != null)
+            {
+                _image.sprite = data.sprite;
+                _image.enabled = true;
+            }
             _winAnim     = data.winAnim;
         }
 
@@ -35,22 +43,51 @@ namespace SlotGame.View
 
         public void SetHighlighted(bool highlighted)
         {
-            if (_image == null)
+            _image ??= GetComponent<Image>();
+            if (_image != null)
             {
-                _image = GetComponent<Image>();
+                _image.color = highlighted ? Color.white : new Color(1f, 1f, 1f, 0.3f);
             }
-
-            _image.color = highlighted ? Color.white : new Color(1f, 1f, 1f, 0.3f);
         }
 
         public void ResetHighlight()
         {
-            if (_image == null)
+            _image ??= GetComponent<Image>();
+            if (_image != null)
             {
-                _image = GetComponent<Image>();
+                _image.color = Color.white;
             }
+            PlayIdleAnimation();
+        }
 
-            _image.color = Color.white;
+        /// <summary>パルスアニメーション（拡縮繰り返し）を開始する。</summary>
+        public void PlayPulseAnimation()
+        {
+            StopPulseAnimation();
+            _pulseTween = transform.DOScale(1.2f, 0.5f)
+                .SetEase(Ease.InOutSine)
+                .SetLoops(-1, LoopType.Yoyo);
+        }
+
+        /// <summary>パルスアニメーションを停止する。</summary>
+        public void StopPulseAnimation()
+        {
+            if (_pulseTween != null && _pulseTween.IsActive())
+            {
+                _pulseTween.Kill();
+            }
+            _pulseTween = null;
+            transform.localScale = Vector3.one;
+        }
+
+        /// <summary>アイドル状態のアニメーションを再生する（当選演出の停止用）。</summary>
+        public void PlayIdleAnimation()
+        {
+            StopPulseAnimation();
+            if (_animator != null)
+            {
+                _animator.Play(IdleStateName, 0, 0f);
+            }
         }
 
         /// <summary>当選アニメーションを再生して完了を待機する。</summary>
@@ -67,6 +104,11 @@ namespace SlotGame.View
             if (_animator == null || clip == null) return;
             _animator.Play(clip.name);
             await UniTask.Delay((int)(clip.length * 1000), cancellationToken: ct);
+        }
+
+        private void OnDestroy()
+        {
+            StopPulseAnimation();
         }
     }
 }

@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -15,19 +16,19 @@ namespace SlotGame.View
     /// </summary>
     public class ReelView : MonoBehaviour
     {
-        [SerializeField] private SymbolView symbolViewPrefab;
+        [SerializeField] private SymbolView symbolViewPrefab = null!;
         [SerializeField] private float      symbolHeight = 180f;
         [SerializeField] private float      scrollSpeed  = 2000f;   // px/sec
 
         // バッファ内のシンボル数（上下バッファ 1 + 表示 3 + バッファ合計 = 5）
         private const int BufferSize = 5;
 
-        private ReelStripData    _strip;
-        private SymbolView[]     _symbolViews;   // 循環バッファ
+        private ReelStripData?   _strip;
+        private SymbolView[]?    _symbolViews;   // 循環バッファ
         private int              _stripIndex;    // 現在のストリップ先頭インデックス
         private bool             _isScrolling;
         private float            _scrollOffset;
-        private RectTransform    _rectTransform;
+        private RectTransform?   _rectTransform;
 
         public void Initialize(ReelStripData strip)
         {
@@ -57,7 +58,7 @@ namespace SlotGame.View
 
         private void Update()
         {
-            if (!_isScrolling) return;
+            if (!_isScrolling || _symbolViews == null) return;
 
             _scrollOffset += scrollSpeed * Time.deltaTime;
 
@@ -73,6 +74,7 @@ namespace SlotGame.View
 
         private void UpdateSymbolPositions()
         {
+            if (_symbolViews == null) return;
             // 全シンボルを offset 分だけ下にシフト
             for (int i = 0; i < BufferSize; i++)
             {
@@ -131,6 +133,7 @@ namespace SlotGame.View
         /// <summary>現在表示中の 3 シンボル ID を返す（[0]=上段, [1]=中段, [2]=下段）。</summary>
         public int[] GetVisibleSymbolIds()
         {
+            if (_symbolViews == null) return Array.Empty<int>();
             // _symbolViews[1]=上段, [2]=中段, [3]=下段
             return new[]
             {
@@ -148,6 +151,13 @@ namespace SlotGame.View
             await _symbolViews[row + 1].PlayWinAnim(ct);
         }
 
+        /// <summary>指定行の SymbolView を取得する。</summary>
+        public SymbolView? GetSymbolView(int row)
+        {
+            if (_symbolViews == null || row + 1 >= _symbolViews.Length) return null;
+            return _symbolViews[row + 1];
+        }
+
         /// <summary>指定行のシンボルの世界座標を取得する（0=上, 1=中, 2=下）。</summary>
         public Vector3 GetSymbolWorldPosition(int row)
         {
@@ -155,7 +165,7 @@ namespace SlotGame.View
             return _symbolViews[row + 1].transform.position;
         }
 
-        public void HighlightRows(IReadOnlyCollection<int> rows)
+        public void HighlightRows(IReadOnlyCollection<int>? rows)
         {
             if (_symbolViews == null) return;
 
@@ -190,6 +200,8 @@ namespace SlotGame.View
 
         private void AdvanceStrip()
         {
+            if (_symbolViews == null || _strip == null) return;
+
             // 先頭バッファを末尾に移動させて循環
             _stripIndex = (_stripIndex + 1) % _strip.strip.Count;
             // 循環バッファをシフト
@@ -207,6 +219,8 @@ namespace SlotGame.View
 
         private void AlignToStopIndex(int stopIndex)
         {
+            if (_symbolViews == null || _strip == null) return;
+
             // 停止インデックスを中段（row=1 = _symbolViews[2]）に来るように調整
             int mid = stopIndex;
             int top = (mid - 1 + _strip.strip.Count) % _strip.strip.Count;
@@ -226,6 +240,8 @@ namespace SlotGame.View
 
         private void SnapAllToGrid()
         {
+            if (_symbolViews == null) return;
+
             for (int i = 0; i < BufferSize; i++)
             {
                 var rt = _symbolViews[i].GetComponent<RectTransform>();
@@ -236,6 +252,8 @@ namespace SlotGame.View
 
         private void RefreshAllSymbols()
         {
+            if (_symbolViews == null || _strip == null) return;
+
             for (int i = 0; i < BufferSize; i++)
             {
                 int idx = (_stripIndex + i) % _strip.strip.Count;
@@ -245,12 +263,13 @@ namespace SlotGame.View
 
         private void EnsureRectTransform()
         {
-            if (_rectTransform == null)
-                _rectTransform = GetComponent<RectTransform>();
+            _rectTransform ??= GetComponent<RectTransform>();
         }
 
         private void ResizeViewport()
         {
+            if (_rectTransform == null) return;
+
             float width = symbolHeight;
             if (symbolViewPrefab != null &&
                 symbolViewPrefab.TryGetComponent<RectTransform>(out var symbolRect) &&
