@@ -140,7 +140,7 @@ namespace SlotGame.View
                 }
 
                 // 2. 全点灯（最終状態）
-                ShowAllWins(result, currentPaylineData, ct);
+                ShowAllWins(result, currentPaylineData);
             }
             finally
             {
@@ -187,9 +187,10 @@ namespace SlotGame.View
             await lineView.AnimateDrawAsync(points, GetLineColor(win.LineIndex), ct);
         }
 
-        private void ShowAllWins(SpinResult result, PaylineData currentPaylineData, CancellationToken ct)
+        private void ShowAllWins(SpinResult result, PaylineData currentPaylineData)
         {
             if (_reelViews == null) return;
+            var destroyCt = this.GetCancellationTokenOnDestroy();
             var highlightedRowsByReel = new Dictionary<int, HashSet<int>>();
 
             // ペイライン描画
@@ -233,7 +234,7 @@ namespace SlotGame.View
                 {
                     foreach (int row in rows)
                     {
-                        _reelViews[i].PlayWinAnimation(row, ct).Forget();
+                        _reelViews[i].PlayWinAnimation(row, destroyCt).Forget();
                         var symbol = _reelViews[i].GetSymbolView(row);
                         symbol?.PlayPulseAnimation();
                     }

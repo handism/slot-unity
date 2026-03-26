@@ -14,25 +14,22 @@
       "Bash(dotnet tool:*)",
       "Bash(dotnet build:*)",
       "Bash(~/.dotnet/tools/csharpier:*)",
-      "Bash(python3 -c \":*)",
+      "Bash(python3 -c:*)",
       "Read(//private/tmp/**)",
       "WebFetch(domain:api.github.com)",
       "Skill(update-config)",
       "Bash(bash /Users/mac/git/slot-unity/.claude/hooks/cs_check.sh)",
-      "Bash(bash /Users/mac/git/slot-unity/.claude/hooks/cs_check.sh 2)",
-      "Bash(1 echo:*)",
-      "Bash(curl -sk \"https://api.github.com/repos/handism/slot-unity/issues/25\")",
-      "Bash(python3 -m json.tool)"
+      "Bash(bash /Users/mac/git/slot-unity/.claude/hooks/cs_check.sh 2)"
     ]
   },
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "bash /Users/mac/git/slot-unity/.claude/hooks/cs_check.sh"
+            "command": "bash /Users/mac/git/slot-unity/.claude/hooks/cs_check.sh 2>&1 | head -20"
           }
         ]
       }
