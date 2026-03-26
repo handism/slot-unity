@@ -1,3 +1,4 @@
+#nullable enable
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -11,11 +12,11 @@ namespace SlotGame.View
     [RequireComponent(typeof(Image))]
     public class SymbolView : MonoBehaviour
     {
-        private Image         _image;
-        private Animator      _animator;
+        private Image?         _image;
+        private Animator?      _animator;
         private int           _symbolId;
-        private AnimationClip _winAnim;
-        private Tween         _pulseTween;
+        private AnimationClip? _winAnim;
+        private Tween?         _pulseTween;
 
         private void Awake()
         {
@@ -28,8 +29,11 @@ namespace SlotGame.View
         public void SetSymbol(SymbolData data)
         {
             _symbolId    = data.symbolId;
-            _image.sprite = data.sprite;
-            _image.enabled = true;
+            if (_image != null)
+            {
+                _image.sprite = data.sprite;
+                _image.enabled = true;
+            }
             _winAnim     = data.winAnim;
         }
 
@@ -37,23 +41,21 @@ namespace SlotGame.View
 
         public void SetHighlighted(bool highlighted)
         {
-            if (_image == null)
+            _image ??= GetComponent<Image>();
+            if (_image != null)
             {
-                _image = GetComponent<Image>();
+                _image.color = highlighted ? Color.white : new Color(1f, 1f, 1f, 0.3f);
             }
-
-            _image.color = highlighted ? Color.white : new Color(1f, 1f, 1f, 0.3f);
         }
 
         public void ResetHighlight()
         {
-            if (_image == null)
+            _image ??= GetComponent<Image>();
+            if (_image != null)
             {
-                _image = GetComponent<Image>();
+                _image.color = Color.white;
             }
-
-            _image.color = Color.white;
-            StopPulseAnimation();
+            PlayIdleAnimation();
         }
 
         /// <summary>パルスアニメーション（拡縮繰り返し）を開始する。</summary>
@@ -82,7 +84,6 @@ namespace SlotGame.View
             StopPulseAnimation();
             if (_animator != null)
             {
-                // Animator をデフォルト状態に戻す（必要に応じて）
                 _animator.Play("Idle", 0, 0f);
             }
         }
