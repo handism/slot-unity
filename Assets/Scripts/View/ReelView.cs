@@ -148,6 +148,13 @@ namespace SlotGame.View
             await _symbolViews[row + 1].PlayWinAnim(ct);
         }
 
+        /// <summary>指定行の SymbolView を取得する。</summary>
+        public SymbolView? GetSymbolView(int row)
+        {
+            if (_symbolViews == null || row + 1 >= _symbolViews.Length) return null;
+            return _symbolViews[row + 1];
+        }
+
         /// <summary>指定行のシンボルの世界座標を取得する（0=上, 1=中, 2=下）。</summary>
         public Vector3 GetSymbolWorldPosition(int row)
         {
