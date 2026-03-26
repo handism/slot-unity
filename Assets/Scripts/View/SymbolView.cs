@@ -12,6 +12,8 @@ namespace SlotGame.View
     [RequireComponent(typeof(Image))]
     public class SymbolView : MonoBehaviour
     {
+        private const string IdleStateName = "Idle";
+
         private Image?         _image;
         private Animator?      _animator;
         private int           _symbolId;
@@ -84,7 +86,7 @@ namespace SlotGame.View
             StopPulseAnimation();
             if (_animator != null)
             {
-                _animator.Play("Idle", 0, 0f);
+                _animator.Play(IdleStateName, 0, 0f);
             }
         }
 

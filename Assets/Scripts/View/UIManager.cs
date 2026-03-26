@@ -23,6 +23,7 @@ namespace SlotGame.View
     public class UIManager : MonoBehaviour
     {
         private const int MaxPaylinePoolSize = 50;
+        private const int SequentialLineDelayMs = 500;
 
         [SerializeField] private MainHUDView     mainHUD = null!;
         [SerializeField] private FreeSpinHUDView freeSpinHUD = null!;
@@ -120,25 +121,38 @@ namespace SlotGame.View
 
             ClearLineHighlights();
 
-            // 1. 各当選ラインを順番に表示
-            if (result.LineWins.Count > 1)
+            try
             {
-                foreach (var win in result.LineWins)
+                // 1. 各当選ラインを順番に表示
+                if (result.LineWins.Count > 1)
                 {
-                    await ShowSingleLineWinAsync(win, currentPaylineData, ct);
-                    await UniTask.Delay(500, cancellationToken: ct);
-                    // 次のライン表示前に状態をリセット
+                    foreach (var win in result.LineWins)
+                    {
+                        await ShowSingleLineWinAsync(win, currentPaylineData, ct);
+                        await UniTask.Delay(SequentialLineDelayMs, cancellationToken: ct);
+                        ClearLineHighlights();
+                    }
+                }
+                else if (result.LineWins.Count == 1)
+                {
+                    await ShowSingleLineWinAsync(result.LineWins[0], currentPaylineData, ct);
+                    await UniTask.Delay(SequentialLineDelayMs, cancellationToken: ct);
+                }
+
+                // 2. 全点灯（最終状態）
+                ShowAllWins(result, currentPaylineData, ct);
+            }
+            finally
+            {
+                // ここで ClearLineHighlights を呼ぶと最終状態も消えてしまうため、
+                // キャンセル時のみクリアしたい場合は例外をキャッチして処理する。
+                // ただし、GameManager 側でスピン開始時にクリアされるため、ここでは何もしないか、
+                // ct.IsCancellationRequested をチェックする。
+                if (ct.IsCancellationRequested)
+                {
                     ClearLineHighlights();
                 }
             }
-            else if (result.LineWins.Count == 1)
-            {
-                await ShowSingleLineWinAsync(result.LineWins[0], currentPaylineData, ct);
-                await UniTask.Delay(500, cancellationToken: ct);
-            }
-
-            // 2. 全点灯（最終状態）
-            ShowAllWins(result, currentPaylineData, ct);
         }
 
         private async UniTask ShowSingleLineWinAsync(LineWin win, PaylineData currentPaylineData, CancellationToken ct)
@@ -150,6 +164,7 @@ namespace SlotGame.View
             var points = new Vector3[win.MatchCount];
             for (int i = 0; i < win.MatchCount; i++)
             {
+                if (i >= lineDef.rows.Length) break;
                 points[i] = _reelViews[i].GetSymbolWorldPosition(lineDef.rows[i]);
             }
 
@@ -157,7 +172,7 @@ namespace SlotGame.View
             for (int r = 0; r < _reelViews.Length; r++)
             {
                 var highlightedRows = new HashSet<int>();
-                if (r < win.MatchCount)
+                if (r < win.MatchCount && r < lineDef.rows.Length)
                 {
                     highlightedRows.Add(lineDef.rows[r]);
                     _reelViews[r].PlayWinAnimation(lineDef.rows[r], ct).Forget();
@@ -186,6 +201,7 @@ namespace SlotGame.View
                 var points = new Vector3[win.MatchCount];
                 for (int i = 0; i < win.MatchCount; i++)
                 {
+                    if (i >= lineDef.rows.Length) break;
                     points[i] = _reelViews[i].GetSymbolWorldPosition(lineDef.rows[i]);
                     AddHighlight(highlightedRowsByReel, i, lineDef.rows[i]);
                 }

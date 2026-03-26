@@ -375,13 +375,13 @@ namespace SlotGame.Core
                         uiManager.HighlightWinLinesAsync(result, ct, paylineData)
                     );
                 }
-                else if (result.HasScatter)
+                else
                 {
-                    audioManager.PlaySE(SEType.ScatterAppear);
-                    await uiManager.HighlightWinLinesAsync(result, ct, paylineData);
-                }
-                else if (result.HasBonusCondition)
-                {
+                    if (result.HasScatter)
+                    {
+                        audioManager.PlaySE(SEType.ScatterAppear);
+                    }
+                    // Scatter または BonusCondition がある場合のハイライト（配当なしでも表示）
                     await uiManager.HighlightWinLinesAsync(result, ct, paylineData);
                 }
 
