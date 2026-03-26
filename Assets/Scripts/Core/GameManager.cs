@@ -369,15 +369,23 @@ namespace SlotGame.Core
                 {
                     uiManager.UpdateWin(result.TotalWinAmount);
                     PlayWinSe(result.TotalWinAmount);
-                    await uiManager.ShowWinAmount(result.TotalWinAmount, CalcWinLevel(result.TotalWinAmount));
+                    // ポップアップとハイライトを並行実行
+                    await UniTask.WhenAll(
+                        uiManager.ShowWinAmount(result.TotalWinAmount, CalcWinLevel(result.TotalWinAmount)),
+                        uiManager.HighlightWinLinesAsync(result, ct, paylineData)
+                    );
                 }
                 else if (result.HasScatter)
                 {
                     audioManager.PlaySE(SEType.ScatterAppear);
+                    await uiManager.HighlightWinLinesAsync(result, ct, paylineData);
+                }
+                else if (result.HasBonusCondition)
+                {
+                    await uiManager.HighlightWinLinesAsync(result, ct, paylineData);
                 }
 
-                uiManager.HighlightWinLines(result, paylineData);
-                await UniTask.Delay(TimeSpan.FromSeconds(1.5f), cancellationToken: ct);
+                await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: ct);
                 uiManager.ClearLineHighlights();
             }
             else
@@ -467,9 +475,11 @@ namespace SlotGame.Core
                     uiManager.ShowFreeSpinHUD(_gameState.FreeSpinsLeft, cumulativeFreeSpinWin);
                     if (result.TotalWinAmount > 0)
                     {
-                        uiManager.HighlightWinLines(result, paylineData);
-                        await uiManager.ShowWinAmount(win, CalcWinLevel(win));
-                        await UniTask.Delay(TimeSpan.FromSeconds(1.5f), cancellationToken: ct);
+                        await UniTask.WhenAll(
+                            uiManager.ShowWinAmount(win, CalcWinLevel(win)),
+                            uiManager.HighlightWinLinesAsync(result, ct, paylineData)
+                        );
+                        await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: ct);
                         uiManager.ClearLineHighlights();
                     }
                 },

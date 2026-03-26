@@ -1,4 +1,6 @@
-using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 
 namespace SlotGame.View
@@ -11,12 +13,15 @@ namespace SlotGame.View
     public class PaylineView : MonoBehaviour
     {
         private LineRenderer _lineRenderer;
-        private Coroutine    _glowCoroutine;
+        private Tween        _glowTween;
+        private float        _baseWidth;
 
         private void Awake()
         {
             _lineRenderer = GetComponent<LineRenderer>();
             _lineRenderer.enabled = false;
+            _baseWidth = _lineRenderer.startWidth;
+            if (_baseWidth <= 0) _baseWidth = 10f;
         }
 
         /// <summary>
@@ -30,9 +35,28 @@ namespace SlotGame.View
             _lineRenderer.endColor   = color;
             _lineRenderer.enabled    = true;
 
-            // 発光表現（簡易的に太さを変えるなどのアニメーション）
-            StopGlow();
-            _glowCoroutine = StartCoroutine(GlowAnimation());
+            StartGlowAnimation();
+        }
+
+        /// <summary>
+        /// 指定された座標リストを結ぶラインをフロー演出（左から右へ描画）しながら表示する。
+        /// </summary>
+        public async UniTask AnimateDrawAsync(Vector3[] points, Color color, CancellationToken ct)
+        {
+            _lineRenderer.enabled = true;
+            _lineRenderer.startColor = color;
+            _lineRenderer.endColor = color;
+            _lineRenderer.positionCount = 0;
+
+            for (int i = 0; i < points.Length; i++)
+            {
+                _lineRenderer.positionCount = i + 1;
+                _lineRenderer.SetPosition(i, points[i]);
+                // 各ポイント間を少し待機してフロー感を出す
+                await UniTask.Delay(100, cancellationToken: ct);
+            }
+
+            StartGlowAnimation();
         }
 
         public void Clear()
@@ -41,28 +65,34 @@ namespace SlotGame.View
             _lineRenderer.enabled = false;
         }
 
-        private void StopGlow()
+        private void StartGlowAnimation()
         {
-            if (_glowCoroutine != null)
-            {
-                StopCoroutine(_glowCoroutine);
-                _glowCoroutine = null;
-            }
+            StopGlow();
+            _glowTween = DOTween.To(
+                () => _baseWidth,
+                w => {
+                    _lineRenderer.startWidth = w;
+                    _lineRenderer.endWidth = w;
+                },
+                _baseWidth * 1.5f,
+                0.5f
+            ).SetEase(Ease.InOutSine).SetLoops(-1, LoopType.Yoyo);
         }
 
-        private System.Collections.IEnumerator GlowAnimation()
+        private void StopGlow()
         {
-            float baseWidth = _lineRenderer.startWidth;
-            if (baseWidth <= 0) baseWidth = 10f; // デフォルト太さ
-
-            while (true)
+            if (_glowTween != null && _glowTween.IsActive())
             {
-                float time = Time.time * 5f;
-                float width = baseWidth * (1f + 0.3f * Mathf.Sin(time));
-                _lineRenderer.startWidth = width;
-                _lineRenderer.endWidth   = width;
-                yield return null;
+                _glowTween.Kill();
             }
+            _glowTween = null;
+            _lineRenderer.startWidth = _baseWidth;
+            _lineRenderer.endWidth = _baseWidth;
+        }
+
+        private void OnDestroy()
+        {
+            StopGlow();
         }
     }
 }
