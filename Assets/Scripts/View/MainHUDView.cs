@@ -3,6 +3,7 @@ using SlotGame.Audio;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 namespace SlotGame.View
 {
@@ -13,8 +14,7 @@ namespace SlotGame.View
         [SerializeField] private TMP_Text winText;
         [SerializeField] private Button   spinButton;
         [SerializeField] private Button   autoSpinButton;
-        [SerializeField] private Button[] autoSpinCountButtons;
-        [SerializeField] private int[]    autoSpinCounts; // { 10, 25, 50, 100 }
+        [SerializeField] private int[]    autoSpinCounts = { 10, 25, 50, 100 };
         [SerializeField] private TMP_Text spinButtonText;
         [SerializeField] private TMP_Text autoButtonText;
 
@@ -25,6 +25,7 @@ namespace SlotGame.View
         private long _displayedCoins;
         private long _displayedWin;
         private AudioManager _audioManager;
+        private List<Button> _autoSpinCountButtons = new();
 
         public event System.Action<int>? OnAutoSpinRequested;
         public event System.Action?      OnAutoSpinStopRequested;
@@ -83,6 +84,7 @@ namespace SlotGame.View
                 });
             
             if (autoSpinButton != null)
+            {
                 autoSpinButton.onClick.AddListener(() =>
                 {
                     autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
@@ -90,22 +92,41 @@ namespace SlotGame.View
                     OnAutoSpinStopRequested?.Invoke();
                 });
 
-            if (autoSpinCountButtons != null && autoSpinCounts != null)
-            {
-                for (int i = 0; i < autoSpinCountButtons.Length; i++)
-                {
-                    if (i >= autoSpinCounts.Length) break;
-                    int count = autoSpinCounts[i];
-                    var btn = autoSpinCountButtons[i];
-                    if (btn == null) continue;
+                // 回数選択ボタンを動的に生成
+                CreateAutoSpinSelectors();
+            }
+        }
 
-                    btn.onClick.AddListener(() =>
-                    {
-                        btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
-                        PlayButtonClickSe();
-                        OnAutoSpinRequested?.Invoke(count);
-                    });
+        private void CreateAutoSpinSelectors()
+        {
+            if (autoSpinButton == null || autoSpinCounts == null) return;
+
+            var parent = autoSpinButton.transform.parent;
+            // 既存のボタンのレイアウトを崩さないよう調整
+            var horizontalLayout = parent.GetComponent<HorizontalLayoutGroup>();
+            
+            foreach (var count in autoSpinCounts)
+            {
+                var btnGo = Instantiate(autoSpinButton.gameObject, parent);
+                btnGo.name = $"AutoSpin_{count}";
+                var btn = btnGo.GetComponent<Button>();
+                var txt = btnGo.GetComponentInChildren<TMP_Text>();
+                if (txt != null)
+                {
+                    txt.text = count.ToString();
+                    txt.fontSize = 14f; // 小さく調整
                 }
+
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(() =>
+                {
+                    btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
+                    PlayButtonClickSe();
+                    OnAutoSpinRequested?.Invoke(count);
+                });
+
+                btnGo.transform.localScale = Vector3.one * 0.9f;
+                _autoSpinCountButtons.Add(btn);
             }
         }
 
@@ -129,9 +150,7 @@ namespace SlotGame.View
 
                 if (image != null)
                 {
-                    // グラデーションコンポーネントに色を委譲するため Image.color は白に統一
                     image.color = Color.white;
-
                     var grad = image.GetComponent<UIGradient>() ?? image.gameObject.AddComponent<UIGradient>();
                     if (isSelected)
                     {
@@ -175,11 +194,9 @@ namespace SlotGame.View
             if (spinButton != null) spinButton.interactable = interactable;
         }
 
-        /// <summary>スピンボタンを「SPIN」または「STOP」の状態に切り替える。</summary>
         public void SetSpinButtonMode(bool isStopMode)
         {
             if (spinButtonText == null || spinButton == null) return;
-
             spinButtonText.text = isStopMode ? "STOP" : "SPIN";
             
             var grad = spinButton.GetComponent<UIGradient>();
@@ -187,17 +204,11 @@ namespace SlotGame.View
             {
                 if (isStopMode)
                 {
-                    grad.SetColors(
-                        new Color(1f, 0.4f, 0.3f, 1f),
-                        new Color(0.6f, 0.1f, 0.05f, 1f)
-                    );
+                    grad.SetColors(new Color(1f, 0.4f, 0.3f, 1f), new Color(0.6f, 0.1f, 0.05f, 1f));
                 }
                 else
                 {
-                    grad.SetColors(
-                        new Color(0.3f, 0.5f, 0.9f, 1f),
-                        new Color(0.05f, 0.15f, 0.4f, 1f)
-                    );
+                    grad.SetColors(new Color(0.3f, 0.5f, 0.9f, 1f), new Color(0.05f, 0.15f, 0.4f, 1f));
                 }
             }
         }
@@ -210,8 +221,7 @@ namespace SlotGame.View
 
         public void SetAutoSpinCountInteractable(bool interactable)
         {
-            if (autoSpinCountButtons == null) return;
-            foreach (var btn in autoSpinCountButtons)
+            foreach (var btn in _autoSpinCountButtons)
             {
                 if (btn != null) btn.interactable = interactable;
             }
@@ -247,7 +257,6 @@ namespace SlotGame.View
         private static void ConfigureNumericText(TMP_Text text, float minFontSize)
         {
             if (text == null) return;
-
             text.enableAutoSizing = true;
             text.fontSizeMax = text.fontSize;
             text.fontSizeMin = minFontSize;

@@ -441,16 +441,42 @@ namespace SlotGame.View
 
         public void HideStats() => HideStatsAsync(this.GetCancellationTokenOnDestroy()).Forget();
 
+        private string _lastDescriptionText = "";
+
         public void ShowGameDescription()
         {
-            if (gameDescriptionView == null) return;
+            if (gameDescriptionView == null)
+            {
+                // paytableView をテンプレートとしてクローンして GameDescriptionView を作成する
+                if (paytableView != null)
+                {
+                    var go = Instantiate(paytableView.gameObject, paytableView.transform.parent);
+                    go.name = "GameDescriptionView";
+                    
+                    // 既存の PaytableView を削除して GameDescriptionView を追加
+                    Destroy(go.GetComponent<PaytableView>());
+                    gameDescriptionView = go.AddComponent<GameDescriptionView>();
+                    
+                    // 閉じるボタンの再設定などは Awake で行われるが、
+                    // イベント購読をここでも行う必要がある
+                    gameDescriptionView.OnCloseRequested += () => GameDescriptionCloseRequested?.Invoke();
+                    
+                    // 初期テキストを設定
+                    gameDescriptionView.SetDescription(_lastDescriptionText);
+                }
+                else return;
+            }
             SetHudInteractable(false);
             gameDescriptionView.ShowAsync(this.GetCancellationTokenOnDestroy()).Forget();
         }
 
         public void HideGameDescription() => HideGameDescriptionAsync(this.GetCancellationTokenOnDestroy()).Forget();
 
-        public void SetGameDescriptionText(string text) => gameDescriptionView?.SetDescription(text);
+        public void SetGameDescriptionText(string text)
+        {
+            _lastDescriptionText = text;
+            if (gameDescriptionView != null) gameDescriptionView.SetDescription(text);
+        }
 
         public void UpdateStats(in SlotGame.Model.SessionStats stats) => statsView?.UpdateDisplay(stats);
 

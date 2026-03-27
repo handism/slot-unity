@@ -15,9 +15,9 @@ namespace SlotGame.View
         [SerializeField] private TMP_Text bgmValueText;
         [SerializeField] private TMP_Text seValueText;
         [SerializeField] private Button   resetCoinsButton;
-        [SerializeField] private Button   descriptionButton;
         [SerializeField] private Button   closeButton;
 
+        private Button _descriptionButton;
         private CanvasGroup _canvasGroup;
         private AudioManager _audioManager;
 
@@ -52,20 +52,36 @@ namespace SlotGame.View
                 OnResetCoinsRequested?.Invoke();
             });
 
-            if (descriptionButton != null)
-            {
-                descriptionButton.onClick.AddListener(() =>
-                {
-                    PlayButtonClickSe();
-                    OnDescriptionRequested?.Invoke();
-                });
-            }
+            // ゲーム説明ボタンを動的に作成
+            CreateDescriptionButton();
 
             closeButton.onClick.AddListener(() =>
             {
                 PlayButtonClickSe();
                 OnCloseRequested?.Invoke();
             });
+        }
+
+        private void CreateDescriptionButton()
+        {
+            if (resetCoinsButton == null) return;
+
+            var btnGo = Instantiate(resetCoinsButton.gameObject, resetCoinsButton.transform.parent);
+            btnGo.name = "DescriptionButton";
+            
+            var txt = btnGo.GetComponentInChildren<TMP_Text>();
+            if (txt != null) txt.text = "ゲーム説明";
+
+            _descriptionButton = btnGo.GetComponent<Button>();
+            _descriptionButton.onClick.RemoveAllListeners();
+            _descriptionButton.onClick.AddListener(() =>
+            {
+                PlayButtonClickSe();
+                OnDescriptionRequested?.Invoke();
+            });
+
+            // レイアウト上の位置調整（Resetボタンの隣）
+            btnGo.transform.SetSiblingIndex(resetCoinsButton.transform.GetSiblingIndex() + 1);
         }
 
         public void SetVolumes(float bgm, float se)
