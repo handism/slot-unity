@@ -13,6 +13,7 @@ namespace SlotGame.Model
         public int BetAmount { get; private set; }
         public int FreeSpinsLeft { get; private set; }
         public bool IsFreeSpin => FreeSpinsLeft > 0;
+        public bool IsTurbo { get; private set; }
         public long TotalSpins { get; private set; }
         public long MaxWin { get; private set; }
 
@@ -85,6 +86,12 @@ namespace SlotGame.Model
             if (FreeSpinsLeft <= 0)
                 return;
             FreeSpinsLeft--;
+        }
+
+        /// <summary>ターボモードを切り替える。</summary>
+        public void SetTurbo(bool enabled)
+        {
+            IsTurbo = enabled;
         }
 
         /// <summary>スピン結果を記録する（ライフタイム統計 + セッション統計）。</summary>

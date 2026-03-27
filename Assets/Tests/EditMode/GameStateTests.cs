@@ -127,5 +127,16 @@ namespace SlotGame.Tests.EditMode
             Assert.IsFalse(result);
             Assert.AreEqual(10, state.BetAmount);
         }
+
+        [Test]
+        public void SetTurbo_ChangesIsTurboState()
+        {
+            var state = CreateState();
+            Assert.IsFalse(state.IsTurbo);
+            state.SetTurbo(true);
+            Assert.IsTrue(state.IsTurbo);
+            state.SetTurbo(false);
+            Assert.IsFalse(state.IsTurbo);
+        }
     }
 }

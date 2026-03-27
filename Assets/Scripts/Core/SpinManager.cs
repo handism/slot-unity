@@ -53,6 +53,11 @@ namespace SlotGame.Core
             int[]            bonusReels = null)
         {
             _skipRequested = false;
+            var gameState = GameContext.GameState;
+            var config = GameContext.SaveDataManager.Config;
+
+            float spinDuration = gameState.IsTurbo ? config.TurboSpinDuration : 2.0f;
+            float stopInterval = gameState.IsTurbo ? config.TurboStopInterval : 0.3f;
 
             // 停止位置をリールごとに乱数決定
             var stopIndices = new int[reels.Length];
@@ -62,9 +67,9 @@ namespace SlotGame.Core
             // 全リール同時にスクロール開始
             foreach (var reel in reels) reel.StartSpin();
 
-            // 最低スピン時間（2 秒）または早期停止リクエスト待ち
+            // 最低スピン時間または早期停止リクエスト待ち
             await UniTask.WhenAny(
-                UniTask.Delay(TimeSpan.FromSeconds(2f), cancellationToken: ct),
+                UniTask.Delay(TimeSpan.FromSeconds(spinDuration), cancellationToken: ct),
                 UniTask.WaitUntil(() => _skipRequested, cancellationToken: ct)
             );
 
@@ -80,14 +85,14 @@ namespace SlotGame.Core
             }
             else
             {
-                // 0.3 秒間隔で順次停止
+                // 順次停止
                 for (int i = 0; i < reels.Length; i++)
                 {
                     if (i > 0)
                     {
                         // 順次停止中もスキップをチェック
                         if (_skipRequested) break;
-                        await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: ct);
+                        await UniTask.Delay(TimeSpan.FromSeconds(stopInterval), cancellationToken: ct);
                     }
                     if (_skipRequested) break;
                     await reels[i].StopSpin(stopIndices[i], ct);
