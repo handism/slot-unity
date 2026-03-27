@@ -5,6 +5,7 @@
         "SlotGame.Audio",
         "SlotGame.Model",
         "SlotGame.Data",
+        "SlotGame.Utility",
         "UniTask",
         "UniTask.DOTween",
         "DOTween.Modules",

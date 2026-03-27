@@ -1,3 +1,4 @@
+#nullable enable
 using DG.Tweening;
 using SlotGame.Audio;
 using TMPro;
