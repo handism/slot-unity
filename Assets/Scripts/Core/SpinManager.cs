@@ -62,8 +62,11 @@ namespace SlotGame.Core
             // 全リール同時にスクロール開始
             foreach (var reel in reels) reel.StartSpin();
 
-            // 最低スピン時間（2 秒）
-            await UniTask.Delay(TimeSpan.FromSeconds(2f), cancellationToken: ct);
+            // 最低スピン時間（2 秒）または早期停止リクエスト待ち
+            await UniTask.WhenAny(
+                UniTask.Delay(TimeSpan.FromSeconds(2f), cancellationToken: ct),
+                UniTask.WaitUntil(() => _skipRequested, cancellationToken: ct)
+            );
 
             // 早期停止リクエストがあれば全リールを即スナップ
             if (_skipRequested)
@@ -81,9 +84,28 @@ namespace SlotGame.Core
                 for (int i = 0; i < reels.Length; i++)
                 {
                     if (i > 0)
+                    {
+                        // 順次停止中もスキップをチェック
+                        if (_skipRequested) break;
                         await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: ct);
+                    }
+                    if (_skipRequested) break;
                     await reels[i].StopSpin(stopIndices[i], ct);
                     ReelStopped?.Invoke(i);
+                }
+
+                // 順次停止中にスキップされた場合の残処理
+                if (_skipRequested)
+                {
+                    for (int i = 0; i < reels.Length; i++)
+                    {
+                        if (reels[i].IsSpinning)
+                        {
+                            reels[i].RequestSkip();
+                            await reels[i].StopSpin(stopIndices[i], ct);
+                            ReelStopped?.Invoke(i);
+                        }
+                    }
                 }
             }
 

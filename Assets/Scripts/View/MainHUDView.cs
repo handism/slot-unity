@@ -13,6 +13,9 @@ namespace SlotGame.View
         [SerializeField] private TMP_Text winText;
         [SerializeField] private Button   spinButton;
         [SerializeField] private Button   autoSpinButton;
+        [SerializeField] private Button[] autoSpinCountButtons;
+        [SerializeField] private int[]    autoSpinCounts; // { 10, 25, 50, 100 }
+        [SerializeField] private TMP_Text spinButtonText;
         [SerializeField] private TMP_Text autoButtonText;
 
         // ベット選択ボタン群（Inspector でボタンと値を紐付け）
@@ -23,12 +26,18 @@ namespace SlotGame.View
         private long _displayedWin;
         private AudioManager _audioManager;
 
+        public event System.Action<int>? OnAutoSpinRequested;
+        public event System.Action?      OnAutoSpinStopRequested;
+
         private void Awake()
         {
             _audioManager = FindFirstObjectByType<AudioManager>();
 
             ConfigureNumericText(coinText, 22f);
             ConfigureNumericText(winText, 22f);
+
+            if (spinButtonText == null && spinButton != null)
+                spinButtonText = spinButton.GetComponentInChildren<TMP_Text>();
 
             if (autoButtonText == null && autoSpinButton != null)
                 autoButtonText = autoSpinButton.GetComponentInChildren<TMP_Text>();
@@ -78,7 +87,26 @@ namespace SlotGame.View
                 {
                     autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
                     PlayButtonClickSe();
+                    OnAutoSpinStopRequested?.Invoke();
                 });
+
+            if (autoSpinCountButtons != null && autoSpinCounts != null)
+            {
+                for (int i = 0; i < autoSpinCountButtons.Length; i++)
+                {
+                    if (i >= autoSpinCounts.Length) break;
+                    int count = autoSpinCounts[i];
+                    var btn = autoSpinCountButtons[i];
+                    if (btn == null) continue;
+
+                    btn.onClick.AddListener(() =>
+                    {
+                        btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
+                        PlayButtonClickSe();
+                        OnAutoSpinRequested?.Invoke(count);
+                    });
+                }
+            }
         }
 
         public void SetCoins(long coins)
@@ -144,13 +172,49 @@ namespace SlotGame.View
 
         public void SetSpinInteractable(bool interactable)
         {
-            spinButton.interactable = interactable;
+            if (spinButton != null) spinButton.interactable = interactable;
+        }
+
+        /// <summary>スピンボタンを「SPIN」または「STOP」の状態に切り替える。</summary>
+        public void SetSpinButtonMode(bool isStopMode)
+        {
+            if (spinButtonText == null || spinButton == null) return;
+
+            spinButtonText.text = isStopMode ? "STOP" : "SPIN";
+            
+            var grad = spinButton.GetComponent<UIGradient>();
+            if (grad != null)
+            {
+                if (isStopMode)
+                {
+                    grad.SetColors(
+                        new Color(1f, 0.4f, 0.3f, 1f),
+                        new Color(0.6f, 0.1f, 0.05f, 1f)
+                    );
+                }
+                else
+                {
+                    grad.SetColors(
+                        new Color(0.3f, 0.5f, 0.9f, 1f),
+                        new Color(0.05f, 0.15f, 0.4f, 1f)
+                    );
+                }
+            }
         }
 
         public void SetAutoButtonText(string text)
         {
             if (autoButtonText != null)
                 autoButtonText.text = text;
+        }
+
+        public void SetAutoSpinCountInteractable(bool interactable)
+        {
+            if (autoSpinCountButtons == null) return;
+            foreach (var btn in autoSpinCountButtons)
+            {
+                if (btn != null) btn.interactable = interactable;
+            }
         }
 
         public void SetWin(long amount)
@@ -171,7 +235,7 @@ namespace SlotGame.View
 
         private void OnBetButtonClicked(int bet)
         {
-            // GameManager の OnBetChanged に委譲（Inspector でイベントを登録する）
+            // GameManager の OnBetChanged に委譲
         }
 
         private void PlayButtonClickSe()

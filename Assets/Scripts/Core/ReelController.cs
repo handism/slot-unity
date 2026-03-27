@@ -15,6 +15,7 @@ namespace SlotGame.Core
         [SerializeField] private ReelStripData reelStrip;
 
         public int ReelIndex { get; private set; }
+        public bool IsSpinning => _isSpinning;
 
         private ReelView _view;
         private bool     _isSpinning;

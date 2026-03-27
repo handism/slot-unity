@@ -15,6 +15,7 @@ namespace SlotGame.View
         [SerializeField] private TMP_Text bgmValueText;
         [SerializeField] private TMP_Text seValueText;
         [SerializeField] private Button   resetCoinsButton;
+        [SerializeField] private Button   descriptionButton;
         [SerializeField] private Button   closeButton;
 
         private CanvasGroup _canvasGroup;
@@ -23,6 +24,7 @@ namespace SlotGame.View
         public event System.Action<float> OnBGMVolumeChanged;
         public event System.Action<float> OnSEVolumeChanged;
         public event System.Action        OnResetCoinsRequested;
+        public event System.Action        OnDescriptionRequested;
         public event System.Action        OnCloseRequested;
 
         private void Awake()
@@ -49,6 +51,16 @@ namespace SlotGame.View
                 PlayButtonClickSe();
                 OnResetCoinsRequested?.Invoke();
             });
+
+            if (descriptionButton != null)
+            {
+                descriptionButton.onClick.AddListener(() =>
+                {
+                    PlayButtonClickSe();
+                    OnDescriptionRequested?.Invoke();
+                });
+            }
+
             closeButton.onClick.AddListener(() =>
             {
                 PlayButtonClickSe();

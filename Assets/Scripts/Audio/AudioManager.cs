@@ -40,6 +40,8 @@ namespace SlotGame.Audio
         [SerializeField] private AudioClip seChestOpen;
         [SerializeField] private AudioClip seButtonClick;
 
+        private float _lastReelStopPlayTime = -1f;
+
         private void Awake()
         {
             ValidateConfiguration();
@@ -63,6 +65,12 @@ namespace SlotGame.Audio
 
         public void PlaySE(SEType type)
         {
+            if (type == SEType.ReelStop)
+            {
+                if (Time.time - _lastReelStopPlayTime < 0.05f) return;
+                _lastReelStopPlayTime = Time.time;
+            }
+
             var clip = type switch
             {
                 SEType.SpinStart      => seSpinStart,

@@ -150,6 +150,18 @@ namespace SlotGame.Core
             uiManager.SetAutoButtonText(GetAutoSpinButtonText());
             uiManager.SetSettingsVolumes(_bgmVolume, _seVolume);
             uiManager.PopulatePaytable(CollectSymbolDefinitions(), payoutData);
+            uiManager.SetGameDescriptionText(
+                "【ゲームルール】\n" +
+                "・25ペイラインの固定ラインスロットです。\n" +
+                "・左端から3つ以上の同一シンボルが並ぶと配当獲得！\n" +
+                "・WILDは全シンボルの代用となります（Scatter/Bonus除く）。\n\n" +
+                "【フリースピン】\n" +
+                "・SCATTER（魔法陣）が3つ以上出現で発動！\n" +
+                "・フリースピン中の配当は2倍にアップします。\n\n" +
+                "【ボーナスラウンド】\n" +
+                "・リール1・3・5すべてにBONUS（宝箱）が出現で発動！\n" +
+                "・宝箱を選んでランダムなコイン報酬を獲得できます。"
+            );
             uiManager.ApplyModeVisual(ModeVisualType.Normal);
             uiManager.BgmVolumeChanged += HandleBgmVolumeChanged;
             uiManager.SeVolumeChanged += HandleSeVolumeChanged;
@@ -157,6 +169,9 @@ namespace SlotGame.Core
             uiManager.SettingsCloseRequested += uiManager.HideSettings;
             uiManager.PaytableCloseRequested += uiManager.HidePaytable;
             uiManager.StatsCloseRequested    += uiManager.HideStats;
+            uiManager.GameDescriptionCloseRequested += uiManager.HideGameDescription;
+            uiManager.AutoSpinRequested      += OnAutoSpinButtonPressed;
+            uiManager.AutoSpinStopRequested  += OnAutoSpinStopRequested;
             spinManager.ReelStopped += HandleReelStopped;
             TransitionTo(GamePhase.Idle);
         }
@@ -205,6 +220,9 @@ namespace SlotGame.Core
                 uiManager.SettingsCloseRequested -= uiManager.HideSettings;
                 uiManager.PaytableCloseRequested -= uiManager.HidePaytable;
                 uiManager.StatsCloseRequested    -= uiManager.HideStats;
+                uiManager.GameDescriptionCloseRequested -= uiManager.HideGameDescription;
+                uiManager.AutoSpinRequested      -= OnAutoSpinButtonPressed;
+                uiManager.AutoSpinStopRequested  -= OnAutoSpinStopRequested;
             }
 
             if (spinManager != null)
@@ -283,6 +301,8 @@ namespace SlotGame.Core
                 uiManager.HideFreeSpinHUD();
                 uiManager.ClearLineHighlights();
                 uiManager.ApplyModeVisual(ModeVisualType.Normal);
+                uiManager.SetSpinButtonMode(false);
+                uiManager.SetSpinButtonInteractable(true);
                 TransitionTo(GamePhase.Idle);
             }
         }
@@ -295,6 +315,7 @@ namespace SlotGame.Core
 
             _isAutoSpinning = true;
             uiManager.SetAutoButtonText("ストップ");
+            uiManager.SetAutoSpinCountInteractable(false);
 
             try
             {
@@ -315,12 +336,16 @@ namespace SlotGame.Core
                 uiManager.HideFreeSpinHUD();
                 uiManager.ClearLineHighlights();
                 uiManager.ApplyModeVisual(ModeVisualType.Normal);
+                uiManager.SetSpinButtonMode(false);
+                uiManager.SetSpinButtonInteractable(true);
+                uiManager.SetAutoSpinCountInteractable(true);
                 TransitionTo(GamePhase.Idle);
             }
             finally
             {
                 _isAutoSpinning = false;
                 uiManager.SetAutoButtonText(GetAutoSpinButtonText());
+                uiManager.SetAutoSpinCountInteractable(true);
                 _autoSpinCts?.Dispose();
                 _autoSpinCts = null;
             }
@@ -339,7 +364,8 @@ namespace SlotGame.Core
 
             uiManager.UpdateCoins(_gameState.Coins);
             uiManager.UpdateWin(0); // Reset win display
-            uiManager.SetSpinButtonInteractable(false);
+            uiManager.SetSpinButtonMode(true); // "STOP" に変更
+            uiManager.SetAutoSpinCountInteractable(false);
             audioManager.PlaySE(SEType.SpinStart);
 
             TransitionTo(GamePhase.Spinning);
@@ -348,6 +374,9 @@ namespace SlotGame.Core
                 _config.ReelCount, _config.RowCount, _config.MinMatch,
                 _config.BonusTriggerReels); // ボーナストリガーリール
 
+            uiManager.SetSpinButtonMode(false); // "SPIN" に戻す
+            uiManager.SetSpinButtonInteractable(false); // 評価中は操作不可
+            uiManager.SetAutoSpinCountInteractable(false);
             TransitionTo(GamePhase.Evaluating);
 
             // 通常スピンの配当を加算
@@ -411,6 +440,7 @@ namespace SlotGame.Core
             }
 
             uiManager.SetSpinButtonInteractable(true);
+            if (!_isAutoSpinning) uiManager.SetAutoSpinCountInteractable(true);
             TransitionTo(GamePhase.Idle);
             return shouldStopAutoSpin;
         }
@@ -581,6 +611,14 @@ namespace SlotGame.Core
         {
             _gameState.SetCoins(_config.InitialCoins);
             uiManager.UpdateCoins(_gameState.Coins);
+
+            // 音量もデフォルトにリセット
+            _bgmVolume = _config.DefaultBgmVolume;
+            _seVolume = _config.DefaultSeVolume;
+            audioManager.SetBGMVolume(_bgmVolume);
+            audioManager.SetSEVolume(_seVolume);
+            uiManager.SetSettingsVolumes(_bgmVolume, _seVolume);
+
             SaveGame();
         }
 

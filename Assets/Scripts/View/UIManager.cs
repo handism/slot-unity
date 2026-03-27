@@ -31,6 +31,7 @@ namespace SlotGame.View
         [SerializeField] private SettingsView    settingsView = null!;
         [SerializeField] private PaytableView    paytableView = null!;
         [SerializeField] private StatsView       statsView    = null!;
+        [SerializeField] private GameDescriptionView gameDescriptionView = null!;
         [SerializeField] private PaylineView     paylinePrefab = null!;
         [SerializeField] private Transform       paylineParent = null!;
         [Header("Debug/Fallback")]
@@ -64,6 +65,9 @@ namespace SlotGame.View
         public event System.Action? SettingsCloseRequested;
         public event System.Action? PaytableCloseRequested;
         public event System.Action? StatsCloseRequested;
+        public event System.Action? GameDescriptionCloseRequested;
+        public event System.Action<int>? AutoSpinRequested;
+        public event System.Action?      AutoSpinStopRequested;
 
         private void Awake()
         {
@@ -72,7 +76,19 @@ namespace SlotGame.View
                 settingsView.OnBGMVolumeChanged += volume => BgmVolumeChanged?.Invoke(volume);
                 settingsView.OnSEVolumeChanged += volume => SeVolumeChanged?.Invoke(volume);
                 settingsView.OnResetCoinsRequested += () => ResetCoinsRequested?.Invoke();
+                settingsView.OnDescriptionRequested += () => ShowGameDescription();
                 settingsView.OnCloseRequested += () => SettingsCloseRequested?.Invoke();
+            }
+
+            if (gameDescriptionView != null)
+            {
+                gameDescriptionView.OnCloseRequested += () => GameDescriptionCloseRequested?.Invoke();
+            }
+
+            if (mainHUD != null)
+            {
+                mainHUD.OnAutoSpinRequested += count => AutoSpinRequested?.Invoke(count);
+                mainHUD.OnAutoSpinStopRequested += () => AutoSpinStopRequested?.Invoke();
             }
 
             if (paytableView != null)
@@ -90,13 +106,25 @@ namespace SlotGame.View
         {
             CacheReelViews();
             EnsureModeVisuals();
+            EnsureResolutionManager();
+        }
+
+        private void EnsureResolutionManager()
+        {
+            _mainCamera ??= Camera.main;
+            if (_mainCamera != null && _mainCamera.GetComponent<SlotGame.Utility.ResolutionManager>() == null)
+            {
+                _mainCamera.gameObject.AddComponent<SlotGame.Utility.ResolutionManager>();
+            }
         }
 
         public void UpdateCoins(long coins)    => mainHUD.SetCoins(coins);
         public void UpdateBet(int bet)         => mainHUD.SetBet(bet);
         public void UpdateWin(long amount)     => mainHUD.SetWin(amount);
         public void SetSpinButtonInteractable(bool interactable) => mainHUD.SetSpinInteractable(interactable);
-        public void SetAutoButtonText(string text) => mainHUD.SetAutoButtonText(text);
+        public void SetSpinButtonMode(bool isStopMode)           => mainHUD.SetSpinButtonMode(isStopMode);
+        public void SetAutoButtonText(string text)               => mainHUD.SetAutoButtonText(text);
+        public void SetAutoSpinCountInteractable(bool interactable) => mainHUD.SetAutoSpinCountInteractable(interactable);
 
         public async UniTask ShowWinAmount(long amount, WinLevel level)
             => await winPopup.Show(amount, level, this.GetCancellationTokenOnDestroy());
@@ -413,6 +441,17 @@ namespace SlotGame.View
 
         public void HideStats() => HideStatsAsync(this.GetCancellationTokenOnDestroy()).Forget();
 
+        public void ShowGameDescription()
+        {
+            if (gameDescriptionView == null) return;
+            SetHudInteractable(false);
+            gameDescriptionView.ShowAsync(this.GetCancellationTokenOnDestroy()).Forget();
+        }
+
+        public void HideGameDescription() => HideGameDescriptionAsync(this.GetCancellationTokenOnDestroy()).Forget();
+
+        public void SetGameDescriptionText(string text) => gameDescriptionView?.SetDescription(text);
+
         public void UpdateStats(in SlotGame.Model.SessionStats stats) => statsView?.UpdateDisplay(stats);
 
         private async UniTaskVoid HideSettingsAsync(CancellationToken ct)
@@ -430,6 +469,12 @@ namespace SlotGame.View
         private async UniTaskVoid HideStatsAsync(CancellationToken ct)
         {
             if (statsView != null) await statsView.HideAsync(ct);
+            SetHudInteractable(true);
+        }
+
+        private async UniTaskVoid HideGameDescriptionAsync(CancellationToken ct)
+        {
+            if (gameDescriptionView != null) await gameDescriptionView.HideAsync(ct);
             SetHudInteractable(true);
         }
 
