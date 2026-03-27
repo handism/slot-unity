@@ -119,19 +119,22 @@ namespace SlotGame.View
             if (autoSpinButton == null || autoSpinCounts == null) return;
 
             var parent = autoSpinButton.transform.parent;
-            // 既存のボタンのレイアウトを崩さないよう調整
-            var horizontalLayout = parent.GetComponent<HorizontalLayoutGroup>();
-            
-            foreach (var count in autoSpinCounts)
+            int insertIndex = autoSpinButton.transform.GetSiblingIndex();
+
+            for (int i = 0; i < autoSpinCounts.Length; i++)
             {
+                int count = autoSpinCounts[i];
                 var btnGo = Instantiate(autoSpinButton.gameObject, parent);
                 btnGo.name = $"AutoSpin_{count}";
+                // autoSpinButton の直前に順番通り挿入
+                btnGo.transform.SetSiblingIndex(insertIndex + i);
+
                 var btn = btnGo.GetComponent<Button>();
                 var txt = btnGo.GetComponentInChildren<TMP_Text>();
                 if (txt != null)
                 {
                     txt.text = count.ToString();
-                    txt.fontSize = 14f; // 小さく調整
+                    txt.fontSize = 14f;
                 }
 
                 btn.onClick.RemoveAllListeners();
