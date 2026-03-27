@@ -404,11 +404,7 @@ namespace SlotGame.Core
                 {
                     uiManager.UpdateWin(result.TotalWinAmount);
                     PlayWinSe(result.TotalWinAmount);
-                    // ポップアップとハイライトを並行実行
-                    await UniTask.WhenAll(
-                        uiManager.ShowWinAmount(result.TotalWinAmount, CalcWinLevel(result.TotalWinAmount)),
-                        uiManager.HighlightWinLinesAsync(result, ct, paylineData)
-                    );
+                    await uiManager.ShowWinAndHighlightAsync(result.TotalWinAmount, CalcWinLevel(result.TotalWinAmount), result, ct, paylineData);
                 }
                 else
                 {
@@ -511,10 +507,7 @@ namespace SlotGame.Core
                     uiManager.ShowFreeSpinHUD(_gameState.FreeSpinsLeft, cumulativeFreeSpinWin);
                     if (result.TotalWinAmount > 0)
                     {
-                        await UniTask.WhenAll(
-                            uiManager.ShowWinAmount(win, CalcWinLevel(win)),
-                            uiManager.HighlightWinLinesAsync(result, ct, paylineData)
-                        );
+                        await uiManager.ShowWinAndHighlightAsync(win, CalcWinLevel(win), result, ct, paylineData);
                         await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: ct);
                         uiManager.ClearLineHighlights();
                     }

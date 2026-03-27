@@ -132,6 +132,35 @@ namespace SlotGame.View
         public async UniTask ShowWinAmount(long amount, WinLevel level)
             => await winPopup.Show(amount, level, this.GetCancellationTokenOnDestroy());
 
+        /// <summary>
+        /// WinPopup 表示とペイラインハイライトを連動させて実行する。
+        /// ポップアップが閉じると同時にアニメーションを停止する。
+        /// </summary>
+        public async UniTask ShowWinAndHighlightAsync(long amount, WinLevel level, SpinResult result, CancellationToken ct, PaylineData? overridePaylineData = null)
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, this.GetCancellationTokenOnDestroy());
+
+            await UniTask.WhenAll(
+                winPopup.Show(amount, level, cts.Token),
+                HighlightWinLinesAsync(result, cts.Token, overridePaylineData)
+            );
+
+            // ポップアップ終了後にアニメーションを停止
+            StopWinAnimations();
+        }
+
+        private void StopWinAnimations()
+        {
+            if (_reelViews == null) return;
+            foreach (var reel in _reelViews)
+            {
+                for (int row = 0; row < 3; row++)
+                {
+                    reel.GetSymbolView(row)?.StopPulseAnimation();
+                }
+            }
+        }
+
         public void SetupReels(IEnumerable<ReelView> reels)
         {
             _reelViews = reels.ToArray();
