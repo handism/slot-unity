@@ -198,7 +198,9 @@ namespace SlotGame.Core
                 10,
                 0.8f,
                 1.0f,
-                "SALTY_SLOT_2026");
+                "SALTY_SLOT_2026",
+                0.8f,
+                0.1f);
         }
 
         private void OnApplicationPause(bool pauseStatus)

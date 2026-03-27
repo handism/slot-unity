@@ -14,6 +14,8 @@ namespace SlotGame.Utility
         private readonly string     _savePath;
         private readonly SlotConfig _config;
 
+        public SlotConfig Config => _config;
+
         public SaveDataManager(SlotConfig config = null)
             : this(Path.Combine(Application.persistentDataPath, "savedata.json"), config) { }
 

@@ -1,4 +1,5 @@
 #nullable enable
+#nullable enable
 using DG.Tweening;
 using SlotGame.Audio;
 using TMPro;
@@ -11,22 +12,22 @@ namespace SlotGame.View
     /// <summary>メイン HUD（コイン残高・ベット選択・スピンボタン）の表示担当 View。</summary>
     public class MainHUDView : MonoBehaviour
     {
-        [SerializeField] private TMP_Text coinText;
-        [SerializeField] private TMP_Text winText;
-        [SerializeField] private Button   spinButton;
-        [SerializeField] private Button   autoSpinButton;
-        [SerializeField] private Button   turboButton;
+        [SerializeField] private TMP_Text coinText = null!;
+        [SerializeField] private TMP_Text winText = null!;
+        [SerializeField] private Button   spinButton = null!;
+        [SerializeField] private Button   autoSpinButton = null!;
+        [SerializeField] private Button   turboButton = null!;
         [SerializeField] private int[]    autoSpinCounts = { 10, 25, 50, 100 };
-        [SerializeField] private TMP_Text spinButtonText;
-        [SerializeField] private TMP_Text autoButtonText;
+        [SerializeField] private TMP_Text spinButtonText = null!;
+        [SerializeField] private TMP_Text autoButtonText = null!;
 
         // ベット選択ボタン群（Inspector でボタンと値を紐付け）
-        [SerializeField] private Button[] betButtons;
-        [SerializeField] private int[]    betValues;   // { 10, 20, 50, 100 }
+        [SerializeField] private Button[] betButtons = null!;
+        [SerializeField] private int[]    betValues = null!;   // { 10, 20, 50, 100 }
 
         private long _displayedCoins;
         private long _displayedWin;
-        private AudioManager _audioManager;
+        private AudioManager? _audioManager;
         private List<Button> _autoSpinCountButtons = new();
 
         public event System.Action<int>? OnAutoSpinRequested;
@@ -168,7 +169,7 @@ namespace SlotGame.View
                 var image = button != null ? button.GetComponent<Image>() : null;
                 var label = button != null ? button.GetComponentInChildren<TMP_Text>() : null;
 
-                if (image != null)
+                if (image != null && button != null)
                 {
                     image.color = Color.white;
                     var grad = image.GetComponent<UIGradient>() ?? image.gameObject.AddComponent<UIGradient>();
