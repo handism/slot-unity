@@ -24,6 +24,10 @@ namespace SlotGame.Data
         [Header("Auto Spin")]
         public int defaultAutoSpinCount = 10;
 
+        [Header("Turbo Mode")]
+        public float turboSpinDuration = 0.5f;
+        public float turboStopInterval = 0.1f;
+
         [Header("Audio Defaults")]
         public float defaultBgmVolume = 0.8f;
         public float defaultSeVolume = 1.0f;
@@ -47,7 +51,9 @@ namespace SlotGame.Data
                 defaultAutoSpinCount,
                 defaultBgmVolume,
                 defaultSeVolume,
-                checksumSalt
+                checksumSalt,
+                turboSpinDuration,
+                turboStopInterval
             );
         }
     }

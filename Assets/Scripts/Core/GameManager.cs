@@ -172,6 +172,7 @@ namespace SlotGame.Core
             uiManager.GameDescriptionCloseRequested += uiManager.HideGameDescription;
             uiManager.AutoSpinRequested      += OnAutoSpinButtonPressed;
             uiManager.AutoSpinStopRequested  += OnAutoSpinStopRequested;
+            uiManager.TurboToggled           += OnTurboToggled;
             spinManager.ReelStopped += HandleReelStopped;
             TransitionTo(GamePhase.Idle);
         }
@@ -262,6 +263,11 @@ namespace SlotGame.Core
         public void OnAutoSpinStopRequested()
         {
             _autoSpinCts?.Cancel();
+        }
+
+        public void OnTurboToggled(bool enabled)
+        {
+            _gameState.SetTurbo(enabled);
         }
 
         public void OnBetChanged(int newBet)

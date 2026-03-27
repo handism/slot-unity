@@ -15,6 +15,7 @@ namespace SlotGame.View
         [SerializeField] private TMP_Text winText;
         [SerializeField] private Button   spinButton;
         [SerializeField] private Button   autoSpinButton;
+        [SerializeField] private Button   turboButton;
         [SerializeField] private int[]    autoSpinCounts = { 10, 25, 50, 100 };
         [SerializeField] private TMP_Text spinButtonText;
         [SerializeField] private TMP_Text autoButtonText;
@@ -30,6 +31,9 @@ namespace SlotGame.View
 
         public event System.Action<int>? OnAutoSpinRequested;
         public event System.Action?      OnAutoSpinStopRequested;
+        public event System.Action<bool>? OnTurboToggled;
+
+        private bool _isTurbo;
 
         private void Awake()
         {
@@ -95,6 +99,18 @@ namespace SlotGame.View
 
                 // 回数選択ボタンを動的に生成
                 CreateAutoSpinSelectors();
+            }
+
+            if (turboButton != null)
+            {
+                turboButton.onClick.AddListener(() =>
+                {
+                    _isTurbo = !_isTurbo;
+                    turboButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
+                    PlayButtonClickSe();
+                    UpdateTurboVisual();
+                    OnTurboToggled?.Invoke(_isTurbo);
+                });
             }
         }
 
@@ -225,6 +241,37 @@ namespace SlotGame.View
             foreach (var btn in _autoSpinCountButtons)
             {
                 if (btn != null) btn.interactable = interactable;
+            }
+        }
+
+        public void SetTurbo(bool enabled)
+        {
+            _isTurbo = enabled;
+            UpdateTurboVisual();
+        }
+
+        private void UpdateTurboVisual()
+        {
+            if (turboButton == null) return;
+            var txt = turboButton.GetComponentInChildren<TMP_Text>();
+            if (txt != null)
+            {
+                txt.text = _isTurbo ? "TURBO: ON" : "TURBO: OFF";
+                txt.color = _isTurbo ? Color.yellow : Color.white;
+            }
+
+            var image = turboButton.GetComponent<Image>();
+            if (image != null)
+            {
+                var grad = image.GetComponent<UIGradient>() ?? image.gameObject.AddComponent<UIGradient>();
+                if (_isTurbo)
+                {
+                    grad.SetColors(new Color(1f, 0.8f, 0.2f), new Color(0.6f, 0.4f, 0f));
+                }
+                else
+                {
+                    grad.SetColors(new Color(0.4f, 0.4f, 0.4f), new Color(0.2f, 0.2f, 0.2f));
+                }
             }
         }
 
