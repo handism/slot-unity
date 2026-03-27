@@ -68,6 +68,7 @@ namespace SlotGame.View
         public event System.Action? GameDescriptionCloseRequested;
         public event System.Action<int>? AutoSpinRequested;
         public event System.Action?      AutoSpinStopRequested;
+        public event System.Action<bool>? TurboToggled;
 
         private void Awake()
         {
@@ -89,6 +90,7 @@ namespace SlotGame.View
             {
                 mainHUD.OnAutoSpinRequested += count => AutoSpinRequested?.Invoke(count);
                 mainHUD.OnAutoSpinStopRequested += () => AutoSpinStopRequested?.Invoke();
+                mainHUD.OnTurboToggled += enabled => TurboToggled?.Invoke(enabled);
             }
 
             if (paytableView != null)
@@ -125,6 +127,7 @@ namespace SlotGame.View
         public void SetSpinButtonMode(bool isStopMode)           => mainHUD.SetSpinButtonMode(isStopMode);
         public void SetAutoButtonText(string text)               => mainHUD.SetAutoButtonText(text);
         public void SetAutoSpinCountInteractable(bool interactable) => mainHUD.SetAutoSpinCountInteractable(interactable);
+        public void SetTurbo(bool enabled) => mainHUD.SetTurbo(enabled);
 
         public async UniTask ShowWinAmount(long amount, WinLevel level)
             => await winPopup.Show(amount, level, this.GetCancellationTokenOnDestroy());
