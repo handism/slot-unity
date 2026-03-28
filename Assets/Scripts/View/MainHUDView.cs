@@ -241,7 +241,10 @@ namespace SlotGame.View
                 if (txt != null) { txt.text = count.ToString(); txt.fontSize = 16f; }
 
                 var btn = btnGo.GetComponent<Button>();
-                btn.onClick.RemoveAllListeners();
+                // 重要: インスペクター上で設定された永続イベント（Persistent Call）も含めて
+                // 全てクリアするために、新しいイベントインスタンスで上書きする。
+                btn.onClick = new Button.ButtonClickedEvent(); 
+                
                 btn.onClick.AddListener(() =>
                 {
                     btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);

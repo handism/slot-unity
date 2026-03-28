@@ -99,8 +99,14 @@ namespace SlotGame.Core
 
             var selectedMultipliers = await view.WaitForSelection(rewards, ct);
             long totalWin = 0;
+            int  totalMultiplier = 0;
             foreach (int mul in selectedMultipliers)
+            {
+                totalMultiplier += mul;
                 totalWin += (long)mul * betAmount;
+            }
+
+            await view.ShowResultAsync(totalMultiplier, ct);
 
             await SceneManager.UnloadSceneAsync("BonusRound").ToUniTask(cancellationToken: ct);
             return totalWin;

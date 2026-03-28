@@ -452,52 +452,50 @@ namespace SlotGame.Core
                     _autoSpinCount = count - i;
                     uiManager.SetAutoButtonText($"ストップ ({_autoSpinCount})");
 
-                    // ストップがリクエストされていたら、次のスピンを開始せずに抜ける
                     if (ct.IsCancellationRequested) break;
 
-                    // destroyToken を渡すことで、現在の 1 ゲームが完了するまでは中断されないようにする
-                    bool shouldStopAutoSpin = await SpinOnceAsync(destroyToken);
+                    // 1スピン実行
+                    bool forceStop = await SpinOnceAsync(destroyToken);
                     
-                    // ボーナス発動・フリースピン発動・コイン不足で自動停止
-                    if (shouldStopAutoSpin || _currentPhase != GamePhase.Idle) break;
+                    // コイン不足時のみループを抜ける（ボーナス等は終わったら継続）
+                    if (forceStop && _gameState.Coins < _gameState.BetAmount) break;
+                    
+                    // 次のスピン前に少し待機（演出を見せるため）
+                    await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: destroyToken);
                 }
             }
             catch (OperationCanceledException)
             {
-                // 中断時は必要に応じてクリーンアップ
-                if (_currentPhase != GamePhase.Idle)
-                {
-                    TransitionTo(GamePhase.Idle);
-                }
+                // 中断時は Idle へ強制復帰
+                TransitionTo(GamePhase.Idle);
             }
             finally
             {
                 _isAutoSpinning = false;
-                // 残りの回数を保持するか、デフォルトに戻すかは仕様によるが、
-                // ここでは次にボタンを押したときのために、停止時の残り回数を保持する
-                if (_autoSpinCount <= 0) _autoSpinCount = _config.DefaultAutoSpinCount;
+                if (_autoSpinCount <= 1) _autoSpinCount = _config.DefaultAutoSpinCount;
                 
                 uiManager.SetAutoButtonText(GetAutoSpinButtonText());
                 uiManager.SetAutoSpinCountInteractable(true);
                 _autoSpinCts?.Dispose();
                 _autoSpinCts = null;
+                
+                // 確実に Idle で終わるようにする
+                if (_currentPhase != GamePhase.Idle) TransitionTo(GamePhase.Idle);
             }
         }
 
         private async UniTask<bool> SpinOnceAsync(CancellationToken ct)
         {
-            bool shouldStopAutoSpin = false;
-
             // コイン不足チェック
             if (!_gameState.DeductBet())
             {
                 await HandleGameOver();
-                return true;
+                return true; // オート停止
             }
 
             uiManager.UpdateCoins(_gameState.Coins);
-            uiManager.UpdateWin(0); // Reset win display
-            uiManager.SetSpinButtonMode(true); // "STOP" に変更
+            uiManager.UpdateWin(0);
+            uiManager.SetSpinButtonMode(true);
             uiManager.SetAutoSpinCountInteractable(false);
             audioManager.PlaySE(SEType.SpinStart);
 
@@ -505,14 +503,12 @@ namespace SlotGame.Core
             var result = await spinManager.ExecuteSpin(
                 reelStrips, paylineData, payoutData, _gameState.BetAmount, ct,
                 _config.ReelCount, _config.RowCount, _config.MinMatch,
-                _config.BonusTriggerReels); // ボーナストリガーリール
+                _config.BonusTriggerReels);
 
-            uiManager.SetSpinButtonMode(false); // "SPIN" に戻す
-            uiManager.SetSpinButtonInteractable(false); // 評価中は操作不可
-            uiManager.SetAutoSpinCountInteractable(false);
+            uiManager.SetSpinButtonMode(false);
+            uiManager.SetSpinButtonInteractable(false);
             TransitionTo(GamePhase.Evaluating);
 
-            // 通常スピンの配当を加算
             if (result.TotalWinAmount > 0 || result.HasBonusCondition || result.HasScatter)
             {
                 if (result.TotalWinAmount > 0)
@@ -533,27 +529,13 @@ namespace SlotGame.Core
                     var winLevel = CalcWinLevel(result.TotalWinAmount, _gameState.BetAmount);
                     PlayWinSe(result.TotalWinAmount, _gameState.BetAmount);
 
-                    // BigWin以上はBGMをフェードアウトしてファンファーレSEを際立たせる
-                    if (winLevel >= WinLevel.Big)
-                    {
-                        await audioManager.FadeOutBGM(0.3f, ct);
-                    }
-
+                    if (winLevel >= WinLevel.Big) await audioManager.FadeOutBGM(0.3f, ct);
                     await uiManager.ShowWinAndHighlightAsync(result.TotalWinAmount, winLevel, result, ct, paylineData);
-
-                    // BigWin演出後はNormal BGMへクロスフェードで復帰
-                    if (winLevel >= WinLevel.Big)
-                    {
-                        await audioManager.CrossFadeBGM(BGMType.Normal, 0.5f, ct);
-                    }
+                    if (winLevel >= WinLevel.Big) await audioManager.CrossFadeBGM(BGMType.Normal, 0.5f, ct);
                 }
                 else
                 {
-                    if (result.HasScatter)
-                    {
-                        audioManager.PlaySE(SEType.ScatterAppear);
-                    }
-                    // Scatter または BonusCondition がある場合のハイライト（配当なしでも表示）
+                    if (result.HasScatter) audioManager.PlaySE(SEType.ScatterAppear);
                     await uiManager.HighlightWinLinesAsync(result, ct, paylineData);
                 }
 
@@ -569,24 +551,23 @@ namespace SlotGame.Core
             SaveGame();
             uiManager.UpdateStats(_gameState.GetSessionStats());
 
-            // ボーナス判定
-            bool pendingFreeSpin = result.HasScatter;
+            // ボーナス・フリースピン判定
             if (result.HasBonusCondition)
             {
-                shouldStopAutoSpin = true;
                 await HandleBonusRound(ct);
             }
 
-            if (pendingFreeSpin)
+            if (result.HasScatter)
             {
-                shouldStopAutoSpin = true;
                 await HandleFreeSpins(result.ScatterCount, ct);
             }
 
             uiManager.SetSpinButtonInteractable(true);
             if (!_isAutoSpinning) uiManager.SetAutoSpinCountInteractable(true);
-            TransitionTo(GamePhase.Idle);
-            return shouldStopAutoSpin;
+            
+            // どんな演出が終わっても必ず Idle に戻す
+            _currentPhase = GamePhase.Idle; 
+            return false;
         }
 
         private async UniTask HandleBonusRound(CancellationToken ct)

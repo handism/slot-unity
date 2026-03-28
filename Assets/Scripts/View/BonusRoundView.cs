@@ -22,8 +22,12 @@ namespace SlotGame.View
         [SerializeField] private Button[]   chestButtons;       // 9 個の宝箱ボタン
         [SerializeField] private TMP_Text[] rewardTexts;        // 各宝箱の報酬表示
         [SerializeField] private TMP_Text   totalWinText;
+        [SerializeField] private TMP_Text   instructionText;    // 操作説明テキスト
+        [SerializeField] private GameObject resultPanel;        // 結果表示パネル
+        [SerializeField] private TMP_Text   resultMultiplierText; // 合計倍率テキスト
 
         private UniTaskCompletionSource<int[]> _tcs;
+        private UniTaskCompletionSource         _resultDismissTcs;
         private List<int>                      _selectedRewards;
         private int                            _selectRemaining;
         private int[]                          _rewards;         // 事前に BonusManager が設定した報酬値
@@ -37,6 +41,7 @@ namespace SlotGame.View
                 int idx = i;
                 chestButtons[i].onClick.AddListener(() => OnChestSelected(idx));
             }
+            if (resultPanel != null) resultPanel.SetActive(false);
         }
 
         /// <summary>
@@ -57,6 +62,9 @@ namespace SlotGame.View
                 rewardTexts[i].gameObject.SetActive(false);
             }
             totalWinText.text = "0";
+            if (instructionText != null)
+                instructionText.text = $"宝箱を {SelectCount} 個選んでください！";
+            if (resultPanel != null) resultPanel.SetActive(false);
 
             // キャンセル時は tcs を cancel
             ct.Register(() => _tcs.TrySetCanceled());
@@ -112,6 +120,8 @@ namespace SlotGame.View
                         chestButtons[i].interactable = false;
                     }
 
+                if (instructionText != null) instructionText.text = "";
+
                 await UniTask.Delay(1500);
                 _tcs.TrySetResult(_selectedRewards.ToArray());
             }
@@ -121,6 +131,30 @@ namespace SlotGame.View
         {
             _audioManager ??= FindFirstObjectByType<AudioManager>();
             _audioManager?.PlaySE(type);
+        }
+
+        /// <summary>
+        /// 合計倍率を結果パネルに表示し、ユーザーが閉じるまで待機する。
+        /// </summary>
+        public async UniTask ShowResultAsync(int totalMultiplier, CancellationToken ct)
+        {
+            if (resultPanel == null) { await UniTask.Delay(2000, cancellationToken: ct); return; }
+
+            if (resultMultiplierText != null)
+                resultMultiplierText.text = $"合計倍率　×{totalMultiplier}";
+
+            _resultDismissTcs = new UniTaskCompletionSource();
+            ct.Register(() => _resultDismissTcs.TrySetCanceled());
+
+            resultPanel.SetActive(true);
+            await _resultDismissTcs.Task;
+            resultPanel.SetActive(false);
+        }
+
+        /// <summary>結果パネルの「OK」ボタンから呼ぶ。</summary>
+        public void OnResultDismissed()
+        {
+            _resultDismissTcs?.TrySetResult();
         }
     }
 }
