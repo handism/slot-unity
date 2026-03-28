@@ -29,12 +29,15 @@ namespace SlotGame.View
         private long _displayedWin;
         private AudioManager? _audioManager;
         private List<Button> _autoSpinCountButtons = new();
+        private GameObject? _autoSpinPopup;
+        private bool _popupOpen;
 
         public event System.Action<int>? OnAutoSpinRequested;
         public event System.Action?      OnAutoSpinStopRequested;
         public event System.Action<bool>? OnTurboToggled;
 
         private bool _isTurbo;
+        private bool _isAutoRunning;
 
         private void Awake()
         {
@@ -95,11 +98,21 @@ namespace SlotGame.View
                 {
                     autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
                     PlayButtonClickSe();
-                    OnAutoSpinStopRequested?.Invoke();
+                    if (_isAutoRunning)
+                    {
+                        OnAutoSpinStopRequested?.Invoke();
+                    }
+                    else if (_popupOpen)
+                    {
+                        CloseAutoSpinPopup();
+                    }
+                    else
+                    {
+                        OpenAutoSpinPopup();
+                    }
                 });
 
-                // 回数選択ボタンを動的に生成
-                CreateAutoSpinSelectors();
+                BuildAutoSpinPopup();
             }
 
             if (turboButton != null)
@@ -115,40 +128,87 @@ namespace SlotGame.View
             }
         }
 
-        private void CreateAutoSpinSelectors()
+        private void BuildAutoSpinPopup()
         {
             if (autoSpinButton == null || autoSpinCounts == null) return;
 
-            var parent = autoSpinButton.transform.parent;
-            int insertIndex = autoSpinButton.transform.GetSiblingIndex();
+            // autoSpinButton の RectTransform を基準にポップアップを作成
+            var autoRect = autoSpinButton.GetComponent<RectTransform>();
+
+            var popupGo = new GameObject("AutoSpinPopup", typeof(RectTransform));
+            popupGo.transform.SetParent(autoSpinButton.transform.parent, false);
+            popupGo.transform.SetAsLastSibling();
+
+            var popupRect = popupGo.GetComponent<RectTransform>();
+            // autoSpinButton と同じアンカー・ピボット・X位置に合わせる
+            popupRect.anchorMin = autoRect.anchorMin;
+            popupRect.anchorMax = autoRect.anchorMax;
+            popupRect.pivot     = new Vector2(autoRect.pivot.x, 0f);
+
+            const float btnH = 52f;
+            const float gap  = 4f;
+            float totalH = autoSpinCounts.Length * btnH + (autoSpinCounts.Length - 1) * gap;
+            popupRect.sizeDelta = new Vector2(autoRect.sizeDelta.x, totalH);
+            // autoSpinButton の上端から gap 分上に配置
+            popupRect.anchoredPosition = new Vector2(
+                autoRect.anchoredPosition.x,
+                autoRect.anchoredPosition.y + autoRect.sizeDelta.y + gap
+            );
+
+            // 背景
+            var bg = popupGo.AddComponent<Image>();
+            bg.color = new Color(0.04f, 0.08f, 0.14f, 0.92f);
+            bg.raycastTarget = true;
 
             for (int i = 0; i < autoSpinCounts.Length; i++)
             {
                 int count = autoSpinCounts[i];
-                var btnGo = Instantiate(autoSpinButton.gameObject, parent);
+                var btnGo = Instantiate(autoSpinButton.gameObject, popupGo.transform);
                 btnGo.name = $"AutoSpin_{count}";
-                // autoSpinButton の直前に順番通り挿入
-                btnGo.transform.SetSiblingIndex(insertIndex + i);
+
+                var btnRect = btnGo.GetComponent<RectTransform>();
+                btnRect.anchorMin = new Vector2(0f, 0f);
+                btnRect.anchorMax = new Vector2(1f, 0f);
+                btnRect.pivot     = new Vector2(0.5f, 0f);
+                // 下から順に積む（index 0 が一番下）
+                btnRect.anchoredPosition = new Vector2(0f, i * (btnH + gap));
+                btnRect.sizeDelta = new Vector2(0f, btnH);
+
+                var txt = btnGo.GetComponentInChildren<TMP_Text>();
+                if (txt != null) { txt.text = count.ToString(); txt.fontSize = 16f; }
 
                 var btn = btnGo.GetComponent<Button>();
-                var txt = btnGo.GetComponentInChildren<TMP_Text>();
-                if (txt != null)
-                {
-                    txt.text = count.ToString();
-                    txt.fontSize = 14f;
-                }
-
                 btn.onClick.RemoveAllListeners();
                 btn.onClick.AddListener(() =>
                 {
                     btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
                     PlayButtonClickSe();
+                    CloseAutoSpinPopup();
                     OnAutoSpinRequested?.Invoke(count);
                 });
 
-                btnGo.transform.localScale = Vector3.one * 0.9f;
                 _autoSpinCountButtons.Add(btn);
             }
+
+            _autoSpinPopup = popupGo;
+            popupGo.SetActive(false);
+        }
+
+        private void OpenAutoSpinPopup()
+        {
+            if (_autoSpinPopup == null) return;
+            _popupOpen = true;
+            _autoSpinPopup.SetActive(true);
+            _autoSpinPopup.transform.localScale = new Vector3(1f, 0f, 1f);
+            _autoSpinPopup.transform.DOScaleY(1f, 0.15f).SetEase(Ease.OutBack).SetUpdate(true);
+        }
+
+        private void CloseAutoSpinPopup()
+        {
+            if (_autoSpinPopup == null) return;
+            _popupOpen = false;
+            _autoSpinPopup.transform.DOScaleY(0f, 0.1f).SetEase(Ease.InQuad).SetUpdate(true)
+                .OnComplete(() => _autoSpinPopup.SetActive(false));
         }
 
         public void SetCoins(long coins)
@@ -238,14 +298,15 @@ namespace SlotGame.View
         {
             if (autoButtonText != null)
                 autoButtonText.text = text;
+            _isAutoRunning = text != "AUTO";
         }
 
         public void SetAutoSpinCountInteractable(bool interactable)
         {
             foreach (var btn in _autoSpinCountButtons)
-            {
                 if (btn != null) btn.interactable = interactable;
-            }
+
+            if (!interactable) CloseAutoSpinPopup();
         }
 
         public void SetTurbo(bool enabled)

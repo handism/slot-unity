@@ -54,7 +54,7 @@ namespace SlotGame.View
             _messageText.font = TMP_Settings.defaultFontAsset;
             _messageText.fontSize = 32;
             _messageText.alignment = TextAlignmentOptions.Center;
-            _messageText.enableWordWrapping = true;
+            _messageText.textWrappingMode = TextWrappingModes.Normal;
             _messageText.color = Color.white;
 
             // 次へボタン
