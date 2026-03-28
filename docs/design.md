@@ -422,6 +422,36 @@ public class SaveDataManager
 }
 ```
 
+#### チェックサム計算式
+
+チェックサムは以下の手順で計算する。
+
+1. **ソルト値の取得**  
+   `SlotConfig.ChecksumSalt`（`GameConfigData.checksumSalt` フィールドから供給）を使用する。  
+   `SlotConfig` が `null` の場合はフォールバック値 `"SALTY_SLOT_2026"` を使用する。
+
+2. **ハッシュ入力文字列の構築**  
+   以下のフィールドをコロン区切りで結合する（`seVolume` は小数点以下 2 桁固定）。
+   ```
+   {coins}:{betAmount}:{bgmVolume:F2}:{seVolume:F2}:{totalSpins}:{maxWin}:{saveVersion}:{salt}
+   ```
+
+3. **SHA256 ハッシュの計算**  
+   上記文字列を UTF-8 エンコードし、`SHA256.ComputeHash()` でハッシュバイト列を得る。
+
+4. **Base64 エンコード**  
+   ハッシュバイト列を `Convert.ToBase64String()` で Base64 文字列に変換し、`SaveData.checksum` に格納する。
+
+```csharp
+// 実装例（SaveDataManager.CalculateChecksum）
+string salt = config != null ? config.ChecksumSalt : "SALTY_SLOT_2026";
+string raw  = $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}"
+            + $":{data.totalSpins}:{data.maxWin}:{data.saveVersion}:{salt}";
+using var sha256 = SHA256.Create();
+byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(raw));
+return Convert.ToBase64String(bytes);
+```
+
 ---
 
 ### 4.6 UI 演出コンポーネント
