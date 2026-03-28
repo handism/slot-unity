@@ -20,7 +20,6 @@ namespace SlotGame.Audio
     {
         [Header("Audio Sources")]
         [SerializeField] private AudioSource bgmSource;
-        [SerializeField] private AudioSource bgmSourceSub;  // クロスフェード用サブソース
         [SerializeField] private AudioSource seSource;
 
         [Header("BGM Clips")]
@@ -45,65 +44,28 @@ namespace SlotGame.Audio
         private float _preMuteBgmVolume = 0.8f;
         private float _preMuteSeVolume = 1.0f;
         private bool  _isMuted;
-        private float _bgmTargetVolume = 1f;
-        private AudioSource _activeBgm;
-        private AudioSource _inactiveBgm;
 
         public bool IsMuted => _isMuted;
 
         private void Awake()
         {
-            _activeBgm   = bgmSource;
-            _inactiveBgm = bgmSourceSub;
             ValidateConfiguration();
             PreloadAssignedClips();
         }
 
         public void PlayBGM(BGMType type)
         {
-            var clip = GetBGMClip(type);
+            var clip = type switch
+            {
+                BGMType.Normal     => bgmNormal,
+                BGMType.FreeSpin   => bgmFreeSpin,
+                BGMType.BonusRound => bgmBonusRound,
+                _ => throw new ArgumentOutOfRangeException(nameof(type))
+            };
             if (clip == null) return;
-
-            _inactiveBgm.Stop();
-            _activeBgm.clip   = clip;
-            _activeBgm.loop   = true;
-            _activeBgm.volume = _bgmTargetVolume;
-            _activeBgm.Play();
-        }
-
-        /// <summary>現在のBGMをフェードアウトしながら次のBGMをフェードインする（クロスフェード）。</summary>
-        public async UniTask CrossFadeBGM(BGMType type, float duration, CancellationToken ct)
-        {
-            var clip = GetBGMClip(type);
-            if (clip == null) return;
-
-            // 同じクリップへの切り替えは何もしない
-            if (_activeBgm.clip == clip && _activeBgm.isPlaying) return;
-
-            _inactiveBgm.clip   = clip;
-            _inactiveBgm.loop   = true;
-            _inactiveBgm.volume = 0f;
-            _inactiveBgm.Play();
-
-            float fromVolume = _activeBgm.volume;
-            var fadeOut = DOTween.To(
-                () => _activeBgm.volume,
-                v  => _activeBgm.volume = v,
-                0f, duration);
-            var fadeIn = DOTween.To(
-                () => _inactiveBgm.volume,
-                v  => _inactiveBgm.volume = v,
-                _bgmTargetVolume, duration);
-
-            await UniTask.WhenAll(
-                fadeOut.ToUniTask(cancellationToken: ct),
-                fadeIn.ToUniTask(cancellationToken: ct));
-
-            _activeBgm.Stop();
-            _activeBgm.volume = fromVolume; // 次回フェード用に音量を戻す
-
-            // アクティブソースを入れ替え
-            (_activeBgm, _inactiveBgm) = (_inactiveBgm, _activeBgm);
+            bgmSource.clip = clip;
+            bgmSource.loop = true;
+            bgmSource.Play();
         }
 
         public void PlaySE(SEType type)
@@ -136,9 +98,8 @@ namespace SlotGame.Audio
         public void SetBGMVolume(float volume)
         {
             float clamped = Mathf.Clamp01(volume);
-            _bgmTargetVolume  = clamped;
             _preMuteBgmVolume = clamped;
-            if (!_isMuted) _activeBgm.volume = clamped;
+            if (!_isMuted) bgmSource.volume = clamped;
         }
 
         public void SetSEVolume(float volume)
@@ -153,57 +114,48 @@ namespace SlotGame.Audio
             _isMuted = !_isMuted;
             if (_isMuted)
             {
-                _preMuteBgmVolume = _activeBgm.volume;
-                _preMuteSeVolume  = seSource.volume;
-                _activeBgm.volume = 0;
-                seSource.volume   = 0;
+                _preMuteBgmVolume = bgmSource.volume;
+                _preMuteSeVolume = seSource.volume;
+                bgmSource.volume = 0;
+                seSource.volume = 0;
             }
             else
             {
-                _activeBgm.volume = _preMuteBgmVolume;
-                seSource.volume   = _preMuteSeVolume;
+                bgmSource.volume = _preMuteBgmVolume;
+                seSource.volume = _preMuteSeVolume;
             }
         }
 
         /// <summary>BGM をフェードアウトして停止する。</summary>
         public async UniTask FadeOutBGM(float duration, CancellationToken ct)
         {
-            float startVolume = _activeBgm.volume;
-            await DOTween.To(() => _activeBgm.volume, v => _activeBgm.volume = v, 0f, duration)
+            float startVolume = bgmSource.volume;
+            await DOTween.To(() => bgmSource.volume, v => bgmSource.volume = v, 0f, duration)
                          .ToUniTask(cancellationToken: ct);
-            _activeBgm.Stop();
-            _activeBgm.volume = startVolume;
+            bgmSource.Stop();
+            bgmSource.volume = startVolume;
         }
-
-        private AudioClip GetBGMClip(BGMType type) => type switch
-        {
-            BGMType.Normal     => bgmNormal,
-            BGMType.FreeSpin   => bgmFreeSpin,
-            BGMType.BonusRound => bgmBonusRound,
-            _ => throw new ArgumentOutOfRangeException(nameof(type))
-        };
 
         private void ValidateConfiguration()
         {
             var missing = new List<string>();
 
-            if (bgmSource == null)    missing.Add(nameof(bgmSource));
-            if (bgmSourceSub == null) missing.Add(nameof(bgmSourceSub));
-            if (seSource == null)     missing.Add(nameof(seSource));
-            if (bgmNormal == null)    missing.Add(nameof(bgmNormal));
-            if (bgmFreeSpin == null)  missing.Add(nameof(bgmFreeSpin));
+            if (bgmSource == null) missing.Add(nameof(bgmSource));
+            if (seSource == null) missing.Add(nameof(seSource));
+            if (bgmNormal == null) missing.Add(nameof(bgmNormal));
+            if (bgmFreeSpin == null) missing.Add(nameof(bgmFreeSpin));
             if (bgmBonusRound == null) missing.Add(nameof(bgmBonusRound));
-            if (seSpinStart == null)  missing.Add(nameof(seSpinStart));
-            if (seReelStop == null)   missing.Add(nameof(seReelStop));
-            if (seSmallWin == null)   missing.Add(nameof(seSmallWin));
-            if (seBigWin == null)     missing.Add(nameof(seBigWin));
-            if (seMegaWin == null)    missing.Add(nameof(seMegaWin));
-            if (seScatterAppear == null)  missing.Add(nameof(seScatterAppear));
-            if (seFreeSpinStart == null)  missing.Add(nameof(seFreeSpinStart));
-            if (seBonusStart == null)     missing.Add(nameof(seBonusStart));
-            if (seChestSelect == null)    missing.Add(nameof(seChestSelect));
-            if (seChestOpen == null)      missing.Add(nameof(seChestOpen));
-            if (seButtonClick == null)    missing.Add(nameof(seButtonClick));
+            if (seSpinStart == null) missing.Add(nameof(seSpinStart));
+            if (seReelStop == null) missing.Add(nameof(seReelStop));
+            if (seSmallWin == null) missing.Add(nameof(seSmallWin));
+            if (seBigWin == null) missing.Add(nameof(seBigWin));
+            if (seMegaWin == null) missing.Add(nameof(seMegaWin));
+            if (seScatterAppear == null) missing.Add(nameof(seScatterAppear));
+            if (seFreeSpinStart == null) missing.Add(nameof(seFreeSpinStart));
+            if (seBonusStart == null) missing.Add(nameof(seBonusStart));
+            if (seChestSelect == null) missing.Add(nameof(seChestSelect));
+            if (seChestOpen == null) missing.Add(nameof(seChestOpen));
+            if (seButtonClick == null) missing.Add(nameof(seButtonClick));
 
             if (missing.Count > 0)
             {
