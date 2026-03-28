@@ -21,6 +21,8 @@ MonoBehaviour:
   bonusTriggerReels: 000000000200000004000000
   maxFreeSpinAddition: 20
   defaultAutoSpinCount: 10
+  turboSpinDuration: 0.5
+  turboStopInterval: 0.1
   defaultBgmVolume: 0.8
   defaultSeVolume: 1
   checksumSalt: SALTY_SLOT_2026
