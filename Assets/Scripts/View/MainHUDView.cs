@@ -303,7 +303,7 @@ namespace SlotGame.View
             if (autoButtonText != null)
                 autoButtonText.text = text;
             
-            bool nextIsRunning = text != "AUTO";
+            bool nextIsRunning = text == "ストップ" || text.Contains("ストップ");
             if (nextIsRunning && !_isAutoRunning)
             {
                 _lastStateChangeFrame = Time.frameCount;

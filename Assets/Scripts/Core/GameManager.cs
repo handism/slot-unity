@@ -431,13 +431,15 @@ namespace SlotGame.Core
             var ct = _autoSpinCts.Token;
 
             _isAutoSpinning = true;
-            uiManager.SetAutoButtonText("ストップ");
             uiManager.SetAutoSpinCountInteractable(false);
 
             try
             {
                 for (int i = 0; i < count; i++)
                 {
+                    _autoSpinCount = count - i;
+                    uiManager.SetAutoButtonText($"ストップ ({_autoSpinCount})");
+
                     // ストップがリクエストされていたら、次のスピンを開始せずに抜ける
                     if (ct.IsCancellationRequested) break;
 
@@ -450,17 +452,19 @@ namespace SlotGame.Core
             }
             catch (OperationCanceledException)
             {
-                uiManager.HideFreeSpinHUD();
-                uiManager.ClearLineHighlights();
-                uiManager.ApplyModeVisual(ModeVisualType.Normal);
-                uiManager.SetSpinButtonMode(false);
-                uiManager.SetSpinButtonInteractable(true);
-                uiManager.SetAutoSpinCountInteractable(true);
-                TransitionTo(GamePhase.Idle);
+                // 中断時は必要に応じてクリーンアップ
+                if (_currentPhase != GamePhase.Idle)
+                {
+                    TransitionTo(GamePhase.Idle);
+                }
             }
             finally
             {
                 _isAutoSpinning = false;
+                // 残りの回数を保持するか、デフォルトに戻すかは仕様によるが、
+                // ここでは次にボタンを押したときのために、停止時の残り回数を保持する
+                if (_autoSpinCount <= 0) _autoSpinCount = _config.DefaultAutoSpinCount;
+                
                 uiManager.SetAutoButtonText(GetAutoSpinButtonText());
                 uiManager.SetAutoSpinCountInteractable(true);
                 _autoSpinCts?.Dispose();
