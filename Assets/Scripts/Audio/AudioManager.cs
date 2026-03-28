@@ -41,10 +41,15 @@ namespace SlotGame.Audio
         [SerializeField] private AudioClip seChestOpen;
         [SerializeField] private AudioClip seButtonClick;
 
+        private float _lastReelStopPlayTime = -1f;
+        private float _preMuteBgmVolume = 0.8f;
+        private float _preMuteSeVolume = 1.0f;
+        private bool  _isMuted;
         private float _bgmTargetVolume = 1f;
         private AudioSource _activeBgm;
         private AudioSource _inactiveBgm;
-        private float _lastReelStopPlayTime = -1f;
+
+        public bool IsMuted => _isMuted;
 
         private void Awake()
         {
@@ -59,7 +64,6 @@ namespace SlotGame.Audio
             var clip = GetBGMClip(type);
             if (clip == null) return;
 
-            // 非アクティブソースを停止してからアクティブを切り替え
             _inactiveBgm.Stop();
             _activeBgm.clip   = clip;
             _activeBgm.loop   = true;
@@ -131,13 +135,34 @@ namespace SlotGame.Audio
 
         public void SetBGMVolume(float volume)
         {
-            _bgmTargetVolume    = Mathf.Clamp01(volume);
-            _activeBgm.volume   = _bgmTargetVolume;
+            float clamped = Mathf.Clamp01(volume);
+            _bgmTargetVolume  = clamped;
+            _preMuteBgmVolume = clamped;
+            if (!_isMuted) _activeBgm.volume = clamped;
         }
 
         public void SetSEVolume(float volume)
         {
-            seSource.volume = Mathf.Clamp01(volume);
+            float clamped = Mathf.Clamp01(volume);
+            _preMuteSeVolume = clamped;
+            if (!_isMuted) seSource.volume = clamped;
+        }
+
+        public void ToggleMute()
+        {
+            _isMuted = !_isMuted;
+            if (_isMuted)
+            {
+                _preMuteBgmVolume = _activeBgm.volume;
+                _preMuteSeVolume  = seSource.volume;
+                _activeBgm.volume = 0;
+                seSource.volume   = 0;
+            }
+            else
+            {
+                _activeBgm.volume = _preMuteBgmVolume;
+                seSource.volume   = _preMuteSeVolume;
+            }
         }
 
         /// <summary>BGM をフェードアウトして停止する。</summary>
