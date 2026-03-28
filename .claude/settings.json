@@ -10,9 +10,12 @@
       "Grep",
       "Glob",
       "WebSearch",
-      "WebFetch"
+      "WebFetch",
+      "Edit(/.claude/skills/issue/**)"
     ],
-    "deny": ["Bash(rm -rf)"]
+    "deny": [
+      "Bash(rm -rf)"
+    ]
   },
   "hooks": {
     "PostToolUse": [

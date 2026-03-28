@@ -12,8 +12,13 @@ description: GitHub Issue の内容に沿って実装・改善を行い、ブラ
 ### STEP 1 — Issue の内容を取得・分析する
 
 ```bash
-gh issue view $ARGUMENTS --json number,title,body,labels,assignees,milestone,comments
+GODEBUG=x509usefallbackroots=1 gh issue view $ARGUMENTS --json number,title,body,labels,assignees,milestone,comments
 ```
+
+> **TLS エラーが出た場合**: macOS キーチェーンと Go の証明書検証が競合することがある。`GODEBUG=x509usefallbackroots=1` を付けることで Go 組み込みの CA バンドルを使い回避できる。それでも失敗する場合は REST API で代替する：
+> ```bash
+> GODEBUG=x509usefallbackroots=1 gh api repos/:owner/:repo/issues/$ARGUMENTS
+> ```
 
 取得した内容をもとに以下を整理する：
 
