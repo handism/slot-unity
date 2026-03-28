@@ -423,6 +423,36 @@ public class SaveDataManager
 
 ---
 
+### 4.6 UI 演出コンポーネント
+
+#### UIGradient.cs
+
+`UIGradient` は、UGUI の `Graphic`（Image, TMP_Text 等）のメッシュ頂点カラーを書き換えることでグラデーションを実現するカスタムコンポーネントである。
+
+**特徴:**
+- **カスタムシェーダー不要**: `BaseMeshEffect` を継承しており、標準の UGUI シェーダーで動作するため、マテリアルの追加管理が不要で軽量である。
+- **頂点カラー乗算**: `Graphic.color`（または Image のカラー）とグラデーションカラーが乗算されるため、スクリプトからの動的な色変更（点滅演出やボタンの非活性化など）とグラデーションを共存させることができる。
+
+**主要プロパティ:**
+- `GradientDirection`: グラデーションの方向を指定する。
+    - `TopToBottom`: 上から下への垂直グラデーション。
+    - `LeftToRight`: 左から右への水平グラデーション。
+    - `FourCorner`: 四隅の色を個別に設定可能なグラデーション。
+- `Colors`: 方向に応じた色の設定（TopToBottom / LeftToRight の場合は 2色、FourCorner の場合は 4色）。
+
+**使い分けの指針:**
+- **UIGradient を使用する場合**: `Image`（ボタン、背景パネル）にグラデーションをかけたい場合や、テキストに対して動的な色変更とグラデーションを併用したい場合。
+- **TMP 標準機能を使用する場合**: `TextMeshPro` の文字に対して静的な上下グラデーションをかけたい場合は、TMP の Inspector 上で `Color Gradient` -> `Enable Vertex Gradient` を使用する。
+
+**使用例（コードからの動的適用）:**
+```csharp
+// ボタン画像にブルー系グラデーションを動的に適用する例
+var gradient = buttonImage.gameObject.AddComponent<UIGradient>();
+gradient.SetColors(new Color(0.3f, 0.5f, 0.9f), new Color(0.05f, 0.15f, 0.4f));
+```
+
+---
+
 ## 5. リール制御フロー
 
 ```
