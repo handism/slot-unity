@@ -1,6 +1,5 @@
 using SlotGame.Model;
 using UnityEngine;
-using SlotGame.Model;
 
 namespace SlotGame.Data
 {

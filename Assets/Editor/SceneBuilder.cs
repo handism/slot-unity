@@ -123,6 +123,7 @@ namespace SlotGame.Editor
             SceneManager.MoveGameObjectToScene(bootGO, scene);
             var boot = bootGO.AddComponent<BootManager>();
             WireField(boot, "progressBar", slider);
+            WireField(boot, "gameConfig", AssetDatabase.LoadAssetAtPath<GameConfigData>($"{SOBasePath}/GameConfig.asset"));
 
             EditorSceneManager.SaveScene(scene, $"{ScenesPath}/Boot.unity");
             Debug.Log("[SceneBuilder] Boot.unity built.");
@@ -376,6 +377,8 @@ namespace SlotGame.Editor
                 AssetDatabase.LoadAssetAtPath<PaylineData>($"{SOBasePath}/Paylines/PaylineData.asset");
             gso.FindProperty("payoutData").objectReferenceValue =
                 AssetDatabase.LoadAssetAtPath<PayoutTableData>($"{SOBasePath}/PayoutTable/PayoutTableData.asset");
+            gso.FindProperty("gameConfig").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<GameConfigData>($"{SOBasePath}/GameConfig.asset");
             gso.ApplyModifiedPropertiesWithoutUndo();
 
             // HUD button bindings
