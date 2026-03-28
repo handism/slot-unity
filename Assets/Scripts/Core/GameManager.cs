@@ -462,8 +462,22 @@ namespace SlotGame.Core
                 if (result.TotalWinAmount > 0)
                 {
                     uiManager.UpdateWin(result.TotalWinAmount);
+                    var winLevel = CalcWinLevel(result.TotalWinAmount);
                     PlayWinSe(result.TotalWinAmount);
-                    await uiManager.ShowWinAndHighlightAsync(result.TotalWinAmount, CalcWinLevel(result.TotalWinAmount), result, ct, paylineData);
+
+                    // BigWin以上はBGMをフェードアウトしてファンファーレSEを際立たせる
+                    if (winLevel >= WinLevel.Big)
+                    {
+                        await audioManager.FadeOutBGM(0.3f, ct);
+                    }
+
+                    await uiManager.ShowWinAndHighlightAsync(result.TotalWinAmount, winLevel, result, ct, paylineData);
+
+                    // BigWin演出後はNormal BGMへクロスフェードで復帰
+                    if (winLevel >= WinLevel.Big)
+                    {
+                        await audioManager.CrossFadeBGM(BGMType.Normal, 0.5f, ct);
+                    }
                 }
                 else
                 {
@@ -516,8 +530,7 @@ namespace SlotGame.Core
 
             TransitionTo(GamePhase.BonusRound);
             audioManager.PlaySE(SEType.BonusStart);
-            await audioManager.FadeOutBGM(0.5f, ct);
-            audioManager.PlayBGM(BGMType.BonusRound);
+            await audioManager.CrossFadeBGM(BGMType.BonusRound, 0.5f, ct);
             uiManager.ApplyModeVisual(ModeVisualType.BonusRound);
 
             long win = await bonusManager.RunBonusRound(_gameState.BetAmount, payoutData, ct);
@@ -527,8 +540,7 @@ namespace SlotGame.Core
             SaveGame();
             uiManager.UpdateStats(_gameState.GetSessionStats());
 
-            await audioManager.FadeOutBGM(0.5f, ct);
-            audioManager.PlayBGM(BGMType.Normal);
+            await audioManager.CrossFadeBGM(BGMType.Normal, 0.5f, ct);
             uiManager.ApplyModeVisual(ModeVisualType.Normal);
         }
 
@@ -546,8 +558,7 @@ namespace SlotGame.Core
 
             TransitionTo(GamePhase.FreeSpin);
             audioManager.PlaySE(SEType.FreeSpinStart);
-            await audioManager.FadeOutBGM(0.5f, ct);
-            audioManager.PlayBGM(BGMType.FreeSpin);
+            await audioManager.CrossFadeBGM(BGMType.FreeSpin, 0.5f, ct);
             uiManager.ApplyModeVisual(ModeVisualType.FreeSpin);
 
             long cumulativeFreeSpinWin = 0;
@@ -577,8 +588,7 @@ namespace SlotGame.Core
             SaveGame();
             uiManager.UpdateStats(_gameState.GetSessionStats());
 
-            await audioManager.FadeOutBGM(0.5f, ct);
-            audioManager.PlayBGM(BGMType.Normal);
+            await audioManager.CrossFadeBGM(BGMType.Normal, 0.5f, ct);
             uiManager.ApplyModeVisual(ModeVisualType.Normal);
         }
 
