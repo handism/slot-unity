@@ -41,6 +41,11 @@ namespace SlotGame.Audio
         [SerializeField] private AudioClip seButtonClick;
 
         private float _lastReelStopPlayTime = -1f;
+        private float _preMuteBgmVolume = 0.8f;
+        private float _preMuteSeVolume = 1.0f;
+        private bool  _isMuted;
+
+        public bool IsMuted => _isMuted;
 
         private void Awake()
         {
@@ -92,12 +97,33 @@ namespace SlotGame.Audio
 
         public void SetBGMVolume(float volume)
         {
-            bgmSource.volume = Mathf.Clamp01(volume);
+            float clamped = Mathf.Clamp01(volume);
+            _preMuteBgmVolume = clamped;
+            if (!_isMuted) bgmSource.volume = clamped;
         }
 
         public void SetSEVolume(float volume)
         {
-            seSource.volume = Mathf.Clamp01(volume);
+            float clamped = Mathf.Clamp01(volume);
+            _preMuteSeVolume = clamped;
+            if (!_isMuted) seSource.volume = clamped;
+        }
+
+        public void ToggleMute()
+        {
+            _isMuted = !_isMuted;
+            if (_isMuted)
+            {
+                _preMuteBgmVolume = bgmSource.volume;
+                _preMuteSeVolume = seSource.volume;
+                bgmSource.volume = 0;
+                seSource.volume = 0;
+            }
+            else
+            {
+                bgmSource.volume = _preMuteBgmVolume;
+                seSource.volume = _preMuteSeVolume;
+            }
         }
 
         /// <summary>BGM をフェードアウトして停止する。</summary>

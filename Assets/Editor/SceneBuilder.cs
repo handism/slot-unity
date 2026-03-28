@@ -307,6 +307,8 @@ namespace SlotGame.Editor
             var audioManagerGO = CreateChild(managerRoot, "AudioManagerGO");
 
             var gameManager  = gameManagerGO.AddComponent<GameManager>();
+            gameManagerGO.AddComponent<PlayerInput>();
+            var inputHandler = gameManagerGO.AddComponent<SlotInputHandler>();
             var spinManager  = spinManagerGO.AddComponent<SpinManager>();
             var bonusManager = bonusManagerGO.AddComponent<BonusManager>();
             var uiManager    = uiManagerGO.AddComponent<UIManager>();
@@ -349,6 +351,12 @@ namespace SlotGame.Editor
             for (int i = 0; i < 5; i++)
                 reels.GetArrayElementAtIndex(i).objectReferenceValue = reelControllers[i];
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            // Input Handler
+            WireField(inputHandler, "gameManager", gameManager);
+            var pinput = gameManagerGO.GetComponent<PlayerInput>();
+            WireField(pinput, "m_Actions", AssetDatabase.LoadAssetAtPath<UnityEngine.InputSystem.InputActionAsset>("Assets/InputSystem_Actions.inputactions"));
+            WireField(pinput, "m_DefaultActionMap", "Slot");
 
             // GameManager
             var gso = new SerializedObject(gameManager);

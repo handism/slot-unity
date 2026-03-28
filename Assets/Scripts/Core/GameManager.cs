@@ -45,6 +45,7 @@ namespace SlotGame.Core
         private int                    _autoSpinCount = 10;
         private bool                   _isInitialized;
         private SlotConfig             _config;
+        private bool                   _isPaytableOpen;
 
         // ─── ライフサイクル ──────────────────────────────────────────────
 
@@ -167,7 +168,7 @@ namespace SlotGame.Core
             uiManager.SeVolumeChanged += HandleSeVolumeChanged;
             uiManager.ResetCoinsRequested += HandleResetCoinsRequested;
             uiManager.SettingsCloseRequested += uiManager.HideSettings;
-            uiManager.PaytableCloseRequested += uiManager.HidePaytable;
+            uiManager.PaytableCloseRequested += () => { uiManager.HidePaytable(); _isPaytableOpen = false; };
             uiManager.StatsCloseRequested    += uiManager.HideStats;
             uiManager.GameDescriptionCloseRequested += uiManager.HideGameDescription;
             uiManager.AutoSpinRequested      += OnAutoSpinButtonPressed;
@@ -288,12 +289,68 @@ namespace SlotGame.Core
 
         public void OnPaytableButtonPressed()
         {
+            _isPaytableOpen = true;
             uiManager.ShowPaytable();
         }
 
         public void OnStatsButtonPressed()
         {
             uiManager.ShowStats();
+        }
+
+        public void ToggleMute()
+        {
+            audioManager.ToggleMute();
+            // Mute状態のときはスライダーを0に見せかけるか、AudioManager側で制御。
+            // ここではセーブデータの更新のみ行う
+            SaveGame();
+        }
+
+        public void IncreaseBet()
+        {
+            if (_currentPhase != GamePhase.Idle) return;
+            int currentIndex = Array.IndexOf(_config.ValidBetAmounts, _gameState.BetAmount);
+            if (currentIndex >= 0 && currentIndex < _config.ValidBetAmounts.Length - 1)
+            {
+                OnBetChanged(_config.ValidBetAmounts[currentIndex + 1]);
+            }
+        }
+
+        public void DecreaseBet()
+        {
+            if (_currentPhase != GamePhase.Idle) return;
+            int currentIndex = Array.IndexOf(_config.ValidBetAmounts, _gameState.BetAmount);
+            if (currentIndex > 0)
+            {
+                OnBetChanged(_config.ValidBetAmounts[currentIndex - 1]);
+            }
+        }
+
+        public void ToggleAutoSpin()
+        {
+            if (_isAutoSpinning)
+            {
+                OnAutoSpinStopRequested();
+            }
+            else
+            {
+                if (_currentPhase != GamePhase.Idle) return;
+                OnAutoSpinButtonPressed(_autoSpinCount);
+            }
+        }
+
+        public void ToggleTurbo()
+        {
+            bool newState = !_gameState.IsTurbo;
+            OnTurboToggled(newState);
+            uiManager.SetTurbo(newState);
+        }
+
+        public void TogglePaytable()
+        {
+            _isPaytableOpen = !_isPaytableOpen;
+            if (_isPaytableOpen) uiManager.ShowPaytable();
+            else uiManager.HidePaytable();
         }
 
         // ─── スピンフロー ────────────────────────────────────────────────
