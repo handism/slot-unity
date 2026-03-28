@@ -136,6 +136,16 @@ namespace SlotGame.Audio
             bgmSource.volume = startVolume;
         }
 
+        /// <summary>現在の BGM をフェードアウトし、新しい BGM をフェードインする。</summary>
+        public async UniTask CrossFadeBGM(BGMType type, float duration, CancellationToken ct)
+        {
+            await FadeOutBGM(duration * 0.5f, ct);
+            PlayBGM(type);
+            bgmSource.volume = 0f;
+            await DOTween.To(() => bgmSource.volume, v => bgmSource.volume = v, _preMuteBgmVolume, duration * 0.5f)
+                         .ToUniTask(cancellationToken: ct);
+        }
+
         private void ValidateConfiguration()
         {
             var missing = new List<string>();

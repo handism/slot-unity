@@ -3,6 +3,7 @@ using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -358,7 +359,9 @@ namespace SlotGame.Editor
             WireField(inputHandler, "gameManager", gameManager);
             var pinput = gameManagerGO.GetComponent<PlayerInput>();
             WireField(pinput, "m_Actions", AssetDatabase.LoadAssetAtPath<UnityEngine.InputSystem.InputActionAsset>("Assets/InputSystem_Actions.inputactions"));
-            WireField(pinput, "m_DefaultActionMap", "Slot");
+            var pinputSO = new SerializedObject(pinput);
+            pinputSO.FindProperty("m_DefaultActionMap").stringValue = "Slot";
+            pinputSO.ApplyModifiedPropertiesWithoutUndo();
 
             // GameManager
             var gso = new SerializedObject(gameManager);
@@ -978,80 +981,6 @@ namespace SlotGame.Editor
         }
 
         // ─── 既存シーンへの Stats パッチ ───────────────────────────────
-
-        /// <summary>
-        /// 既存の Main.unity を壊さずに StatsPanel と Stats ボタンだけを追加する。
-        /// Build All Scenes を再実行できない場合に使用する。
-        /// </summary>
-        [MenuItem("SlotGame/Add Stats Panel to Main Scene")]
-        public static void AddStatsPanelToMainScene()
-        {
-            if (EditorApplication.isPlayingOrWillChangePlaymode)
-            {
-                Debug.LogError("[SceneBuilder] Play Mode 中は実行できません。停止してから実行してください。");
-                return;
-            }
-
-            var scene = EditorSceneManager.OpenScene($"{ScenesPath}/Main.unity", OpenSceneMode.Single);
-
-            // 既に StatsPanel が存在する場合はスキップ
-            if (GameObject.Find("StatsPanel") != null)
-            {
-                Debug.LogWarning("[SceneBuilder] StatsPanel はすでに存在します。処理をスキップします。");
-                return;
-            }
-
-            var uiManager   = Object.FindAnyObjectByType<UIManager>();
-            var gameManager = Object.FindAnyObjectByType<GameManager>();
-            if (uiManager == null || gameManager == null)
-            {
-                Debug.LogError("[SceneBuilder] UIManager または GameManager がシーンに見つかりません。");
-                return;
-            }
-
-            // Main Canvas を探して StatsPanel を追加
-            var mainCanvas = GameObject.Find("Main Canvas");
-            if (mainCanvas == null)
-            {
-                Debug.LogError("[SceneBuilder] 'Main Canvas' が見つかりません。");
-                return;
-            }
-
-            var (statsPanelGO, statsView) = CreateStatsPanel(mainCanvas);
-            statsPanelGO.SetActive(false);
-            WireField(uiManager, "statsView", statsView);
-
-            // TopBar を探して Stats ボタンを追加
-            var topBar = GameObject.Find("TopBar");
-            if (topBar != null)
-            {
-                // 既に StatsButton が存在しない場合のみ追加
-                if (topBar.transform.Find("StatsButton") == null)
-                {
-                    var statsBtn = CreateButton(topBar, "StatsButton", "統計", new Vector2(190f, 58f), new Color(0.08f, 0.16f, 0.26f));
-                    AnchorTopRight(statsBtn, new Vector2(-440f, -16f), new Vector2(190f, 58f));
-                    UnityEventTools.AddPersistentListener(statsBtn.GetComponent<Button>().onClick, gameManager.OnStatsButtonPressed);
-                    Debug.Log("[SceneBuilder] StatsButton を TopBar に追加しました。");
-                }
-                else
-                {
-                    Debug.LogWarning("[SceneBuilder] StatsButton はすでに存在します。ボタン追加をスキップします。");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("[SceneBuilder] 'TopBar' が見つかりません。Stats ボタンは手動で追加してください。");
-            }
-
-            EditorSceneManager.SaveScene(scene);
-            Debug.Log("[SceneBuilder] Main.unity に StatsPanel を追加して保存しました。");
-        }
-
-        [MenuItem("SlotGame/Add Stats Panel to Main Scene", true)]
-        private static bool ValidateAddStatsPanelToMainScene()
-        {
-            return !EditorApplication.isPlayingOrWillChangePlaymode;
-        }
 
         // ─── Build Settings ────────────────────────────────────────────
 
