@@ -225,9 +225,9 @@ namespace SlotGame.View
                 var btnGo = Instantiate(autoSpinButton.gameObject, popupGo.transform);
                 btnGo.name = $"AutoSpin_{count}";
                 
-                // 元のボタンの EventTrigger は不要なので削除
+                // 元のボタンの EventTrigger は不要（かつ誤作動の元）なので即座に削除
                 var oldTrigger = btnGo.GetComponent<EventTrigger>();
-                if (oldTrigger != null) Destroy(oldTrigger);
+                if (oldTrigger != null) DestroyImmediate(oldTrigger);
 
                 var btnRect = btnGo.GetComponent<RectTransform>();
                 btnRect.anchorMin = new Vector2(0f, 0f);
