@@ -59,6 +59,8 @@ namespace SlotGame.View
         private static readonly Color FreeSpinCameraColor   = new(0.04f, 0.18f, 0.24f, 1f);
         private static readonly Color BonusRoundCameraColor = new(0.19f, 0.09f, 0.03f, 1f);
 
+        public bool IsModalOpen { get; private set; }
+
         public event System.Action<float>? BgmVolumeChanged;
         public event System.Action<float>? SeVolumeChanged;
         public event System.Action? ResetCoinsRequested;
@@ -560,6 +562,8 @@ namespace SlotGame.View
 
         private void SetHudInteractable(bool interactable)
         {
+            IsModalOpen = !interactable;
+            
             if (_hudCanvasGroup == null)
             {
                 var hudCanvas = mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : null;

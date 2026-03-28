@@ -73,7 +73,7 @@ namespace SlotGame.Core
         private void OnBetUp(InputAction.CallbackContext context) => gameManager.IncreaseBet();
         private void OnBetDown(InputAction.CallbackContext context) => gameManager.DecreaseBet();
         private void OnAutoSpin(InputAction.CallbackContext context) => gameManager.ToggleAutoSpin();
-        private void OnSkip(InputAction.CallbackContext context) => gameManager.OnSpinButtonPressed(); // SpinButton can handle skip
+        private void OnSkip(InputAction.CallbackContext context) => gameManager.RequestSkip();
         private void OnMute(InputAction.CallbackContext context) => gameManager.ToggleMute();
         private void OnTurbo(InputAction.CallbackContext context) => gameManager.ToggleTurbo();
         private void OnPaytable(InputAction.CallbackContext context) => gameManager.TogglePaytable();

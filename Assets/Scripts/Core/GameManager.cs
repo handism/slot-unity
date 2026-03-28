@@ -241,13 +241,24 @@ namespace SlotGame.Core
 
         public void OnSpinButtonPressed()
         {
+            if (uiManager.IsModalOpen) return;
+            
             if (_currentPhase == GamePhase.Spinning)
             {
                 spinManager.RequestSkip();
                 return;
             }
-            if (_currentPhase != GamePhase.Idle) return;
+            if (_currentPhase != GamePhase.Idle || _isAutoSpinning) return;
             RunSpinAsync(this.GetCancellationTokenOnDestroy()).Forget();
+        }
+
+        public void RequestSkip()
+        {
+            if (uiManager.IsModalOpen) return;
+            if (_currentPhase == GamePhase.Spinning)
+            {
+                spinManager.RequestSkip();
+            }
         }
 
         public void OnAutoSpinButtonPressed(int count)
@@ -300,6 +311,7 @@ namespace SlotGame.Core
 
         public void ToggleMute()
         {
+            if (uiManager.IsModalOpen) return;
             audioManager.ToggleMute();
             // Mute状態のときはスライダーを0に見せかけるか、AudioManager側で制御。
             // ここではセーブデータの更新のみ行う
@@ -308,6 +320,7 @@ namespace SlotGame.Core
 
         public void IncreaseBet()
         {
+            if (uiManager.IsModalOpen || _isAutoSpinning) return;
             if (_currentPhase != GamePhase.Idle) return;
             int currentIndex = Array.IndexOf(_config.ValidBetAmounts, _gameState.BetAmount);
             if (currentIndex >= 0 && currentIndex < _config.ValidBetAmounts.Length - 1)
@@ -318,6 +331,7 @@ namespace SlotGame.Core
 
         public void DecreaseBet()
         {
+            if (uiManager.IsModalOpen || _isAutoSpinning) return;
             if (_currentPhase != GamePhase.Idle) return;
             int currentIndex = Array.IndexOf(_config.ValidBetAmounts, _gameState.BetAmount);
             if (currentIndex > 0)
@@ -328,6 +342,7 @@ namespace SlotGame.Core
 
         public void ToggleAutoSpin()
         {
+            if (uiManager.IsModalOpen) return;
             if (_isAutoSpinning)
             {
                 OnAutoSpinStopRequested();
@@ -341,6 +356,7 @@ namespace SlotGame.Core
 
         public void ToggleTurbo()
         {
+            if (uiManager.IsModalOpen) return;
             bool newState = !_gameState.IsTurbo;
             OnTurboToggled(newState);
             uiManager.SetTurbo(newState);
@@ -348,6 +364,7 @@ namespace SlotGame.Core
 
         public void TogglePaytable()
         {
+            if (uiManager.IsModalOpen && !_isPaytableOpen) return;
             _isPaytableOpen = !_isPaytableOpen;
             if (_isPaytableOpen) uiManager.ShowPaytable();
             else uiManager.HidePaytable();
