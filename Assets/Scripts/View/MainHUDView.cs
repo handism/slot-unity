@@ -38,6 +38,7 @@ namespace SlotGame.View
 
         private bool _isTurbo;
         private bool _isAutoRunning;
+        private int  _lastStateChangeFrame;
 
         private void Awake()
         {
@@ -98,7 +99,10 @@ namespace SlotGame.View
                 {
                     autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
                     PlayButtonClickSe();
-                    if (_isAutoRunning)
+                    
+                    // 同じフレームでオートが開始された場合は、ストップリクエストを送らない
+                    // (PersistentListener と AddListener が共存している場合の誤爆防止)
+                    if (_isAutoRunning && Time.frameCount > _lastStateChangeFrame)
                     {
                         OnAutoSpinStopRequested?.Invoke();
                     }
@@ -106,7 +110,7 @@ namespace SlotGame.View
                     {
                         CloseAutoSpinPopup();
                     }
-                    else
+                    else if (!_isAutoRunning)
                     {
                         OpenAutoSpinPopup();
                     }
@@ -298,7 +302,13 @@ namespace SlotGame.View
         {
             if (autoButtonText != null)
                 autoButtonText.text = text;
-            _isAutoRunning = text != "AUTO";
+            
+            bool nextIsRunning = text != "AUTO";
+            if (nextIsRunning && !_isAutoRunning)
+            {
+                _lastStateChangeFrame = Time.frameCount;
+            }
+            _isAutoRunning = nextIsRunning;
         }
 
         public void SetAutoSpinCountInteractable(bool interactable)

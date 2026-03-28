@@ -386,7 +386,6 @@ namespace SlotGame.Editor
 
             // HUD button bindings
             UnityEventTools.AddPersistentListener(spinButton.onClick, gameManager.OnSpinButtonPressed);
-            UnityEventTools.AddIntPersistentListener(autoSpinButton.onClick, gameManager.OnAutoSpinButtonPressed, 10);
             UnityEventTools.AddPersistentListener(settingsButton.onClick, gameManager.OnSettingsButtonPressed);
             UnityEventTools.AddPersistentListener(paytableButton.onClick, gameManager.OnPaytableButtonPressed);
             UnityEventTools.AddPersistentListener(statsButton.onClick, gameManager.OnStatsButtonPressed);
