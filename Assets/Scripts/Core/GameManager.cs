@@ -479,8 +479,8 @@ namespace SlotGame.Core
                 if (result.TotalWinAmount > 0)
                 {
                     uiManager.UpdateWin(result.TotalWinAmount);
-                    var winLevel = CalcWinLevel(result.TotalWinAmount);
-                    PlayWinSe(result.TotalWinAmount);
+                    var winLevel = CalcWinLevel(result.TotalWinAmount, _gameState.BetAmount);
+                    PlayWinSe(result.TotalWinAmount, _gameState.BetAmount);
 
                     // BigWin以上はBGMをフェードアウトしてファンファーレSEを際立たせる
                     if (winLevel >= WinLevel.Big)
@@ -594,7 +594,7 @@ namespace SlotGame.Core
                     uiManager.ShowFreeSpinHUD(_gameState.FreeSpinsLeft, cumulativeFreeSpinWin);
                     if (result.TotalWinAmount > 0)
                     {
-                        await uiManager.ShowWinAndHighlightAsync(win, CalcWinLevel(win), result, ct, paylineData);
+                        await uiManager.ShowWinAndHighlightAsync(win, CalcWinLevel(win, _gameState.BetAmount), result, ct, paylineData);
                         await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: ct);
                         uiManager.ClearLineHighlights();
                     }
@@ -729,17 +729,21 @@ namespace SlotGame.Core
             return result;
         }
 
-        private static WinLevel CalcWinLevel(long amount)
+        private static WinLevel CalcWinLevel(long amount, int betAmount)
         {
-            if (amount >= 5000) return WinLevel.Mega;
-            if (amount >= 1000) return WinLevel.Big;
+            if (betAmount <= 0) return WinLevel.Small;
+            float multiplier = (float)amount / betAmount;
+            if (multiplier >= 50) return WinLevel.Epic;
+            if (multiplier >= 30) return WinLevel.Mega;
+            if (multiplier >= 15) return WinLevel.Big;
             return WinLevel.Small;
         }
 
-        private void PlayWinSe(long amount)
+        private void PlayWinSe(long amount, int betAmount)
         {
-            var seType = CalcWinLevel(amount) switch
+            var seType = CalcWinLevel(amount, betAmount) switch
             {
+                WinLevel.Epic => SEType.EpicWin,
                 WinLevel.Mega => SEType.MegaWin,
                 WinLevel.Big => SEType.BigWin,
                 _ => SEType.SmallWin

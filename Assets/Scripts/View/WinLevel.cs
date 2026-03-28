@@ -1,4 +1,4 @@
 namespace SlotGame.View
 {
-    public enum WinLevel { Small, Big, Mega }
+    public enum WinLevel { Small, Big, Mega, Epic }
 }

@@ -74,7 +74,12 @@ namespace SlotGame.View
             _ = _currentSequence.Append(transform.DOScale(1.0f, 0.15f).SetEase(Ease.OutSine));
 
             // 2. カウントアップ演出（金額を徐々に増やす）
-            float countDuration = (level == WinLevel.Mega) ? 1.5f : (level == WinLevel.Big) ? 1.0f : 0.5f;
+            float countDuration = level switch {
+                WinLevel.Epic => 2.5f,
+                WinLevel.Mega => 1.5f,
+                WinLevel.Big => 1.0f,
+                _ => 0.5f
+            };
             _ = _currentSequence.Join(DOTween.To(() => _countValue, x => {
                 _countValue = x;
                 winAmountText.text = _countValue.ToString("N0");
@@ -87,17 +92,27 @@ namespace SlotGame.View
                 _ = _currentSequence.OnComplete(() => {
                     _ = transform.DOScale(1.15f, 0.4f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
                     
-                    if (level == WinLevel.Mega)
+                    if (level >= WinLevel.Mega)
                     {
-                        // MEGA は回転シェイクとズーム
+                        // MEGA/EPIC は回転シェイクとズーム
                         _ = transform.DOShakeRotation(1f, 8f, 15, 90f, false).SetLoops(-1);
                         _ = winAmountText.transform.DOScale(1.2f, 0.3f).SetLoops(-1, LoopType.Yoyo);
+                    }
+                    
+                    if (level == WinLevel.Epic)
+                    {
+                        // EPIC はさらにスケールシェイクを加える
+                        _ = transform.DOShakeScale(1f, 0.15f, 10, 90f, false).SetLoops(-1);
                     }
                 });
             }
 
-            // 指定された時間表示（MEGA の場合は少し長めに）
-            float finalDuration = (level == WinLevel.Mega) ? displayDuration + 1.0f : displayDuration;
+            // 指定された時間表示（MEGA/EPIC の場合は長めに）
+            float finalDuration = level switch {
+                WinLevel.Epic => displayDuration + 2.0f,
+                WinLevel.Mega => displayDuration + 1.0f,
+                _ => displayDuration
+            };
             await UniTask.Delay(TimeSpan.FromSeconds(finalDuration), cancellationToken: ct);
 
             // 4. フェードアウト
@@ -117,6 +132,12 @@ namespace SlotGame.View
 
             switch (level)
             {
+                case WinLevel.Epic:
+                    levelString = "EPIC WIN!";
+                    // EPIC はマゼンタ〜ネオンシアンの鮮烈なグラデーション
+                    top    = new Color(1f, 0f, 0.8f);    // マゼンタ
+                    bottom = new Color(0f, 1f, 1f);      // ネオンシアン
+                    break;
                 case WinLevel.Mega:
                     levelString = "MEGA WIN!";
                     // MEGA は情熱的なレッド〜ゴールドのグラデーション

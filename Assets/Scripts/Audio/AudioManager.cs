@@ -10,7 +10,7 @@ namespace SlotGame.Audio
     public enum BGMType  { Normal, FreeSpin, BonusRound }
     public enum SEType
     {
-        SpinStart, ReelStop, SmallWin, BigWin, MegaWin,
+        SpinStart, ReelStop, SmallWin, BigWin, MegaWin, EpicWin,
         ScatterAppear, FreeSpinStart, BonusStart,
         ChestSelect, ChestOpen, ButtonClick
     }
@@ -33,6 +33,7 @@ namespace SlotGame.Audio
         [SerializeField] private AudioClip seSmallWin;
         [SerializeField] private AudioClip seBigWin;
         [SerializeField] private AudioClip seMegaWin;
+        [SerializeField] private AudioClip seEpicWin;
         [SerializeField] private AudioClip seScatterAppear;
         [SerializeField] private AudioClip seFreeSpinStart;
         [SerializeField] private AudioClip seBonusStart;
@@ -83,6 +84,7 @@ namespace SlotGame.Audio
                 SEType.SmallWin       => seSmallWin,
                 SEType.BigWin         => seBigWin,
                 SEType.MegaWin        => seMegaWin,
+                SEType.EpicWin        => seEpicWin,
                 SEType.ScatterAppear  => seScatterAppear,
                 SEType.FreeSpinStart  => seFreeSpinStart,
                 SEType.BonusStart     => seBonusStart,
@@ -160,6 +162,7 @@ namespace SlotGame.Audio
             if (seSmallWin == null) missing.Add(nameof(seSmallWin));
             if (seBigWin == null) missing.Add(nameof(seBigWin));
             if (seMegaWin == null) missing.Add(nameof(seMegaWin));
+            if (seEpicWin == null) missing.Add(nameof(seEpicWin));
             if (seScatterAppear == null) missing.Add(nameof(seScatterAppear));
             if (seFreeSpinStart == null) missing.Add(nameof(seFreeSpinStart));
             if (seBonusStart == null) missing.Add(nameof(seBonusStart));
@@ -194,6 +197,7 @@ namespace SlotGame.Audio
             yield return seSmallWin;
             yield return seBigWin;
             yield return seMegaWin;
+            yield return seEpicWin;
             yield return seScatterAppear;
             yield return seFreeSpinStart;
             yield return seBonusStart;
