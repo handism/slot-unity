@@ -46,6 +46,7 @@ namespace SlotGame.Core
         private bool                   _isInitialized;
         private SlotConfig             _config;
         private bool                   _isPaytableOpen;
+        private int                    _lastAutoSpinStartFrame;
 
         // ─── ライフサイクル ──────────────────────────────────────────────
 
@@ -276,6 +277,9 @@ namespace SlotGame.Core
         {
             if (_isAutoSpinning)
             {
+                // 前回開始時と同じフレームなら、ダブルクリック防止のため無視
+                if (Time.frameCount <= _lastAutoSpinStartFrame) return;
+
                 OnAutoSpinStopRequested();
                 return;
             }
@@ -443,6 +447,7 @@ namespace SlotGame.Core
             var ct = _autoSpinCts.Token;
 
             _isAutoSpinning = true;
+            _lastAutoSpinStartFrame = Time.frameCount;
             uiManager.SetAutoSpinCountInteractable(false);
 
             try
@@ -455,13 +460,15 @@ namespace SlotGame.Core
                     if (ct.IsCancellationRequested) break;
 
                     // 1スピン実行
-                    bool forceStop = await SpinOnceAsync(destroyToken);
+                    bool forceStop = await SpinOnceAsync(ct);
                     
                     // コイン不足時のみループを抜ける（ボーナス等は終わったら継続）
                     if (forceStop && _gameState.Coins < _gameState.BetAmount) break;
                     
+                    if (ct.IsCancellationRequested) break;
+
                     // 次のスピン前に少し待機（演出を見せるため）
-                    await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: destroyToken);
+                    await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: ct);
                 }
             }
             catch (OperationCanceledException)
@@ -566,7 +573,7 @@ namespace SlotGame.Core
             if (!_isAutoSpinning) uiManager.SetAutoSpinCountInteractable(true);
             
             // どんな演出が終わっても必ず Idle に戻す
-            _currentPhase = GamePhase.Idle; 
+            TransitionTo(GamePhase.Idle); 
             return false;
         }
 

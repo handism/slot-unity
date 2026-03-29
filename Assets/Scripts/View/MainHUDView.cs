@@ -172,7 +172,9 @@ namespace SlotGame.View
             autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
             PlayButtonClickSe();
 
-            if (_isAutoRunning && Time.frameCount > _lastStateChangeFrame)
+            // frameCount を使って、ダブルクリック等での即時停止を防止
+            // 2フレーム以上の余裕を持たせる
+            if (_isAutoRunning && Time.frameCount > _lastStateChangeFrame + 1)
             {
                 OnAutoSpinStopRequested?.Invoke();
             }
