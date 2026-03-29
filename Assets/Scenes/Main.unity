@@ -7784,6 +7784,7 @@ MonoBehaviour:
   winAmountText: {fileID: 1498811899}
   winLevelText: {fileID: 1116522845}
   displayDuration: 2
+  colorTheme: {fileID: 11400000, guid: 40dabecc811e546daaed92fec475003b, type: 2}
 --- !u!1 &1097650028
 GameObject:
   m_ObjectHideFlags: 0
@@ -12083,6 +12084,8 @@ MonoBehaviour:
   paylinePrefab: {fileID: 6289988904971302765, guid: e09662fb78ba04c63abd7101fdb41551, type: 3}
   paylineParent: {fileID: 0}
   paylineData: {fileID: 11400000, guid: d17e0e0a474fb46a69a417ebf69645aa, type: 2}
+  colorTheme: {fileID: 11400000, guid: 40dabecc811e546daaed92fec475003b, type: 2}
+  backgroundPanel: {fileID: 295944989}
 --- !u!1 &1547043155
 GameObject:
   m_ObjectHideFlags: 0
@@ -15481,6 +15484,7 @@ MonoBehaviour:
   - {fileID: 1737407370}
   - {fileID: 1204498793}
   betValues: 0a000000140000003200000064000000
+  colorTheme: {fileID: 11400000, guid: 40dabecc811e546daaed92fec475003b, type: 2}
 --- !u!1 &1931482715
 GameObject:
   m_ObjectHideFlags: 0
@@ -16294,6 +16298,7 @@ GameObject:
   - component: {fileID: 2046473448}
   - component: {fileID: 2046473446}
   - component: {fileID: 2046473447}
+  - component: {fileID: 2046473449}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -16375,6 +16380,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2046473449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2046473445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
 --- !u!1 &2100982823
 GameObject:
   m_ObjectHideFlags: 0

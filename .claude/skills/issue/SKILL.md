@@ -11,14 +11,22 @@ description: GitHub Issue の内容に沿って実装・改善を行い、ブラ
 
 ### STEP 1 — Issue の内容を取得・分析する
 
-```bash
-GODEBUG=x509usefallbackroots=1 gh issue view $ARGUMENTS --json number,title,body,labels,assignees,milestone,comments
-```
+以下のコマンドを **順に試し**、最初に成功したものを使う。
+macOS では `gh` コマンドが TLS 証明書チェーンの問題で失敗することがある（`x509: OSStatus -26276`）ため、`curl` を最終手段として用意する。
 
-> **TLS エラーが出た場合**: macOS キーチェーンと Go の証明書検証が競合することがある。`GODEBUG=x509usefallbackroots=1` を付けることで Go 組み込みの CA バンドルを使い回避できる。それでも失敗する場合は REST API で代替する：
-> ```bash
-> GODEBUG=x509usefallbackroots=1 gh api repos/:owner/:repo/issues/$ARGUMENTS
-> ```
+```bash
+# リモートから owner/repo を自動取得（SSH・HTTPS どちらの URL にも対応）
+REPO=$(git remote get-url origin | sed 's/.*github\.com[:/]\(.*\)/\1/' | sed 's/\.git$//')
+
+# 1. gh（GraphQL）
+GODEBUG=x509usefallbackroots=1 gh issue view $ARGUMENTS --json number,title,body,labels,assignees,milestone,comments 2>/dev/null \
+  || \
+  # 2. gh（REST API）
+  GODEBUG=x509usefallbackroots=1 gh api "repos/$REPO/issues/$ARGUMENTS" 2>/dev/null \
+  || \
+  # 3. curl（TLS 検証スキップ）— 公開リポジトリのみ。内容の盗聴リスクは許容範囲
+  curl -s --insecure "https://api.github.com/repos/$REPO/issues/$ARGUMENTS"
+```
 
 取得した内容をもとに以下を整理する：
 

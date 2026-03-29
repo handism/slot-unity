@@ -1,6 +1,7 @@
 #nullable enable
 using DG.Tweening;
 using SlotGame.Audio;
+using SlotGame.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,6 +25,8 @@ namespace SlotGame.View
         // ベット選択ボタン群（Inspector でボタンと値を紐付け）
         [SerializeField] private Button[] betButtons = null!;
         [SerializeField] private int[]    betValues = null!;   // { 10, 20, 50, 100 }
+        [Header("Theme")]
+        [SerializeField] private RetroColorTheme? colorTheme;
 
         private long _displayedCoins;
         private long _displayedWin;
@@ -59,25 +62,27 @@ namespace SlotGame.View
             if (autoButtonText == null && autoSpinButton != null)
                 autoButtonText = autoSpinButton.GetComponentInChildren<TMP_Text>();
 
-            // スピンボタンにブルー系グラデーションを適用
+            // スピンボタンにレトロ赤メタル系グラデーションを適用
             var spinImg = spinButton != null ? spinButton.GetComponent<Image>() : null;
             if (spinImg != null)
             {
-                var grad = spinImg.gameObject.AddComponent<UIGradient>();
+                spinImg.color = Color.white;
+                var grad = spinImg.GetComponent<UIGradient>() ?? spinImg.gameObject.AddComponent<UIGradient>();
                 grad.SetColors(
-                    new Color(0.3f, 0.5f, 0.9f, 1f),
-                    new Color(0.05f, 0.15f, 0.4f, 1f)
+                    colorTheme != null ? colorTheme.spinButtonTop    : new Color(0.80f, 0.15f, 0.10f, 1f),
+                    colorTheme != null ? colorTheme.spinButtonBottom : new Color(0.45f, 0.04f, 0.02f, 1f)
                 );
             }
 
-            // オートスピンボタンにも同系統のグラデーションを適用
+            // オートスピンボタンにバーガンディ系グラデーションを適用
             var autoImg = autoSpinButton != null ? autoSpinButton.GetComponent<Image>() : null;
             if (autoImg != null)
             {
-                var grad = autoImg.gameObject.AddComponent<UIGradient>();
+                autoImg.color = Color.white;
+                var grad = autoImg.GetComponent<UIGradient>() ?? autoImg.gameObject.AddComponent<UIGradient>();
                 grad.SetColors(
-                    new Color(0.25f, 0.4f, 0.75f, 1f),
-                    new Color(0.04f, 0.12f, 0.32f, 1f)
+                    colorTheme != null ? colorTheme.autoSpinButtonTop    : new Color(0.65f, 0.12f, 0.08f, 1f),
+                    colorTheme != null ? colorTheme.autoSpinButtonBottom : new Color(0.35f, 0.04f, 0.02f, 1f)
                 );
             }
 
@@ -218,7 +223,7 @@ namespace SlotGame.View
 
             // 背景
             var bg = popupGo.AddComponent<Image>();
-            bg.color = new Color(0.04f, 0.08f, 0.14f, 0.92f);
+            bg.color = colorTheme != null ? colorTheme.autoSpinPopupBackground : new Color(0.12f, 0.06f, 0.02f, 0.92f);
             bg.raycastTarget = true;
 
             for (int i = 0; i < autoSpinCounts.Length; i++)
@@ -304,26 +309,26 @@ namespace SlotGame.View
                     if (isSelected)
                     {
                         grad.SetColors(
-                            new Color(1f,   0.85f, 0.4f,  0.96f),
-                            new Color(0.7f, 0.45f, 0.1f,  0.96f)
+                            colorTheme != null ? colorTheme.betSelectedTop    : new Color(1f,    0.85f, 0.40f, 0.96f),
+                            colorTheme != null ? colorTheme.betSelectedBottom : new Color(0.70f, 0.45f, 0.10f, 0.96f)
                         );
                     }
                     else
                     {
                         grad.SetColors(
-                            new Color(0.22f, 0.32f, 0.5f,  0.92f),
-                            new Color(0.1f,  0.15f, 0.28f, 0.92f)
+                            colorTheme != null ? colorTheme.betUnselectedTop    : new Color(0.22f, 0.14f, 0.06f, 0.92f),
+                            colorTheme != null ? colorTheme.betUnselectedBottom : new Color(0.12f, 0.07f, 0.03f, 0.92f)
                         );
                     }
 
                     var colors = button.colors;
                     colors.normalColor = Color.white;
                     colors.highlightedColor = isSelected
-                        ? new Color(1f, 0.92f, 0.55f, 1f)
-                        : new Color(0.3f, 0.4f, 0.6f, 1f);
+                        ? (colorTheme != null ? colorTheme.betSelectedHighlight   : new Color(1.00f, 0.92f, 0.55f, 1f))
+                        : (colorTheme != null ? colorTheme.betUnselectedHighlight : new Color(0.40f, 0.25f, 0.10f, 1f));
                     colors.pressedColor = isSelected
-                        ? new Color(0.85f, 0.6f, 0.2f, 1f)
-                        : new Color(0.08f, 0.12f, 0.22f, 1f);
+                        ? (colorTheme != null ? colorTheme.betSelectedPressed   : new Color(0.85f, 0.60f, 0.20f, 1f))
+                        : (colorTheme != null ? colorTheme.betUnselectedPressed : new Color(0.08f, 0.04f, 0.02f, 1f));
                     colors.selectedColor    = colors.highlightedColor;
                     colors.disabledColor    = new Color(1f, 1f, 1f, 0.35f);
                     button.colors = colors;
@@ -332,8 +337,8 @@ namespace SlotGame.View
                 if (label != null)
                 {
                     label.color = isSelected
-                        ? new Color(0.11f, 0.09f, 0.06f, 1f)
-                        : new Color(0.92f, 0.96f, 1f,    0.96f);
+                        ? (colorTheme != null ? colorTheme.betSelectedLabelColor   : new Color(0.11f, 0.09f, 0.06f, 1f))
+                        : (colorTheme != null ? colorTheme.betUnselectedLabelColor : new Color(0.95f, 0.88f, 0.75f, 0.96f));
                 }
             }
         }
@@ -353,11 +358,17 @@ namespace SlotGame.View
             {
                 if (isStopMode)
                 {
-                    grad.SetColors(new Color(1f, 0.4f, 0.3f, 1f), new Color(0.6f, 0.1f, 0.05f, 1f));
+                    grad.SetColors(
+                        colorTheme != null ? colorTheme.spinStopButtonTop    : new Color(1.00f, 0.40f, 0.30f, 1f),
+                        colorTheme != null ? colorTheme.spinStopButtonBottom : new Color(0.60f, 0.10f, 0.05f, 1f)
+                    );
                 }
                 else
                 {
-                    grad.SetColors(new Color(0.3f, 0.5f, 0.9f, 1f), new Color(0.05f, 0.15f, 0.4f, 1f));
+                    grad.SetColors(
+                        colorTheme != null ? colorTheme.spinButtonTop    : new Color(0.80f, 0.15f, 0.10f, 1f),
+                        colorTheme != null ? colorTheme.spinButtonBottom : new Color(0.45f, 0.04f, 0.02f, 1f)
+                    );
                 }
             }
         }

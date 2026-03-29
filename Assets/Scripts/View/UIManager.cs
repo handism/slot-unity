@@ -36,6 +36,9 @@ namespace SlotGame.View
         [SerializeField] private Transform       paylineParent = null!;
         [Header("Debug/Fallback")]
         [SerializeField] private PaylineData     paylineData = null!;
+        [Header("Theme")]
+        [SerializeField] private RetroColorTheme? colorTheme;
+        [SerializeField] private Image?          backgroundPanel;
 
         private List<PaylineView> _activePaylines = new();
         private Queue<PaylineView> _paylinePool = new();
@@ -51,13 +54,13 @@ namespace SlotGame.View
         private CanvasGroup? _hudCanvasGroup;
         private TutorialView? _tutorialView;
 
-        private static readonly Color NormalTint     = new(0.05f, 0.08f, 0.14f, 0f);
-        private static readonly Color FreeSpinTint   = new(0.08f, 0.36f, 0.52f, 0.3f);
-        private static readonly Color BonusRoundTint = new(0.42f, 0.16f, 0.06f, 0.34f);
+        private Color NormalTint     => colorTheme != null ? colorTheme.normalTint     : new(0.10f, 0.05f, 0.01f, 0f);
+        private Color FreeSpinTint   => colorTheme != null ? colorTheme.freeSpinTint   : new(0.60f, 0.40f, 0.00f, 0.25f);
+        private Color BonusRoundTint => colorTheme != null ? colorTheme.bonusRoundTint : new(0.00f, 0.30f, 0.05f, 0.25f);
 
-        private static readonly Color NormalCameraColor     = new(0.05f, 0.08f, 0.14f, 1f);
-        private static readonly Color FreeSpinCameraColor   = new(0.04f, 0.18f, 0.24f, 1f);
-        private static readonly Color BonusRoundCameraColor = new(0.19f, 0.09f, 0.03f, 1f);
+        private Color NormalCameraColor     => colorTheme != null ? colorTheme.normalCameraColor     : new(0.10f, 0.05f, 0.01f, 1f);
+        private Color FreeSpinCameraColor   => colorTheme != null ? colorTheme.freeSpinCameraColor   : new(0.08f, 0.12f, 0.02f, 1f);
+        private Color BonusRoundCameraColor => colorTheme != null ? colorTheme.bonusRoundCameraColor : new(0.02f, 0.08f, 0.03f, 1f);
 
         public bool IsModalOpen { get; private set; }
 
@@ -388,17 +391,19 @@ namespace SlotGame.View
                 };
             }
 
+            var bgColor = mode switch
+            {
+                ModeVisualType.FreeSpin   => FreeSpinCameraColor,
+                ModeVisualType.BonusRound => BonusRoundCameraColor,
+                _                         => NormalCameraColor,
+            };
+
             _mainCamera ??= Camera.main;
             if (_mainCamera != null)
-            {
-                _mainCamera.backgroundColor = mode switch
-                {
-                    ModeVisualType.FreeSpin   => FreeSpinCameraColor,
-                    ModeVisualType.BonusRound => BonusRoundCameraColor,
-                    _                         => NormalCameraColor,
-                };
-            }
+                _mainCamera.backgroundColor = bgColor;
 
+            if (backgroundPanel != null)
+                backgroundPanel.color = bgColor;
         }
 
         public async UniTask ShowModeTransitionAsync(

@@ -1,10 +1,10 @@
 ﻿<Solution>
   <Project Path="SlotGame.Utility.csproj" />
   <Project Path="SlotGame.Tests.PlayMode.csproj" />
+  <Project Path="SlotGame.Data.csproj" />
   <Project Path="SlotGame.View.csproj" />
   <Project Path="SlotGame.Editor.csproj" />
   <Project Path="Assembly-CSharp-firstpass.csproj" />
-  <Project Path="SlotGame.Data.csproj" />
   <Project Path="SlotGame.Model.csproj" />
   <Project Path="SlotGame.Core.csproj" />
   <Project Path="SlotGame.Tests.EditMode.csproj" />

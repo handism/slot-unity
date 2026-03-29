@@ -1,7 +1,8 @@
 # 設計書 — Retro Slots
 
-**バージョン**: 1.0
+**バージョン**: 1.1
 **作成日**: 2026-03-20
+**最終更新日**: 2026-03-29（Issue #80: RetroColorTheme ScriptableObject 追加）
 
 ---
 
@@ -123,6 +124,52 @@ public class ReelStripData : ScriptableObject
 {
     public int reelIndex;
     public List<SymbolData> strip;   // 出目順に並んだシンボルリスト（重複あり）
+}
+
+// レトロクラシックテーマのカラーパレット（Issue #80）
+// UIManager / MainHUDView / WinPopupView が参照する。
+// コードにカラーをハードコードせず、このアセットを Inspector で設定する。
+[CreateAssetMenu(menuName = "SlotGame/RetroColorTheme")]
+public class RetroColorTheme : ScriptableObject
+{
+    // カメラ背景色
+    public Color normalCameraColor;      // 深いマホガニー
+    public Color freeSpinCameraColor;    // 深いオリーブゴールド
+    public Color bonusRoundCameraColor;  // カジノフェルト風の深緑
+
+    // モードオーバーレイ Tint
+    public Color normalTint;             // 透明（通常は無効）
+    public Color freeSpinTint;           // アンバーゴールド半透明
+    public Color bonusRoundTint;         // 深緑半透明
+
+    // スピンボタン（UIGradient 上→下）
+    public Color spinButtonTop;          // 赤メタル（上端）
+    public Color spinButtonBottom;       // 深クリムゾン（下端）
+    public Color spinStopButtonTop;      // オレンジレッド（上端）
+    public Color spinStopButtonBottom;   // 深いオレンジ（下端）
+
+    // オートスピンボタン（UIGradient 上→下）
+    public Color autoSpinButtonTop;      // バーガンディ（上端）
+    public Color autoSpinButtonBottom;   // 深い赤茶（下端）
+    public Color autoSpinPopupBackground;// 回数選択ポップアップ背景（暗いマホガニー）
+
+    // ベットボタン（未選択）
+    public Color betUnselectedTop;
+    public Color betUnselectedBottom;
+    public Color betUnselectedHighlight;
+    public Color betUnselectedPressed;
+    public Color betUnselectedLabelColor;
+
+    // ベットボタン（選択済み）
+    public Color betSelectedTop;         // アンティークゴールド（上端）
+    public Color betSelectedBottom;      // 深いゴールド（下端）
+    public Color betSelectedHighlight;
+    public Color betSelectedPressed;
+    public Color betSelectedLabelColor;
+
+    // WIN ポップアップ背景グラデーション
+    public Color winPopupBackgroundTop;  // 深クリムゾン
+    public Color winPopupBackgroundBottom; // 赤みを帯びたほぼ黒
 }
 
 // ペイライン定義
@@ -670,6 +717,30 @@ Assets/
 コイン/WIN表示を別 Canvas に分離することで、カウントアップ演出中の TMP_Text 更新が
 リールグリッドの Canvas リビルドを誘発しない。DOTween の DOCounter で毎フレーム更新される
 テキストノードのリビルドを HUD Canvas 内に閉じ込める。
+
+### 9.2 UIカラーテーマ管理（RetroColorTheme）
+
+UI カラーは `RetroColorTheme` ScriptableObject に一元集約し、View スクリプト内のハードコードを排除する。
+
+**設計方針:**
+- `UIManager`・`MainHUDView`・`WinPopupView` はそれぞれ `[SerializeField] private RetroColorTheme? colorTheme` フィールドを持つ
+- `colorTheme` が null の場合（Inspector 未設定時）はコード内フォールバック値を使用する（デグレードしない）
+- カラー調整はアセットファイル（`RetroColorTheme.asset`）の Inspector 編集のみで完結し、コードの再コンパイル不要
+
+**アセット配置:**
+```
+Assets/
+  Settings/
+    RetroColorTheme.asset    ← Unity Editor で作成・Inspector から各 View に設定
+```
+
+**手動セットアップ手順（Unity Editor）:**
+1. メニュー `Assets > Create > SlotGame > RetroColorTheme` でアセット作成
+2. `Assets/Settings/RetroColorTheme.asset` に配置
+3. 各 GameObject の Inspector で以下のフィールドにアセットを設定:
+   - `UIManager` → `Color Theme`
+   - `MainHUDView` → `Color Theme`
+   - `WinPopupView` → `Color Theme`
 
 ---
 

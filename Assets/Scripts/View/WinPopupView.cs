@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using SlotGame.Data;
 using TMPro;
 using UnityEngine;
 
@@ -13,6 +14,8 @@ namespace SlotGame.View
         [SerializeField] private TMP_Text winAmountText;
         [SerializeField] private TMP_Text winLevelText;
         [SerializeField] private float    displayDuration = 2f;
+        [Header("Theme")]
+        [SerializeField] private RetroColorTheme? colorTheme;
 
         private CanvasGroup _canvasGroup;
         private Sequence    _currentSequence;
@@ -24,14 +27,14 @@ namespace SlotGame.View
             if (_canvasGroup == null) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             _canvasGroup.alpha = 0;
 
-            // ポップアップ背景 Image にダークネイビーグラデーションを適用
+            // ポップアップ背景 Image にレトロクリムゾン系グラデーションを適用
             var bgImage = GetComponent<UnityEngine.UI.Image>();
             if (bgImage != null)
             {
                 var grad = bgImage.gameObject.AddComponent<UIGradient>();
                 grad.SetColors(
-                    new Color(0.08f, 0.12f, 0.25f, 0.95f),
-                    new Color(0.03f, 0.05f, 0.15f, 0.98f)
+                    colorTheme != null ? colorTheme.winPopupBackgroundTop    : new Color(0.20f, 0.04f, 0.02f, 0.95f),
+                    colorTheme != null ? colorTheme.winPopupBackgroundBottom : new Color(0.08f, 0.01f, 0.01f, 0.98f)
                 );
             }
 
