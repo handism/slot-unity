@@ -348,6 +348,16 @@ public class MainHUDView : MonoBehaviour
     [SerializeField] Button    spinButton;
     [SerializeField] Button    autoSpinButton;
     [SerializeField] Slider    betSlider;
+
+    // オートスピン回数の選択肢（デフォルト: 10 / 25 / 50 / 100）
+    // Inspector または直接編集で変更可能。変更時は Unity Editor 上で
+    // MainHUDView コンポーネントの autoSpinCounts フィールドを編集する。
+    // Awake() 内の BuildAutoSpinPopup() がこの配列をもとにボタンを動的生成する。
+    [SerializeField] int[] autoSpinCounts = { 10, 25, 50, 100 };
+
+    // autoSpinCounts の各値に対応するボタンを autoSpinButton の上部に
+    // ポップアップとしてランタイム生成する。プレハブ不要で UI を構築する実装。
+    private void BuildAutoSpinPopup() { /* ... */ }
 }
 
 // 個別リールの視覚表現
