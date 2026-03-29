@@ -66,7 +66,8 @@ namespace SlotGame.View
             var spinImg = spinButton != null ? spinButton.GetComponent<Image>() : null;
             if (spinImg != null)
             {
-                var grad = spinImg.gameObject.AddComponent<UIGradient>();
+                spinImg.color = Color.white;
+                var grad = spinImg.GetComponent<UIGradient>() ?? spinImg.gameObject.AddComponent<UIGradient>();
                 grad.SetColors(
                     colorTheme != null ? colorTheme.spinButtonTop    : new Color(0.80f, 0.15f, 0.10f, 1f),
                     colorTheme != null ? colorTheme.spinButtonBottom : new Color(0.45f, 0.04f, 0.02f, 1f)
@@ -77,7 +78,8 @@ namespace SlotGame.View
             var autoImg = autoSpinButton != null ? autoSpinButton.GetComponent<Image>() : null;
             if (autoImg != null)
             {
-                var grad = autoImg.gameObject.AddComponent<UIGradient>();
+                autoImg.color = Color.white;
+                var grad = autoImg.GetComponent<UIGradient>() ?? autoImg.gameObject.AddComponent<UIGradient>();
                 grad.SetColors(
                     colorTheme != null ? colorTheme.autoSpinButtonTop    : new Color(0.65f, 0.12f, 0.08f, 1f),
                     colorTheme != null ? colorTheme.autoSpinButtonBottom : new Color(0.35f, 0.04f, 0.02f, 1f)

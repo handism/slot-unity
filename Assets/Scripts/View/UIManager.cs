@@ -38,6 +38,7 @@ namespace SlotGame.View
         [SerializeField] private PaylineData     paylineData = null!;
         [Header("Theme")]
         [SerializeField] private RetroColorTheme? colorTheme;
+        [SerializeField] private Image?          backgroundPanel;
 
         private List<PaylineView> _activePaylines = new();
         private Queue<PaylineView> _paylinePool = new();
@@ -390,17 +391,19 @@ namespace SlotGame.View
                 };
             }
 
+            var bgColor = mode switch
+            {
+                ModeVisualType.FreeSpin   => FreeSpinCameraColor,
+                ModeVisualType.BonusRound => BonusRoundCameraColor,
+                _                         => NormalCameraColor,
+            };
+
             _mainCamera ??= Camera.main;
             if (_mainCamera != null)
-            {
-                _mainCamera.backgroundColor = mode switch
-                {
-                    ModeVisualType.FreeSpin   => FreeSpinCameraColor,
-                    ModeVisualType.BonusRound => BonusRoundCameraColor,
-                    _                         => NormalCameraColor,
-                };
-            }
+                _mainCamera.backgroundColor = bgColor;
 
+            if (backgroundPanel != null)
+                backgroundPanel.color = bgColor;
         }
 
         public async UniTask ShowModeTransitionAsync(

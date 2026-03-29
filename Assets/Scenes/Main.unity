@@ -12085,6 +12085,7 @@ MonoBehaviour:
   paylineParent: {fileID: 0}
   paylineData: {fileID: 11400000, guid: d17e0e0a474fb46a69a417ebf69645aa, type: 2}
   colorTheme: {fileID: 11400000, guid: 40dabecc811e546daaed92fec475003b, type: 2}
+  backgroundPanel: {fileID: 295944989}
 --- !u!1 &1547043155
 GameObject:
   m_ObjectHideFlags: 0
