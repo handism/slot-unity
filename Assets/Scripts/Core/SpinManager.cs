@@ -67,51 +67,67 @@ namespace SlotGame.Core
             // 全リール同時にスクロール開始
             foreach (var reel in reels) reel.StartSpin();
 
-            // 最低スピン時間または早期停止リクエスト待ち
-            await UniTask.WhenAny(
-                UniTask.Delay(TimeSpan.FromSeconds(spinDuration), cancellationToken: ct),
-                UniTask.WaitUntil(() => _skipRequested, cancellationToken: ct)
-            );
-
-            // 早期停止リクエストがあれば全リールを即スナップ
-            if (_skipRequested)
+            try
             {
-                for (int i = 0; i < reels.Length; i++)
-                {
-                    reels[i].RequestSkip();
-                    await reels[i].StopSpin(stopIndices[i], ct);
-                    ReelStopped?.Invoke(i);
-                }
-            }
-            else
-            {
-                // 順次停止
-                for (int i = 0; i < reels.Length; i++)
-                {
-                    if (i > 0)
-                    {
-                        // 順次停止中もスキップをチェック
-                        if (_skipRequested) break;
-                        await UniTask.Delay(TimeSpan.FromSeconds(stopInterval), cancellationToken: ct);
-                    }
-                    if (_skipRequested) break;
-                    await reels[i].StopSpin(stopIndices[i], ct);
-                    ReelStopped?.Invoke(i);
-                }
+                // 最低スピン時間または早期停止リクエスト待ち
+                await UniTask.WhenAny(
+                    UniTask.Delay(TimeSpan.FromSeconds(spinDuration), cancellationToken: ct),
+                    UniTask.WaitUntil(() => _skipRequested, cancellationToken: ct)
+                );
 
-                // 順次停止中にスキップされた場合の残処理
+                // 早期停止リクエストがあれば全リールを即スナップ
                 if (_skipRequested)
                 {
                     for (int i = 0; i < reels.Length; i++)
                     {
-                        if (reels[i].IsSpinning)
+                        reels[i].RequestSkip();
+                        await reels[i].StopSpin(stopIndices[i], ct);
+                        ReelStopped?.Invoke(i);
+                    }
+                }
+                else
+                {
+                    // 順次停止
+                    for (int i = 0; i < reels.Length; i++)
+                    {
+                        if (i > 0)
                         {
-                            reels[i].RequestSkip();
-                            await reels[i].StopSpin(stopIndices[i], ct);
-                            ReelStopped?.Invoke(i);
+                            // 順次停止中もスキップをチェック
+                            if (_skipRequested) break;
+                            await UniTask.Delay(TimeSpan.FromSeconds(stopInterval), cancellationToken: ct);
+                        }
+                        if (_skipRequested) break;
+                        await reels[i].StopSpin(stopIndices[i], ct);
+                        ReelStopped?.Invoke(i);
+                    }
+
+                    // 順次停止中にスキップされた場合の残処理
+                    if (_skipRequested)
+                    {
+                        for (int i = 0; i < reels.Length; i++)
+                        {
+                            if (reels[i].IsSpinning)
+                            {
+                                reels[i].RequestSkip();
+                                await reels[i].StopSpin(stopIndices[i], ct);
+                                ReelStopped?.Invoke(i);
+                            }
                         }
                     }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // オートスピン停止などでキャンセルされた場合、回転中のリールをすべて即停止してから再スロー
+                for (int i = 0; i < reels.Length; i++)
+                {
+                    if (reels[i].IsSpinning)
+                    {
+                        reels[i].RequestSkip();
+                        await reels[i].StopSpin(stopIndices[i], CancellationToken.None);
+                    }
+                }
+                throw;
             }
 
             // グリッド取得

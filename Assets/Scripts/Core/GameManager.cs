@@ -684,7 +684,7 @@ namespace SlotGame.Core
             return _currentPhase switch
             {
                 GamePhase.Idle => next is GamePhase.Spinning or GamePhase.GameOver,
-                GamePhase.Spinning => next == GamePhase.Evaluating,
+                GamePhase.Spinning => next is GamePhase.Evaluating or GamePhase.Idle,
                 GamePhase.Evaluating => next is GamePhase.WinPresentation or GamePhase.BonusRound or GamePhase.FreeSpin or GamePhase.Idle,
                 GamePhase.WinPresentation => next is GamePhase.BonusRound or GamePhase.FreeSpin or GamePhase.Idle,
                 GamePhase.BonusRound => next is GamePhase.FreeSpin or GamePhase.Idle,
