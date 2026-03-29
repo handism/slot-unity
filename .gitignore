@@ -48,13 +48,6 @@ ExportedObj/
 *.VC.db
 *.DotSettings.user
 
-# IDE — JetBrains
-.idea/
-/[Aa]ssets/Plugins/Editor/JetBrains*
-
-# IDE — VSCode
-.vscode/
-
 # Unity3D generated
 *.pidb.meta
 *.pdb.meta
