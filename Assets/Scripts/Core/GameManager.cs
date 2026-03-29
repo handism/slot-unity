@@ -76,7 +76,7 @@ namespace SlotGame.Core
                     save.betAmount,
                     save.hasCompletedTutorial
                 );
-                _gameState.RestoreStats(save.totalSpins, save.maxWin);
+                _gameState.RestoreStats(save.totalSpins, save.totalWins, save.maxWin, save.totalFreeSpinTriggers);
 
                 var random = new SystemRandomGenerator();
                 Initialize(_gameState, _saveDataManager, random, save);
@@ -556,7 +556,7 @@ namespace SlotGame.Core
             }
 
             SaveGame();
-            uiManager.UpdateStats(_gameState.GetSessionStats());
+            uiManager.UpdateStats(_gameState.GetLifetimeStats());
 
             // ボーナス・フリースピン判定
             if (result.HasBonusCondition)
@@ -595,7 +595,7 @@ namespace SlotGame.Core
             uiManager.UpdateCoins(_gameState.Coins);
             uiManager.UpdateWin(win);
             SaveGame();
-            uiManager.UpdateStats(_gameState.GetSessionStats());
+            uiManager.UpdateStats(_gameState.GetLifetimeStats());
 
             await audioManager.CrossFadeBGM(BGMType.Normal, 0.5f, ct);
             uiManager.ApplyModeVisual(ModeVisualType.Normal);
@@ -643,7 +643,7 @@ namespace SlotGame.Core
 
             uiManager.HideFreeSpinHUD();
             SaveGame();
-            uiManager.UpdateStats(_gameState.GetSessionStats());
+            uiManager.UpdateStats(_gameState.GetLifetimeStats());
 
             await audioManager.CrossFadeBGM(BGMType.Normal, 0.5f, ct);
             uiManager.ApplyModeVisual(ModeVisualType.Normal);
@@ -714,7 +714,9 @@ namespace SlotGame.Core
                 bgmVolume  = _bgmVolume,
                 seVolume   = _seVolume,
                 totalSpins = _gameState.TotalSpins,
+                totalWins  = _gameState.TotalWins,
                 maxWin     = _gameState.MaxWin,
+                totalFreeSpinTriggers = _gameState.TotalFreeSpinTriggers,
                 hasCompletedTutorial = _gameState.HasCompletedTutorial,
                 isTurbo    = _gameState.IsTurbo
             });
