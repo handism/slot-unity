@@ -1,4 +1,4 @@
-# ADR 一覧 — Fantasy Slot
+# ADR 一覧 — Retro Slots
 
 | No. | タイトル | ステータス |
 |-----|---------|-----------|

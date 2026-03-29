@@ -1,4 +1,4 @@
-# 設計書 — Fantasy Slot
+# 設計書 — Retro Slots
 
 **バージョン**: 1.0
 **作成日**: 2026-03-20
@@ -110,7 +110,7 @@ public class SymbolData : ScriptableObject
 
 public enum SymbolType
 {
-    Normal,   // 通常シンボル（Dragon〜Jack）
+    Normal,   // 通常シンボル（Seven〜Lemon）
     Wild,     // ワイルド（魔法使い）: 通常シンボルの代替として機能
     Scatter,  // スキャター（魔法陣）: ペイラインに依存しない全体判定
     Bonus,    // ボーナストリガー（宝箱）: リール 0/2/4 全てに出現でボーナスラウンド発動
@@ -531,7 +531,7 @@ public class SeededRandomGenerator : IRandomGenerator { ... }
 
 **方針:**
 
-- 全 Wild ラインの配当ルール: ペイライン上の 5 シンボルがすべて Wild のとき、最高配当シンボル（Dragon）の 5 揃え配当（×125）と同等の配当を与える
+- 全 Wild ラインの配当ルール: ペイライン上の 5 シンボルがすべて Wild のとき、最高配当シンボル（Seven）の 5 揃え配当（×125）と同等の配当を与える
 - 乱数の予測可能性はローカルオフラインのアーケードゲームにおいてセキュリティリスクではないため、`System.Security.Cryptography.RandomNumberGenerator`（暗号論的乱数）は使用しない
 - `IRandomGenerator` でラップする主目的は**テスト容易性（決定論的な再現）**
 - `SpinManager` は DI（SerializeField または コンストラクタ）で `IRandomGenerator` を受け取る
@@ -542,7 +542,7 @@ public class SeededRandomGenerator : IRandomGenerator { ... }
   - `SymbolData.payouts` は `int[]`（倍率を整数で保持）
   - 最終配当は `betAmount * payouts[matchCount - 3]`（整数演算のみ）で算出する
 - `ReelStripData` のストリップは重み付き確率テーブルとして機能
-  - 例: Dragon はストリップ 88 マス中 2 マス（出現率 2.3%）
+  - 例: Seven はストリップ 88 マス中 2 マス（出現率 2.3%）
 - フリースピン中の乱数は通常と同じ系列（有利化なし、倍率のみ変化）
 - ボーナスラウンドの宝箱報酬は `PayoutTableData` の重みに従い抽選
 

@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d8800de2a875041b9a7edef1eabbd7e6, type: 3}
-  m_Name: Phoenix
+  m_Name: Diamond
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 1
-  symbolName: Phoenix
+  symbolName: Diamond
   sprite: {fileID: 6586461156150141773, guid: e036c375ac4424eecbeef33b8174a460, type: 3}
   type: 0
   payouts: 070000000f0000004b000000

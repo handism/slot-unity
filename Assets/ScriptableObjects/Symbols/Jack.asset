@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d8800de2a875041b9a7edef1eabbd7e6, type: 3}
-  m_Name: Jack
+  m_Name: Lemon
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 7
-  symbolName: Jack
+  symbolName: Lemon
   sprite: {fileID: -4588854041495768185, guid: 0b4779971418a4b9188f73458afd6e61, type: 3}
   type: 0
   payouts: 010000000200000005000000

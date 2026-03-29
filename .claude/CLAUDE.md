@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## プロジェクト概要
 
-ファンタジーテーマの 5 リール・25 ペイライン・アーケード系スロットゲーム（Unity 6.3 LTS / PC 向け）。
+レトロクラシックテーマ（Retro Slots）の 5 リール・25 ペイライン・アーケード系スロットゲーム（Unity 6.3 LTS / PC 向け）。
 詳細仕様は `docs/requirements.md`、設計は `docs/design.md`、技術選定の背景は `docs/adr/` を参照。
 
 ## よく使うコマンド

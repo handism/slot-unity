@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d8800de2a875041b9a7edef1eabbd7e6, type: 3}
-  m_Name: King
+  m_Name: Plum
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 5
-  symbolName: King
+  symbolName: Plum
   sprite: {fileID: -5197071633383868925, guid: 1c2e938c059314548915d8b48db43811, type: 3}
   type: 0
   payouts: 01000000030000000a000000

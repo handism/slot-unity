@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d8800de2a875041b9a7edef1eabbd7e6, type: 3}
-  m_Name: Ace
+  m_Name: Cherry
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 4
-  symbolName: Ace
+  symbolName: Cherry
   sprite: {fileID: -90375647409325229, guid: e53e98bffb8b343ed94e82b0f0a81561, type: 3}
   type: 0
   payouts: 02000000040000000c000000

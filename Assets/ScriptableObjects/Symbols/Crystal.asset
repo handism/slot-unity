@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d8800de2a875041b9a7edef1eabbd7e6, type: 3}
-  m_Name: Crystal
+  m_Name: Bar
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 2
-  symbolName: Crystal
+  symbolName: Bar
   sprite: {fileID: 5156776694448688124, guid: c8a7f3488a5894090b4465981f0137e6, type: 3}
   type: 0
   payouts: 050000000a00000032000000

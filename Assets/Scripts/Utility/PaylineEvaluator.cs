@@ -145,7 +145,7 @@ namespace SlotGame.Utility
                 }
             }
 
-            // 全 Wild ライン: Dragon（最高配当シンボル = symbolId が最も大きい Normal）相当
+            // 全 Wild ライン: Seven（最高配当シンボル = symbolId が最も大きい Normal）相当
             if (baseSymbolId < 0)
                 baseSymbolId = FindHighestNormalSymbolId(defs);
 
