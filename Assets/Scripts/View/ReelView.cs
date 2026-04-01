@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -171,7 +172,7 @@ namespace SlotGame.View
             if (_symbolViews == null) return;
 
             for (int row = 0; row < 3; row++)
-                _symbolViews[row + 1].SetHighlighted(rows?.Contains(row) ?? false);
+                _symbolViews[row + 1].SetHighlighted(rows != null && rows.Any(r => r == row));
         }
 
         public void ClearHighlights()

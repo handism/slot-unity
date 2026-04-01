@@ -481,24 +481,21 @@ namespace SlotGame.View
         {
             if (gameDescriptionView == null)
             {
-                // paytableView をテンプレートとしてクローンして GameDescriptionView を作成する
-                if (paytableView != null)
-                {
-                    var go = Instantiate(paytableView.gameObject, paytableView.transform.parent);
-                    go.name = "GameDescriptionView";
-                    
-                    // 既存の PaytableView を削除して GameDescriptionView を追加
-                    Destroy(go.GetComponent<PaytableView>());
-                    gameDescriptionView = go.AddComponent<GameDescriptionView>();
-                    
-                    // 閉じるボタンの再設定などは Awake で行われるが、
-                    // イベント購読をここでも行う必要がある
-                    gameDescriptionView.OnCloseRequested += () => GameDescriptionCloseRequested?.Invoke();
-                    
-                    // 初期テキストを設定
-                    gameDescriptionView.SetDescription(_lastDescriptionText);
-                }
-                else return;
+                // paytableView と同じ Canvas（Main Canvas）に置く。
+                // HUD Canvas に置くと SetHudInteractable(false) で閉じるボタンが無効化されるため。
+                var targetCanvas = paytableView != null
+                    ? paytableView.GetComponentInParent<Canvas>()
+                    : (mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>());
+                if (targetCanvas == null) return;
+
+                var go = new GameObject("GameDescriptionView", typeof(RectTransform));
+                go.transform.SetParent(targetCanvas.transform, false);
+                go.transform.SetAsLastSibling();
+
+                gameDescriptionView = go.AddComponent<GameDescriptionView>();
+                gameDescriptionView.Setup();
+                gameDescriptionView.OnCloseRequested += () => GameDescriptionCloseRequested?.Invoke();
+                gameDescriptionView.SetDescription(_lastDescriptionText);
             }
             SetHudInteractable(false);
             gameDescriptionView.ShowAsync(this.GetCancellationTokenOnDestroy()).Forget();
