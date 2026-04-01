@@ -438,14 +438,18 @@ public class ReelView : MonoBehaviour
 [Serializable]
 public class SaveData
 {
-    public long   coins         = 1000;
-    public int    betAmount     = 10;
-    public float  bgmVolume     = 0.8f;
-    public float  seVolume      = 1.0f;
-    public long   totalSpins    = 0;
-    public long   maxWin        = 0;
-    public string saveVersion   = "1.0";
-    public string checksum      = "";   // SHA256 チェックサム（JSON フィールドとして埋め込み）
+    public long   coins                   = 1000;
+    public int    betAmount               = 10;
+    public float  bgmVolume               = 0.8f;
+    public float  seVolume                = 1.0f;
+    public long   totalSpins              = 0;
+    public long   totalWins               = 0;   // 勝利スピン総数
+    public long   maxWin                  = 0;
+    public int    totalFreeSpinTriggers   = 0;   // フリースピン発動回数
+    public string saveVersion             = "1.0";
+    public string checksum                = "";   // SHA256 チェックサム（JSON フィールドとして埋め込み）
+    public bool   hasCompletedTutorial    = false;
+    public bool   isTurbo                 = false;
 }
 
 public class SaveDataManager
@@ -488,9 +492,9 @@ public class SaveDataManager
    `SlotConfig` が `null` の場合はフォールバック値 `"SALTY_SLOT_2026"` を使用する。
 
 2. **ハッシュ入力文字列の構築**  
-   以下のフィールドをコロン区切りで結合する（`seVolume` は小数点以下 2 桁固定）。
+   以下のフィールドをコロン区切りで結合する（`bgmVolume` / `seVolume` は小数点以下 2 桁固定）。
    ```
-   {coins}:{betAmount}:{bgmVolume:F2}:{seVolume:F2}:{totalSpins}:{maxWin}:{saveVersion}:{salt}
+   {coins}:{betAmount}:{bgmVolume:F2}:{seVolume:F2}:{totalSpins}:{totalWins}:{maxWin}:{totalFreeSpinTriggers}:{saveVersion}:{salt}
    ```
 
 3. **SHA256 ハッシュの計算**  
@@ -503,7 +507,8 @@ public class SaveDataManager
 // 実装例（SaveDataManager.CalculateChecksum）
 string salt = config != null ? config.ChecksumSalt : "SALTY_SLOT_2026";
 string raw  = $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}"
-            + $":{data.totalSpins}:{data.maxWin}:{data.saveVersion}:{salt}";
+            + $":{data.totalSpins}:{data.totalWins}:{data.maxWin}:{data.totalFreeSpinTriggers}"
+            + $":{data.saveVersion}:{salt}";
 using var sha256 = SHA256.Create();
 byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(raw));
 return Convert.ToBase64String(bytes);
