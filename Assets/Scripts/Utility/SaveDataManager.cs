@@ -99,14 +99,15 @@ namespace SlotGame.Utility
             }
             if (data.bgmVolume < 0f || data.bgmVolume > 1f) return false;
             if (data.seVolume  < 0f || data.seVolume  > 1f) return false;
-            if (data.totalSpins < 0 || data.maxWin < 0)     return false;
+            if (data.totalSpins < 0 || data.totalWins < 0 || data.maxWin < 0) return false;
+            if (data.totalFreeSpinTriggers < 0)              return false;
             return true;
         }
 
         private static string CalculateChecksum(SaveData data, SlotConfig? config)
         {
             string salt = config != null ? config.ChecksumSalt : "SALTY_SLOT_2026";
-            string raw = $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}:{data.totalSpins}:{data.maxWin}:{data.saveVersion}:{salt}";
+            string raw = $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}:{data.totalSpins}:{data.totalWins}:{data.maxWin}:{data.totalFreeSpinTriggers}:{data.saveVersion}:{salt}";
             using var sha256 = System.Security.Cryptography.SHA256.Create();
             byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(raw));
             return Convert.ToBase64String(bytes);

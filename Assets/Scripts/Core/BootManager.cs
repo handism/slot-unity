@@ -39,7 +39,7 @@ namespace SlotGame.Core
                 save.betAmount,
                 save.hasCompletedTutorial
             );
-            gameState.RestoreStats(save.totalSpins, save.maxWin);
+            gameState.RestoreStats(save.totalSpins, save.totalWins, save.maxWin, save.totalFreeSpinTriggers);
 
             var random = new SystemRandomGenerator();
 

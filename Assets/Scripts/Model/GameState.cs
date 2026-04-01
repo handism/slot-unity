@@ -16,7 +16,9 @@ namespace SlotGame.Model
         public bool IsFreeSpin => FreeSpinsLeft > 0;
         public bool IsTurbo { get; private set; }
         public long TotalSpins { get; private set; }
+        public long TotalWins { get; private set; }
         public long MaxWin { get; private set; }
+        public int  TotalFreeSpinTriggers { get; private set; }
 
         // ─── セッション統計（インメモリのみ・永続化なし） ───────────────────
         private long _sessionStartCoins;
@@ -107,15 +109,17 @@ namespace SlotGame.Model
             _sessionTotalSpins++;
             if (winAmount > 0)
             {
+                TotalWins++;
                 _sessionWins++;
                 if (winAmount > _sessionLargestWin)
                     _sessionLargestWin = winAmount;
             }
         }
 
-        /// <summary>フリースピンが発動した回数をセッション統計に記録する。</summary>
+        /// <summary>フリースピンが発動した回数をライフタイム統計・セッション統計に記録する。</summary>
         public void RecordFreeSpinTrigger()
         {
+            TotalFreeSpinTriggers++;
             _sessionFreeSpinTriggers++;
         }
 
@@ -135,11 +139,29 @@ namespace SlotGame.Model
                 Coins - _sessionStartCoins);
         }
 
-        /// <summary>統計・フリースピンを含む全状態をセーブデータから復元する。</summary>
-        public void RestoreStats(long totalSpins, long maxWin)
+        /// <summary>統計をセーブデータから復元する。</summary>
+        public void RestoreStats(long totalSpins, long totalWins, long maxWin, int totalFreeSpinTriggers)
         {
             TotalSpins = totalSpins;
-            MaxWin = maxWin;
+            TotalWins  = totalWins;
+            MaxWin     = maxWin;
+            TotalFreeSpinTriggers = totalFreeSpinTriggers;
+        }
+
+        /// <summary>ライフタイム統計のスナップショットを返す（統計パネル表示用）。</summary>
+        public SessionStats GetLifetimeStats()
+        {
+            float winRate = TotalSpins > 0
+                ? (float)TotalWins / TotalSpins * 100f
+                : 0f;
+
+            return new SessionStats(
+                TotalSpins,
+                TotalWins,
+                winRate,
+                MaxWin,
+                TotalFreeSpinTriggers,
+                Coins - _sessionStartCoins);
         }
 
         /// <summary>チュートリアルを完了状態にする。</summary>
