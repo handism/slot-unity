@@ -390,9 +390,10 @@ public class AudioManager : MonoBehaviour
 }
 
 public enum BGMType  { Normal, FreeSpin, BonusRound }
-public enum SEType   { SpinStart, ReelStop, SmallWin, BigWin, MegaWin,
+public enum SEType   { SpinStart, ReelStop, SmallWin, BigWin, MegaWin, EpicWin,
                        ScatterAppear, FreeSpinStart, BonusStart,
                        ChestSelect, ChestOpen, ButtonClick }
+public enum WinLevel { Small, Big, Mega, Epic }
 ```
 
 ---
