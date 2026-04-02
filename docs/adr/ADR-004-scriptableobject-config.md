@@ -24,7 +24,7 @@
 **ScriptableObject を採用する。**
 
 対象アセット:
-- `SymbolData` × 10（各シンボルの配当・スプライト・アニメ）
+- `SymbolData` × 12（各シンボルの配当・スプライト・アニメ）
 - `ReelStripData` × 5（各リールの出目テーブル）
 - `PaylineData` × 1（25ラインの定義）
 - `PayoutTableData` × 1（Scatter 配当、ボーナス報酬重み）
