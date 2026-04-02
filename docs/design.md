@@ -438,7 +438,8 @@ public class MainHUDView : MonoBehaviour
     [SerializeField] TMP_Text  betText;
     [SerializeField] Button    spinButton;
     [SerializeField] Button    autoSpinButton;
-    [SerializeField] Slider    betSlider;
+    // ベット選択ボタン（10 / 20 / 50 / 100 コインの 4 段階）
+    [SerializeField] Button[]  betButtons;
 
     // オートスピン回数の選択肢（デフォルト: 10 / 25 / 50 / 100）
     // Inspector または直接編集で変更可能。変更時は Unity Editor 上で
