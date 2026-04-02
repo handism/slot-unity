@@ -628,7 +628,7 @@ namespace SlotGame.Core
                 async result =>
                 {
                     int multiplier = payoutData != null ? payoutData.freeSpinMultiplier : 2;
-                    long win = result.TotalWinAmount * multiplier;
+                    long win = Math.Min((long)multiplier * result.TotalWinAmount, _gameState.MaxCoins);
                     cumulativeFreeSpinWin += win;
                     uiManager.UpdateCoins(_gameState.Coins);
                     uiManager.UpdateWin(win);
