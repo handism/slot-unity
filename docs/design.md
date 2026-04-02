@@ -51,7 +51,7 @@
 
 | 層 | 責務 | 主なクラス |
 |----|------|-----------|
-| Model | ゲーム状態・データ保持・ロジック | `GameState`, `ReelResult`, `PaylineEvaluator`, `SaveDataManager` |
+| Model | ゲーム状態・データ保持・ロジック | `GameState`, `SpinResult`, `PaylineEvaluator`, `SaveDataManager` |
 | View | UI 表示・アニメーション再生のみ | `UIManager`, `ReelView`, `BonusRoundView` |
 | Presenter | Model と View を繋ぐ・イベント処理 | `GameManager`, `SpinManager`, `BonusManager` |
 
