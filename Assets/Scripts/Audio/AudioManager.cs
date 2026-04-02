@@ -132,8 +132,16 @@ namespace SlotGame.Audio
         public async UniTask FadeOutBGM(float duration, CancellationToken ct)
         {
             float startVolume = bgmSource.volume;
-            await DOTween.To(() => bgmSource.volume, v => bgmSource.volume = v, 0f, duration)
-                         .ToUniTask(cancellationToken: ct);
+            Tween tween = null;
+            try
+            {
+                tween = DOTween.To(() => bgmSource.volume, v => bgmSource.volume = v, 0f, duration);
+                await tween.ToUniTask(cancellationToken: ct);
+            }
+            finally
+            {
+                tween?.Kill();
+            }
             bgmSource.Stop();
             bgmSource.volume = startVolume;
         }
@@ -144,8 +152,16 @@ namespace SlotGame.Audio
             await FadeOutBGM(duration * 0.5f, ct);
             PlayBGM(type);
             bgmSource.volume = 0f;
-            await DOTween.To(() => bgmSource.volume, v => bgmSource.volume = v, _preMuteBgmVolume, duration * 0.5f)
-                         .ToUniTask(cancellationToken: ct);
+            Tween tween = null;
+            try
+            {
+                tween = DOTween.To(() => bgmSource.volume, v => bgmSource.volume = v, _preMuteBgmVolume, duration * 0.5f);
+                await tween.ToUniTask(cancellationToken: ct);
+            }
+            finally
+            {
+                tween?.Kill();
+            }
         }
 
         private void ValidateConfiguration()
