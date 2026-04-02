@@ -18,14 +18,14 @@ namespace SlotGame.Core
         public bool IsSpinning => _isSpinning;
 
         private ReelView _view;
-        private bool     _isSpinning;
-        private bool     _skipRequested;
-        private int      _targetStopIndex;
+        private bool _isSpinning;
+        private bool _skipRequested;
+        private int _targetStopIndex;
 
         private void Awake()
         {
             EnsureView();
-            ReelIndex   = reelStrip != null ? reelStrip.reelIndex : 0;
+            ReelIndex = reelStrip != null ? reelStrip.reelIndex : 0;
         }
 
         public void Initialize(ReelStripData strip)
@@ -39,7 +39,7 @@ namespace SlotGame.Core
         /// <summary>高速スクロールを開始する。</summary>
         public void StartSpin()
         {
-            _isSpinning    = true;
+            _isSpinning = true;
             _skipRequested = false;
             _view.StartScrolling();
         }
@@ -64,9 +64,17 @@ namespace SlotGame.Core
             _isSpinning = false;
         }
 
-        /// <summary>スピン中に呼ぶと全リールを即座にスナップ位置に停止させる。</summary>
+        /// <summary>スピン中に呼ぶと全リールを即座にスナップ位置に停止させる。
+        /// 互換性確保のため引数なしの呼び出しは内部で現在のターゲットを使用します。</summary>
         public void RequestSkip()
         {
+            RequestSkip(_targetStopIndex);
+        }
+
+        /// <summary>ターゲット停止インデックスを指定してスキップ要求を行う。</summary>
+        public void RequestSkip(int targetIndex)
+        {
+            _targetStopIndex = targetIndex;
             _skipRequested = true;
             if (_isSpinning)
                 _view.SnapToPosition(_targetStopIndex);
