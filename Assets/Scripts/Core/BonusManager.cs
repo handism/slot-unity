@@ -54,7 +54,19 @@ namespace SlotGame.Core
 
                 // フリースピン中は配当を指定倍率（デフォルト×2）で計算
                 int multiplier = payouts != null ? payouts.freeSpinMultiplier : 2;
-                long freeSpinWin = result.TotalWinAmount * multiplier;
+                long freeSpinWin;
+                if (multiplier <= 0)
+                {
+                    freeSpinWin = 0;
+                }
+                else
+                {
+                    // overflow-safe multiply with clamp to MaxCoins
+                    if (result.TotalWinAmount > state.MaxCoins / multiplier)
+                        freeSpinWin = state.MaxCoins;
+                    else
+                        freeSpinWin = result.TotalWinAmount * multiplier;
+                }
                 state.AddCoins(freeSpinWin);
                 state.RecordSpin(freeSpinWin);
 
