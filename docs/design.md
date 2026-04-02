@@ -393,7 +393,6 @@ public enum BGMType  { Normal, FreeSpin, BonusRound }
 public enum SEType   { SpinStart, ReelStop, SmallWin, BigWin, MegaWin, EpicWin,
                        ScatterAppear, FreeSpinStart, BonusStart,
                        ChestSelect, ChestOpen, ButtonClick }
-public enum WinLevel { Small, Big, Mega, Epic }
 ```
 
 ---
@@ -412,12 +411,14 @@ public class TitleEffects : MonoBehaviour
 public class UIManager : MonoBehaviour
 {
     // パネル参照
-    [SerializeField] MainHUDView      mainHUD;
-    [SerializeField] FreeSpinHUDView  freeSpinHUD;
-    [SerializeField] BonusRoundView   bonusRoundView;
-    [SerializeField] SettingsView     settingsView;
-    [SerializeField] PaytableView     paytableView;
-    [SerializeField] WinPopupView     winPopupView;
+    [SerializeField] MainHUDView         mainHUD;
+    [SerializeField] FreeSpinHUDView     freeSpinHUD;
+    [SerializeField] BonusRoundView      bonusRoundView;
+    [SerializeField] SettingsView        settingsView;
+    [SerializeField] PaytableView        paytableView;
+    [SerializeField] WinPopupView        winPopupView;
+    [SerializeField] StatsView           statsView;
+    // TutorialView / GameDescriptionView はランタイム動的生成（Prefab なし）
 
     // Presenter から呼ばれるメソッド群
     public void UpdateCoins(long coins);
@@ -469,6 +470,53 @@ public class ReelView : MonoBehaviour
     public async UniTask PlayWinAnimation(int row, CancellationToken ct);
     public void HighlightRows(IReadOnlyCollection<int> rows);
     public void ClearHighlights();
+}
+
+// 当選演出レベル（Scripts/View/WinLevel.cs）
+public enum WinLevel { Small, Big, Mega, Epic }
+
+// 5ステップのチュートリアルオーバーレイ（ランタイム UI 動的生成）
+public class TutorialView : MonoBehaviour
+{
+    // Prefab 不要。Setup() を呼ぶと RectTransform・Image・CanvasGroup・Button を
+    // Instantiate なしでその場生成する。
+    public event System.Action OnComplete;
+
+    public void Setup();                                       // UI 要素をランタイム生成
+    public async UniTask ShowAsync(CancellationToken ct);     // フェードイン→ステップ表示
+}
+
+// セッション/ライフタイム統計パネル
+public class StatsView : MonoBehaviour
+{
+    [SerializeField] TMP_Text totalSpinsText;
+    [SerializeField] TMP_Text winsText;
+    [SerializeField] TMP_Text winRateText;
+    [SerializeField] TMP_Text largestWinText;
+    [SerializeField] TMP_Text freeSpinTriggersText;
+    [SerializeField] TMP_Text netProfitText;
+    [SerializeField] Button   closeButton;
+
+    public event System.Action OnCloseRequested;
+
+    // SessionStats を受け取り各テキストを更新。NetProfit は正/負で緑/赤に色分け
+    public void UpdateDisplay(in SessionStats stats);
+    public async UniTask ShowAsync(CancellationToken ct = default);
+    public async UniTask HideAsync(CancellationToken ct = default);
+}
+
+// ゲーム説明モーダル（PaytableView をクローンしてランタイム生成）
+public class GameDescriptionView : MonoBehaviour
+{
+    [SerializeField] Button   closeButton;
+    [SerializeField] TMP_Text descriptionText;
+
+    public event System.Action OnCloseRequested;
+
+    public void Setup();                                       // 動的生成後に初期化
+    public void SetDescription(string text);
+    public async UniTask ShowAsync(CancellationToken ct = default);
+    public async UniTask HideAsync(CancellationToken ct = default);
 }
 ```
 
@@ -585,6 +633,29 @@ return Convert.ToBase64String(bytes);
 // ボタン画像にブルー系グラデーションを動的に適用する例
 var gradient = buttonImage.gameObject.AddComponent<UIGradient>();
 gradient.SetColors(new Color(0.3f, 0.5f, 0.9f), new Color(0.05f, 0.15f, 0.4f));
+```
+
+---
+
+### 4.7 Utility / Core 層
+
+```csharp
+// 16:9 アスペクト比を維持（Scripts/Utility/ResolutionManager.cs）
+// Camera にアタッチ。Awake() および Update() で Viewport Rect を再計算。
+// ウィンドウが 16:9 より縦長 → ピラーボックス（左右黒帯）
+// ウィンドウが 16:9 より横長 → レターボックス（上下黒帯）
+[RequireComponent(typeof(Camera))]
+public class ResolutionManager : MonoBehaviour { }
+
+// キーボードショートカット処理（Scripts/Core/SlotInputHandler.cs）
+// Unity Input System の PlayerInput と連携し、各アクションを GameManager に委譲する。
+[RequireComponent(typeof(PlayerInput))]
+public class SlotInputHandler : MonoBehaviour
+{
+    [SerializeField] GameManager gameManager;
+    // Space/Enter → スピン, ↑/↓ → ベット増減, A → オートスピン,
+    // S → スキップ, M → ミュート, T → ターボ, P → ペイテーブル
+}
 ```
 
 ---
