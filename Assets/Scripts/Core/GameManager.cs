@@ -329,6 +329,7 @@ namespace SlotGame.Core
 
         public void OnStatsButtonPressed()
         {
+            uiManager.UpdateStats(_gameState.GetLifetimeStats());
             uiManager.ShowStats();
         }
 
