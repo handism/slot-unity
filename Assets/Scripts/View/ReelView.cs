@@ -96,7 +96,7 @@ namespace SlotGame.View
 
             // バウンスアニメーション（リール全体）
             float bounceAmount = 30f;
-            Tween tween = null;
+            Tween? tween = null;
             try
             {
                 tween = DOTween.To(

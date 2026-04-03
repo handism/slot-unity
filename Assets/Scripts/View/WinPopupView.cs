@@ -12,14 +12,14 @@ namespace SlotGame.View
     /// <summary>当選額を中央ポップアップで表示する View。</summary>
     public class WinPopupView : MonoBehaviour
     {
-        [SerializeField] private TMP_Text winAmountText;
-        [SerializeField] private TMP_Text winLevelText;
+        [SerializeField] private TMP_Text winAmountText = null!;
+        [SerializeField] private TMP_Text winLevelText  = null!;
         [SerializeField] private float    displayDuration = 2f;
         [Header("Theme")]
         [SerializeField] private RetroColorTheme? colorTheme;
 
-        private CanvasGroup _canvasGroup;
-        private Sequence    _currentSequence;
+        private CanvasGroup _canvasGroup = null!;
+        private Sequence?   _currentSequence;
         private long        _countValue;
 
         private void Awake()
