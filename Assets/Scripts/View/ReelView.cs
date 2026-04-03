@@ -97,46 +97,59 @@ namespace SlotGame.View
             // バウンスアニメーション（リール全体）
             float bounceAmount = 30f;
             Tween? tween = null;
-            try
-            {
-                tween = DOTween.To(
-                            () => _scrollOffset,
-                            value =>
-                            {
-                                _scrollOffset = value;
-                                UpdateSymbolPositions();
-                            },
-                            -bounceAmount,
-                            0.1f)
-                        .SetEase(Ease.OutQuad);
 
-                await tween.ToUniTask(cancellationToken: ct);
-            }
-            finally
+            // Helper to run a tween with a CancellationToken without relying on ToUniTask's
+            // internal cancellation hookup (which caused a race in DOTween's manager).
+            async UniTask AwaitTweenWithCancellation(Tween t)
             {
-                tween?.Kill();
+                CancellationTokenRegistration reg = default;
+                try
+                {
+                    tween = t;
+                    if (ct.CanBeCanceled)
+                    {
+                        // Register a single guarded kill to ensure only one Kill() happens.
+                        reg = ct.Register(() =>
+                        {
+                            try { tween?.Kill(false); } catch { }
+                        });
+                    }
+
+                    await t.ToUniTask(); // do not pass ct here
+                }
+                finally
+                {
+                    reg.Dispose();
+                    try { tween?.Kill(false); } catch { }
+                    tween = null;
+                }
             }
 
-            tween = null;
-            try
-            {
-                tween = DOTween.To(
-                            () => _scrollOffset,
-                            value =>
-                            {
-                                _scrollOffset = value;
-                                UpdateSymbolPositions();
-                            },
-                            0f,
-                            0.15f)
-                        .SetEase(Ease.OutBounce);
+            // 第1段バウンス
+            var t1 = DOTween.To(
+                        () => _scrollOffset,
+                        value =>
+                        {
+                            _scrollOffset = value;
+                            UpdateSymbolPositions();
+                        },
+                        -bounceAmount,
+                        0.1f)
+                    .SetEase(Ease.OutQuad);
+            await AwaitTweenWithCancellation(t1);
 
-                await tween.ToUniTask(cancellationToken: ct);
-            }
-            finally
-            {
-                tween?.Kill();
-            }
+            // 第2段バウンス（戻す）
+            var t2 = DOTween.To(
+                        () => _scrollOffset,
+                        value =>
+                        {
+                            _scrollOffset = value;
+                            UpdateSymbolPositions();
+                        },
+                        0f,
+                        0.15f)
+                    .SetEase(Ease.OutBounce);
+            await AwaitTweenWithCancellation(t2);
 
             // 全シンボルを整列
             SnapAllToGrid();
