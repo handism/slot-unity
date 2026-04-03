@@ -35,7 +35,7 @@ namespace SlotGame.Core
             ReelStripData[]                  strips,
             PaylineData                      paylines,
             PayoutTableData                  payouts,
-            Func<SpinResult, UniTask>        onSpin,
+            Func<SpinResult, long, UniTask>  onSpin,
             CancellationToken                ct)
         {
             state.AddFreeSpins(count);
@@ -53,9 +53,20 @@ namespace SlotGame.Core
                     _config?.BonusTriggerReels ?? new[] { 0, 2, 4 });
 
                 // フリースピン中は配当を指定倍率（デフォルト×2）で計算
+                // オーバーフロー回避: 除算で上限比較してから乗算
                 int multiplier = payouts != null ? payouts.freeSpinMultiplier : 2;
-                long freeSpinWin = Math.Min((long)multiplier * result.TotalWinAmount, state.MaxCoins);
-                state.AddCoins(freeSpinWin);
+                long coinsBefore = state.Coins;
+                long maxAward = Math.Max(0L, state.MaxCoins - coinsBefore);
+                long candidateWin = 0L;
+                if (multiplier > 0 && result.TotalWinAmount > 0 && maxAward > 0)
+                {
+                    long maxBase = maxAward / multiplier;
+                    candidateWin = result.TotalWinAmount > maxBase
+                        ? maxAward
+                        : result.TotalWinAmount * multiplier;
+                }
+                state.AddCoins(candidateWin);
+                long freeSpinWin = state.Coins - coinsBefore;
                 state.RecordSpin(freeSpinWin);
 
                 // 再トリガー: Scatter 個数に応じて追加
@@ -67,7 +78,7 @@ namespace SlotGame.Core
                     state.AddFreeSpins(extra);
                 }
 
-                await onSpin(result);
+                await onSpin(result, freeSpinWin);
             }
         }
 

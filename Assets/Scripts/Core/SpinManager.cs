@@ -17,7 +17,7 @@ namespace SlotGame.Core
         public event Action<int> ReelStopped;
 
         private IRandomGenerator _random;
-        private bool             _skipRequested;
+        private bool _skipRequested;
         private IReadOnlyDictionary<int, SymbolData> _cachedSymbolDefs;
 
         public void Initialize(IRandomGenerator random, ReelStripData[] strips = null)
@@ -42,15 +42,15 @@ namespace SlotGame.Core
         /// キャンセル時は OperationCanceledException を上位に伝播させる。
         /// </summary>
         public async UniTask<SpinResult> ExecuteSpin(
-            ReelStripData[]  strips,
-            PaylineData      paylines,
-            PayoutTableData  payouts,
-            int              betAmount,
+            ReelStripData[] strips,
+            PaylineData paylines,
+            PayoutTableData payouts,
+            int betAmount,
             CancellationToken ct,
-            int              reelCount = 5,
-            int              rowCount = 3,
-            int              minMatch = 3,
-            int[]            bonusReels = null)
+            int reelCount = 5,
+            int rowCount = 3,
+            int minMatch = 3,
+            int[] bonusReels = null)
         {
             _skipRequested = false;
             var gameState = GameContext.GameState;
@@ -80,7 +80,7 @@ namespace SlotGame.Core
                 {
                     for (int i = 0; i < reels.Length; i++)
                     {
-                        reels[i].RequestSkip();
+                        reels[i].RequestSkip(stopIndices[i]);
                         await reels[i].StopSpin(stopIndices[i], ct);
                         ReelStopped?.Invoke(i);
                     }
@@ -108,7 +108,7 @@ namespace SlotGame.Core
                         {
                             if (reels[i].IsSpinning)
                             {
-                                reels[i].RequestSkip();
+                                reels[i].RequestSkip(stopIndices[i]);
                                 await reels[i].StopSpin(stopIndices[i], ct);
                                 ReelStopped?.Invoke(i);
                             }
@@ -123,7 +123,7 @@ namespace SlotGame.Core
                 {
                     if (reels[i].IsSpinning)
                     {
-                        reels[i].RequestSkip();
+                        reels[i].RequestSkip(stopIndices[i]);
                         await reels[i].StopSpin(stopIndices[i], CancellationToken.None);
                     }
                 }

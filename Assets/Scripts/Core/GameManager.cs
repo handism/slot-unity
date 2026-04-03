@@ -625,10 +625,8 @@ namespace SlotGame.Core
             await bonusManager.RunFreeSpins(
                 _gameState, freeSpinCount,
                 reelStrips, paylineData, payoutData,
-                async result =>
+                async (result, win) =>
                 {
-                    int multiplier = payoutData != null ? payoutData.freeSpinMultiplier : 2;
-                    long win = Math.Min((long)multiplier * result.TotalWinAmount, _gameState.MaxCoins);
                     cumulativeFreeSpinWin += win;
                     uiManager.UpdateCoins(_gameState.Coins);
                     uiManager.UpdateWin(win);
