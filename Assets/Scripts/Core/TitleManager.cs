@@ -11,7 +11,7 @@ namespace SlotGame.Core
         /// <summary>
         /// シーンローダー。テスト時にモックと差し替えられる。
         /// </summary>
-        internal ISceneLoader SceneLoader { get; set; } = new UnitySceneLoader();
+        public ISceneLoader SceneLoader { get; set; } = new UnitySceneLoader();
 
         public void StartGame()
         {

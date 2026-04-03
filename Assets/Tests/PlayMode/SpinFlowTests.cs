@@ -36,7 +36,7 @@ namespace SlotGame.Tests.PlayMode
         {
             // 前のテストで残った Instance があれば破棄してから作り直す
             if (GameContextInitializer.Instance != null)
-                Object.Destroy(GameContextInitializer.Instance.gameObject);
+                UnityEngine.Object.Destroy(GameContextInitializer.Instance.gameObject);
 
             // OnDestroy が呼ばれ Instance が null になるまで待機
             while (GameContextInitializer.Instance != null)
@@ -52,7 +52,7 @@ namespace SlotGame.Tests.PlayMode
         public IEnumerator TearDown()
         {
             if (GameContextInitializer.Instance != null)
-                Object.Destroy(GameContextInitializer.Instance.gameObject);
+                UnityEngine.Object.Destroy(GameContextInitializer.Instance.gameObject);
             yield return null;
         }
 
