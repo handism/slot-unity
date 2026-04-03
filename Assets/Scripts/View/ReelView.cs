@@ -96,29 +96,47 @@ namespace SlotGame.View
 
             // バウンスアニメーション（リール全体）
             float bounceAmount = 30f;
-            await DOTween.To(
-                        () => _scrollOffset,
-                        value =>
-                        {
-                            _scrollOffset = value;
-                            UpdateSymbolPositions();
-                        },
-                        -bounceAmount,
-                        0.1f)
-                    .SetEase(Ease.OutQuad)
-                    .ToUniTask(cancellationToken: ct);
+            Tween tween = null;
+            try
+            {
+                tween = DOTween.To(
+                            () => _scrollOffset,
+                            value =>
+                            {
+                                _scrollOffset = value;
+                                UpdateSymbolPositions();
+                            },
+                            -bounceAmount,
+                            0.1f)
+                        .SetEase(Ease.OutQuad);
 
-            await DOTween.To(
-                        () => _scrollOffset,
-                        value =>
-                        {
-                            _scrollOffset = value;
-                            UpdateSymbolPositions();
-                        },
-                        0f,
-                        0.15f)
-                    .SetEase(Ease.OutBounce)
-                    .ToUniTask(cancellationToken: ct);
+                await tween.ToUniTask(cancellationToken: ct);
+            }
+            finally
+            {
+                tween?.Kill();
+            }
+
+            tween = null;
+            try
+            {
+                tween = DOTween.To(
+                            () => _scrollOffset,
+                            value =>
+                            {
+                                _scrollOffset = value;
+                                UpdateSymbolPositions();
+                            },
+                            0f,
+                            0.15f)
+                        .SetEase(Ease.OutBounce);
+
+                await tween.ToUniTask(cancellationToken: ct);
+            }
+            finally
+            {
+                tween?.Kill();
+            }
 
             // 全シンボルを整列
             SnapAllToGrid();
