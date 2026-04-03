@@ -2,6 +2,7 @@
     "name": "SlotGame.Tests.EditMode",
     "rootNamespace": "SlotGame.Tests.EditMode",
     "references": [
+        "SlotGame.Core",
         "SlotGame.Model",
         "SlotGame.Data",
         "SlotGame.Utility",
