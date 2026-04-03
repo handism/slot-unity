@@ -63,11 +63,10 @@ namespace SlotGame.Core
             if (progressBar != null) progressBar.value = 1f;
             await UniTask.Delay(200);
 
-            // 4. 静的コンテナにデータをセットしてシーン遷移
-            GameContext.GameState       = gameState;
-            GameContext.SaveDataManager = saveDataManager;
-            GameContext.Random          = random;
-            GameContext.SaveData        = save;
+            // 4. DontDestroyOnLoad コンテナを生成してデータを渡す
+            var initGo = new GameObject("[GameContextInitializer]");
+            var contextInitializer = initGo.AddComponent<GameContextInitializer>();
+            contextInitializer.Provide(gameState, saveDataManager, random, save);
 
             op.allowSceneActivation = true;
         }

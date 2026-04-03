@@ -15,8 +15,8 @@ namespace SlotGame.Core
 
         public void StartGame()
         {
-            // 非同期ロードを使用し、BootManager でセットされた GameContext が
-            // GameManager の Awake() で正しく参照されるようにする。
+            // Boot シーンで生成された GameContextInitializer（DontDestroyOnLoad）が
+            // GameManager の Awake() で参照されるため、非同期ロードで Main シーンへ遷移する。
             SceneLoader.LoadSceneAsync("Main", LoadSceneMode.Single);
         }
     }

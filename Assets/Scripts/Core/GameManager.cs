@@ -52,15 +52,11 @@ namespace SlotGame.Core
 
         private void Awake()
         {
-            // Boot シーンから渡されたデータで初期化
-            if (GameContext.GameState != null)
+            // Boot シーンで生成された GameContextInitializer からデータを取得して初期化
+            var ctx = GameContextInitializer.Instance;
+            if (ctx != null)
             {
-                Initialize(
-                    GameContext.GameState,
-                    GameContext.SaveDataManager,
-                    GameContext.Random,
-                    GameContext.SaveData
-                );
+                Initialize(ctx.GameState, ctx.SaveDataManager, ctx.Random, ctx.SaveData);
             }
             else
             {

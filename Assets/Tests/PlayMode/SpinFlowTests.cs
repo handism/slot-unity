@@ -27,16 +27,45 @@ namespace SlotGame.Tests.PlayMode
             public float NextFloat() => 0.5f;
         }
 
+        /// <summary>
+        /// 各テスト前に GameContextInitializer を生成する。
+        /// BootManager を経由しないテスト実行でも明示的にコンテキストを準備する。
+        /// </summary>
+        [UnitySetUp]
+        public IEnumerator SetUp()
+        {
+            // 前のテストで残った Instance があれば破棄してから作り直す
+            if (GameContextInitializer.Instance != null)
+                Object.Destroy(GameContextInitializer.Instance.gameObject);
+
+            // OnDestroy が呼ばれ Instance が null になるまで待機
+            while (GameContextInitializer.Instance != null)
+                yield return null;
+
+            var go = new GameObject("[GameContextInitializer]");
+            go.AddComponent<GameContextInitializer>();
+            yield return null;
+        }
+
+        /// <summary>テスト後に DontDestroyOnLoad オブジェクトを破棄してステートを隔離する。</summary>
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            if (GameContextInitializer.Instance != null)
+                Object.Destroy(GameContextInitializer.Instance.gameObject);
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator Test_NormalSpin_DeductsBet_And_AddsWin() => UniTask.ToCoroutine(async () =>
         {
             // --- Setup ---
             var mockRandom = new MockRandom { Values = new[] { 0, 0, 0, 0, 0 } };
-            
-            GameContext.Random = mockRandom;
-            GameContext.GameState = new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10);
-            GameContext.SaveDataManager = new SaveDataManager();
-            GameContext.SaveData = new SaveData { coins = 1000, betAmount = 10 };
+            GameContextInitializer.Instance.Provide(
+                new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10),
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 1000, betAmount = 10 });
 
             await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
 
@@ -70,10 +99,11 @@ namespace SlotGame.Tests.PlayMode
                 values.AddRange(new[] { 5, 5, 5, 5, 5 });
             
             var mockRandom = new MockRandom { Values = values.ToArray() };
-            GameContext.Random = mockRandom;
-            GameContext.GameState = new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10);
-            GameContext.SaveDataManager = new SaveDataManager();
-            GameContext.SaveData = new SaveData { coins = 1000, betAmount = 10 };
+            GameContextInitializer.Instance.Provide(
+                new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10),
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 1000, betAmount = 10 });
 
             await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
             var gm = GameObject.FindFirstObjectByType<GameManager>();
@@ -102,10 +132,11 @@ namespace SlotGame.Tests.PlayMode
         {
             // --- Setup ---
             var mockRandom = new MockRandom { Values = new[] { 5, 5, 5, 5, 5 } };
-            GameContext.Random = mockRandom;
-            GameContext.GameState = new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10);
-            GameContext.SaveDataManager = new SaveDataManager();
-            GameContext.SaveData = new SaveData { coins = 1000, betAmount = 10 };
+            GameContextInitializer.Instance.Provide(
+                new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10),
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 1000, betAmount = 10 });
 
             await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
             var gm = GameObject.FindFirstObjectByType<GameManager>();
@@ -128,10 +159,11 @@ namespace SlotGame.Tests.PlayMode
         {
             // --- Setup ---
             var mockRandom = new MockRandom { Values = new[] { 1, 3, 5, 7, 9 } }; 
-            GameContext.Random = mockRandom;
-            GameContext.GameState = new GameState(10, 9_999_999, new[] { 10, 20, 50, 100 }, 10, 10); // 最後の 10 コイン
-            GameContext.SaveDataManager = new SaveDataManager();
-            GameContext.SaveData = new SaveData { coins = 10, betAmount = 10 };
+            GameContextInitializer.Instance.Provide(
+                new GameState(10, 9_999_999, new[] { 10, 20, 50, 100 }, 10, 10), // 最後の 10 コイン
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 10, betAmount = 10 });
 
             await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
             var gm = GameObject.FindFirstObjectByType<GameManager>();
@@ -154,9 +186,11 @@ namespace SlotGame.Tests.PlayMode
         {
             // --- Setup ---
             var mockRandom = new MockRandom { Values = new[] { 0, 0, 0, 0, 0 } };
-            GameContext.Random = mockRandom;
-            GameContext.GameState = new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10);
-            GameContext.SaveData = new SaveData { coins = 1000, betAmount = 10 };
+            GameContextInitializer.Instance.Provide(
+                new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10),
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 1000, betAmount = 10 });
 
             await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
             var gm = GameObject.FindFirstObjectByType<GameManager>();
